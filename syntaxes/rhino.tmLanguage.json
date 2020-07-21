@@ -1,0 +1,40 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Rhino",
+	"patterns": [
+		{
+			"include": "#keywords"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [
+				{
+					"name": "entity.name.class",
+					"match": "\\b(assert|banners listener|click|close all child windows|close browser|close window|condition|context click|double click|download resources|execute script|extract data|set geo location|get screenshot|go to url|hide keyboard|keyboard|kill process|long swipe|move to element|navigate back|navigate forward|refresh|register parameter|repeat|right click|scroll|select from combo box|send keys|submit form|swipe|switch to alert|switch to default content|switch to frame|switch to window|try click|try send keys|upload file|wait|wait for element|wait for page|wait for url)\\b"
+				},
+				{
+					"name": "keyword.control",
+					"match": "\\b(on|into|take|from|using|by|filter|mask)\\b"
+				},
+				{
+					"name": "string.quoted.double",
+					"match": "(?<=\\{)[^\\$,\\{].*?(?=})"
+				},
+				{
+					"name": "entity.name.function",
+					"match": "(?<=\\{{)\\$.*?(?=}})"
+				},
+				{
+					"name": "markup.heading",
+					"match": "(?<=^\\[).*?(?=])|\\{|}"
+				},
+				{
+					"name": "comment.line",
+					"match": "(\\s+)?/\\*\\*.*"
+				}			
+			]
+		}	
+	},
+	"scopeName": "source.rhino"
+}
