@@ -1,34 +1,71 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+// https://code.visualstudio.com/api/references/vscode-api#window.showInputBox
+import { fstat } from 'fs';
+import { win32 } from 'path';
 import * as vscode from 'vscode';
 import { RhinoActionsProvider } from './actions-provider';
+import { Utilities } from './extensions/utilities';
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "rhino-language-support" is now active!');
+	console.log('Rhino Language support is now active');
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('rhino-language-support.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Rhino Language Support!');
+	// commnad implementation: activate
+	let activate = vscode.commands.registerCommand('rhino-language-support.activate', () => {
+		vscode.window.showInformationMessage('Activate');
 	});
 
-	// Register Rhino Actions
-	console.log('Starting registerCompletionItemProvider');
-	const provider1 = vscode.languages.registerCompletionItemProvider({ scheme: 'file', language: 'rhino' }, {
-		provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
+	// commnad implementation: createProject
+	let createProject = vscode.commands.registerCommand('rhino-language-support.createProject', () => {
+		vscode.window.showOpenDialog({
+			canSelectFiles: false,
+			canSelectFolders: true,
+			canSelectMany: false
+		})
+		.then(folderUri => {
+			// folder
+			Utilities.createProjectFolder(folderUri);
+			Utilities.createProjectManifest(folderUri);
+
+			// notification
+			vscode.window.showInformationMessage('Rhino project successfully created.');
+		});
+	});
+
+	let run = vscode.commands.registerCommand("rhino-language-support.run", () => {
+		vscode.window.showOpenDialog({
+			canSelectFiles: true,
+			canSelectFolders: false,
+			canSelectMany: false
+		})
+		.then(fileUri => {
+			// get active document
+			var editor = vscode.window.activeTextEditor;
+			
+			// exit conditions
+			if(!editor) {
+				return;
+			}
+
+			// get automation spec (test cases)
+			var testCases: string[] = [];
+			editor.document.getText().split(">>>").forEach(i => testCases.push(i.trim()));
+
+			// get manifest
+			var ws = vscode.workspace.workspaceFolders;
+			if(ws) {
+				console.log(ws[0].uri.fsPath);
+			}
+		});
+	});
+
+	// register: rhino actions
+	const actionsProvider = vscode.languages.registerCompletionItemProvider({ scheme: 'file', language: 'rhino' }, {
+		provideCompletionItems() {
 			return RhinoActionsProvider.get();
 		}
 	});
 
-	const provider2 = vscode.languages.registerCompletionItemProvider({ scheme: 'file', language: 'rhino' }, {
+	// register: auto complete
+	const autoComplete = vscode.languages.registerCompletionItemProvider({ scheme: 'file', language: 'rhino' }, {
 		provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
 			// get all text until the `position` and check if it reads `console.`
 			// and if so then complete if `log`, `warn`, and `error`
@@ -43,10 +80,10 @@ export function activate(context: vscode.ExtensionContext) {
 				new vscode.CompletionItem('error', vscode.CompletionItemKind.Method),
 			];
 		}
-	}, '$'); // triggered whenever a '.' is being typed
+	}, '$');
 
-	context.subscriptions.push(provider1, provider2);
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(actionsProvider/*, autoComplete*/);
+	context.subscriptions.push(activate, createProject, run);
 }
 
 // this method is called when your extension is deactivated

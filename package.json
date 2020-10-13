@@ -8,32 +8,54 @@
 	},
 	"categories": [
 		"Other",
-		"Programming Languages"
+		"Programming Languages",
+		"Snippets"
 	],
 	"activationEvents": [
-		"onCommand:rhino-language-support.helloWorld"
+		"onCommand:rhino-language-support.activate",
+		"onCommand:rhino-language-support.createProject",
+		"onCommand:rhino-language-support.run"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "rhino-language-support.helloWorld",
-				"title": "Rhino: Hellow World"
-			}
+				"command": "rhino-language-support.activate",
+				"title": "Rhino: Activate Rhino Language Engine"
+			},
+			{
+				"command": "rhino-language-support.createProject",
+				"title": "Rhino: Create a New Project"
+			},
+			{
+				"command": "rhino-language-support.run",
+				"title": "Rhino: Run Automation Test"
+			}					
 		],
-        "languages": [
+		"languages": [
 			{
 				"id": "rhino",
-				"aliases": ["Rhino", "rhino"],
-				"extensions": [".rhino"],
+				"aliases": [
+					"Rhino",
+					"rhino"
+				],
+				"extensions": [
+					".rhino"
+				],
 				"configuration": "./language-configuration.json"
 			}
 		],
-        "grammars": [
+		"grammars": [
 			{
 				"language": "rhino",
 				"scopeName": "source.rhino",
 				"path": "./syntaxes/rhino.tmLanguage.json"
+			}
+		],
+		"snippets": [
+			{
+			  "language": "rhino",
+			  "path": "./syntaxes/snippet-test-full.json"
 			}
 		]		
 	},

@@ -1,67 +1,55 @@
-# Rhino API - Syntax Highlights & Language Server
+# Rhino API - Language & Integration Extension
+10/12/2020 - 0 minutes to read
 
-Rhino API is a key word based automation engine, which utilize human language test cases into a fully functional automation. Mush like Cucumber, Robot Framework or Gauge, Rhino "front end" is a test spec which consist of almost free style language to describe your tess actions. _**UNLIKE**_ the tools mentioned above, Rhino does not need implemenation of the spec in order to execute automation. 
+## In This Article
+### Basics
+* [Create New Project](#create_new_project)
+* Manifest Overview
+* Create Rhino Spec File
+* Create Your First Test, Using Test Snippet
+* Run Your Test
 
-Write your spec, Rhino will do the rest. Sounds like a magic? well it is almost good as :).
+### Advanced
+* Deploy Rhino Server
+* Project Manifest
+* Connect to Application Lifecycle Management
+    - Create Test
+    - Import Test
+    - Update Test
 
-## Features
+### References
+* VS Code Content
+    - Rhino Snippets
+    - Rhino Commands
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+## Basics
+### Create New Project
+When you first open Visual Studio Code, the start window appears, and from there, you can run the ```Create a new project``` command.  
 
-For example if there is an image subfolder under your extension project workspace:
+1. Launch VS Code.
+2. Open the **Command Palette** (```Ctrl+Shift+P```).
+3. Type 'shell command' to find the Shell Command: Install 'code' command in PATH command.  
 
-\!\[feature X\]\(images/feature-x.png\)
+[![image 1.1](https://github.com/savanna-projects/rhino-vscode-extension/tree/master/images/create_new_project_1.png "Command Palette")]  
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+4. From the **Select Folder** dialog, select the folder where you want to place Rhino project.
+5. Click on **Select Folder** button.  
 
-## Requirements
+> Tip  
+> You can create a new folder directly from the **Select Folder** dialog and select that new folder to host Rhino project files.  
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+[![image 1.2](https://github.com/savanna-projects/rhino-vscode-extension/tree/master/images/create_new_project_2.png "Select Folder Dialog")]  
 
-## Extension Settings
+6. Click on ```File > Open Folder...```.  
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+[![image 1.3](https://github.com/savanna-projects/rhino-vscode-extension/tree/master/images/create_new_project_3.png "Select Folder Dialog")]  
 
-For example:
+7. Select the folder under which you have created Rhino project.
+8. Click on **Select Folder** button.  
 
-This extension contributes the following settings:
+[![image 1.3](https://github.com/savanna-projects/rhino-vscode-extension/tree/master/images/create_new_project_3.png "Select Folder Dialog")]  
 
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
+> Rhino Project contains several default folders for the different Rhino components and a ```Manifest.json``` file.
 
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+## See Also
+* [Rhino Agent - Novice to Ninja](https://github.com/savanna-projects/rhino-agent/blob/master/docs/pages/Home.md)
