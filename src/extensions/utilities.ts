@@ -1,6 +1,9 @@
 import fs = require('fs');
 import os = require('os');
 
+import * as vscode from 'vscode';
+import * as ph from 'path';
+
 export class Utilities {
     public static replaceAll(str: string, oldValue: string, newValue: string) {
         // iterate
@@ -19,29 +22,43 @@ export class Utilities {
         if(userPath && userPath[0]) {
             path = userPath[0].path;
         }
+        path = os.platform() === "win32" ? this.replaceAll(path, "/", "\\").substr(1, path.length - 1) : path;
 
         // create folders
         var folders = [
-            path + "/Configurations",
-            path + "/Models",
-            path + "/Plugins",
-            path + "/TestCases"
+            ph.join(path, "Configurations"),
+            ph.join(path, "Models"),
+            ph.join(path, "Plugins"),
+            ph.join(path, "TestCases")
         ];
         for (let i = 0; i < folders.length; i++) {
-            var onPath = os.platform() === 'win32'
-                ? Utilities.replaceAll(folders[i], "/", "\\").substr(1, folders[i].length - 1)
-                : folders[i].replace(":", "");
-
-            if (!fs.existsSync(onPath)) {
-                fs.mkdirSync(onPath, { recursive: true });
+            if (!fs.existsSync(folders[i])) {
+                fs.mkdirSync(folders[i], { recursive: true });
             }
-        }        
+        }
     }
 
     // take the input from openDialog
     public static createProjectManifest(userPath: any) {
         var manifastObjt = {
-            "rhinoServer": "http://localhost:5001"
+            "rhinoServer": {
+                "schema": "http",
+                "host": "localhost",
+                "port": "5000"
+            },
+            "connector": {
+                "collection": null,
+                "connector": "connector_text",
+                "password": null,
+                "project": null,
+                "userName": null
+            },
+            "drivers": [
+                {
+                    driver: "ChromeDriver",
+                    driverBinaries: "."
+                }
+            ]
         };
         var manifastData = JSON.stringify(manifastObjt, null, '\t');
         
@@ -50,15 +67,62 @@ export class Utilities {
         if(userPath && userPath[0]) {
             path = userPath[0].path;
         }
+        path = os.platform() === "win32" ? this.replaceAll(path, "/", "\\").substr(1, path.length - 1) : path;
 
         // create manifest
-        path = os.platform() === 'win32'
-            ? Utilities.replaceAll(path, "/", "\\").substr(1, path.length - 1)
-            : path.replace(":", "");
-        fs.writeFile(path + "/manifest.json", manifastData, (err) => {
+        var manifestPath = ph.join(path, "manifest.json");
+        fs.writeFile(manifestPath, manifastData, (err) => {
             if(err) {
-                console.log("Manifest file was not created " + err);
+                vscode.window.showErrorMessage("Manifest file was not created " + err);
             }
         });
-    }    
+    }
+
+    // execute a test case based on manifest string
+    public static execute(test: string, manifest: any) {
+        // setup
+        var configuration = {
+            testsRepository: [
+                test
+            ],
+            driverParameters: manifest.drivers,
+            connectorConfiguration: manifest.connector
+        };
+        var requestBody = JSON.stringify(configuration);
+
+        // post
+        this.post(manifest, "/api/v3/rhino/execute", requestBody);
+    }
+
+    private static post(manifest: any, command: string, requestBody: string) {
+        // setup
+        const https = require('http');        
+        const options = {
+            host: manifest.rhinoServer.host,
+            port: manifest.rhinoServer.port,
+            path: command,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': requestBody.length
+            }
+        };
+        const req = https.request(options, (res: any) => {
+            let data = '';
+            console.log('Status Code:', res.statusCode);
+            res.on('data', (chunk: any) => {
+                data += chunk;
+            });     
+            res.on('end', () => {
+                console.log('Body: ', JSON.parse(data));
+            });       
+        })
+        .on("error", (err: any) => {
+            console.log("Error: ", err.message);
+        });
+        
+        // post
+        req.write(requestBody);
+        req.end();
+    }
 }

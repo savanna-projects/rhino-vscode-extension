@@ -5,6 +5,8 @@ import * as vscode from 'vscode';
 import { RhinoActionsProvider } from './actions-provider';
 import { Utilities } from './extensions/utilities';
 
+import fs = require('fs');
+
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Rhino Language support is now active');
 
@@ -31,30 +33,33 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let run = vscode.commands.registerCommand("rhino-language-support.run", () => {
-		vscode.window.showOpenDialog({
-			canSelectFiles: true,
-			canSelectFolders: false,
-			canSelectMany: false
-		})
-		.then(fileUri => {
-			// get active document
-			var editor = vscode.window.activeTextEditor;
-			
-			// exit conditions
-			if(!editor) {
-				return;
-			}
-
-			// get automation spec (test cases)
-			var testCases: string[] = [];
-			editor.document.getText().split(">>>").forEach(i => testCases.push(i.trim()));
-
-			// get manifest
-			var ws = vscode.workspace.workspaceFolders;
-			if(ws) {
-				console.log(ws[0].uri.fsPath);
-			}
-		});
+		// setup
+		var editor = vscode.window.activeTextEditor;
+		const path = require('path');
+		const fs = require('fs');
+		
+		// exit conditions
+		if(!editor) {
+			return;
+		}
+		
+		// get automation spec (test cases)
+		var testCases: string[] = [];
+		var testCase = editor.document.getText();
+		editor.document.getText().split(">>>").forEach(i => testCases.push(i.trim()));
+		
+		// get manifest
+		var ws = vscode.workspace.workspaceFolders;
+		if(ws) {
+			var p = path.join(ws[0].uri.fsPath, "manifest.json");
+			fs.readFile(p, 'utf8', function (err: any, data: any) {
+				if (err) {
+					return vscode.window.showErrorMessage(err);
+				}
+				var manifest = JSON.parse(data);
+				Utilities.execute(testCase, manifest);
+			});
+		}
 	});
 
 	// register: rhino actions
