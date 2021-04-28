@@ -1,22 +1,91 @@
-// https://code.visualstudio.com/api/references/vscode-api#window.showInputBox
-import { fstat } from 'fs';
-import { win32 } from 'path';
+import path = require('path');
+/*
+ * CHANGE LOG - keep only last 5 threads
+ * 
+ * RESOURCES
+ * https://code.visualstudio.com/api/references/vscode-api#window.showInputBox
+ */
 import * as vscode from 'vscode';
-import { RhinoActionsProvider } from './actions-provider';
+
 import { Utilities } from './extensions/utilities';
+import { ActionsAutoCompleteProvider } from './framework/actions-auto-complete-provider';
+import { MacrosAutoCompleteProvider } from './framework/macros-auto-complete-provider';
+import { RhinoClient } from './framework/rhino-client';
 
-import fs = require('fs');
-
+/**
+ * Summary. This function will be called upon activating the extension.
+ * 
+ * @param context The context of the extension.
+ */
 export function activate(context: vscode.ExtensionContext) {
-	console.log('Rhino Language support is now active');
+	/**
+	 * Summary. Register 'Start-RhinoLanguageSupport' command.
+	 */
+	let startRhinoLanguageSupport = vscode.commands.registerCommand('Start-RhinoLanguageSupport', () => {
+		// setup
+		var projectManifest = Utilities.getProjectManifest();
+		var rhinoServer = projectManifest.rhinoServer;
+		var endpoint = rhinoServer.schema + '://' + rhinoServer.host + ':' + rhinoServer.port;		
+		var client = new RhinoClient(endpoint);
+		var options = {
+			scheme: 'file',
+			language: 'rhino'
+		};
+		vscode.window.showInformationMessage('Start-RhinoLanguageSupport -> Processing...');
 
-	// commnad implementation: activate
-	let activate = vscode.commands.registerCommand('rhino-language-support.activate', () => {
-		vscode.window.showInformationMessage('Activate');
+		// build
+		client.getPlugins((plugins: any[]) => {
+			client.getMacros((macros: any[]) => {
+				client.getLocators((locators: any[]) => {
+					client.getAttributes((attributes: any[]) => {
+						// setup
+						var pattern = Utilities.getPluginsPattern(plugins);
+						var macrosProvider = new MacrosAutoCompleteProvider().setManifests(macros);
+						var actionsProvider = new ActionsAutoCompleteProvider()
+							.setManifests(plugins)
+							.setLocators(locators)
+							.setAttributes(attributes)
+							.setPattern(pattern);
+
+						// register actions auto-complete
+						context.subscriptions.push(vscode.languages.registerCompletionItemProvider(options, {
+							provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+								return actionsProvider.getCompletionItems(document, position);
+							}
+						}));
+
+						// register parameters behavior
+						context.subscriptions.push(vscode.languages.registerCompletionItemProvider(options, {
+							provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+								return actionsProvider.getCompletionItemsBehavior(document, position);
+							}
+						}, '-'));
+
+						// register properties
+						client.getProperties((properties: any[]) => {
+							context.subscriptions.push(vscode.languages.registerCompletionItemProvider(options, {
+								provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+									return actionsProvider.getAnnotationsCompletionItems(properties, document, position);
+								}
+							}, '['));
+						});
+
+						// TODO: register macro behavior
+						// TODO: register assertion behaviour
+
+						// notification
+						var message = 'Start-RhinoLanguageSupport -> (Status: Ok, NumberOfPlugins: ' + plugins.length + ')';
+						vscode.window.showInformationMessage(message);	
+					});
+				});	
+			});
+		});		
 	});
 
-	// commnad implementation: createProject
-	let createProject = vscode.commands.registerCommand('rhino-language-support.createProject', () => {
+	/**
+	 * Summary. Register 'Create-RhinoProject' command.
+	 */
+	let createRhinoProject = vscode.commands.registerCommand('Create-RhinoProject', () => {
 		vscode.window.showOpenDialog({
 			canSelectFiles: false,
 			canSelectFolders: true,
@@ -28,11 +97,14 @@ export function activate(context: vscode.ExtensionContext) {
 			Utilities.createProjectManifest(folderUri);
 
 			// notification
-			vscode.window.showInformationMessage('Rhino project successfully created.');
+			vscode.window.showInformationMessage('Create-RhinoProject -Path ' + folderUri + ' -> Created');
 		});
 	});
 
-	let run = vscode.commands.registerCommand("rhino-language-support.run", () => {
+	/**
+	 * Summary. Register 'Invoke-RhinoTestCase' command.
+	 */
+	let invokeRhinoTestCase = vscode.commands.registerCommand("Invoke-RhinoTestCase", () => {
 		// setup
 		var editor = vscode.window.activeTextEditor;
 		const path = require('path');
@@ -54,7 +126,8 @@ export function activate(context: vscode.ExtensionContext) {
 			var p = path.join(ws[0].uri.fsPath, "manifest.json");
 			fs.readFile(p, 'utf8', function (err: any, data: any) {
 				if (err) {
-					return vscode.window.showErrorMessage(err);
+					console.error(err);
+					return vscode.window.showErrorMessage(err.message);
 				}
 				var manifest = JSON.parse(data);
 				Utilities.execute(testCase, manifest);
@@ -62,34 +135,67 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	// register: rhino actions
-	const actionsProvider = vscode.languages.registerCompletionItemProvider({ scheme: 'file', language: 'rhino' }, {
-		provideCompletionItems() {
-			return RhinoActionsProvider.get();
-		}
-	});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	// register: auto complete
-	const autoComplete = vscode.languages.registerCompletionItemProvider({ scheme: 'file', language: 'rhino' }, {
-		provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
-			// get all text until the `position` and check if it reads `console.`
-			// and if so then complete if `log`, `warn`, and `error`
-			const linePrefix = document.lineAt(position).text.substr(0, position.character);
-			if (!linePrefix.endsWith('{{$')) {
-				return undefined;
-			}
+	// const autoComplete = vscode.languages.registerCompletionItemProvider({ scheme: 'file', language: 'rhino' }, {
+	// 	provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+	// 		// get all text until the `position` and check if it reads `console.`
+	// 		// and if so then complete if `log`, `warn`, and `error`
+	// 		var linePrefix = document.lineAt(position).text.substr(0, position.character);
+	// 		if (!linePrefix.match('{{\\$\\s+-{2}(}})?$')) {
+	// 			return undefined;
+	// 		}
 			
-			return [
-				new vscode.CompletionItem('log', vscode.CompletionItemKind.Method),
-				new vscode.CompletionItem('warn', vscode.CompletionItemKind.Method),
-				new vscode.CompletionItem('error', vscode.CompletionItemKind.Method),
-			];
-		}
-	}, '$');
+	// 		var a  = new vscode.CompletionItem('log', vscode.CompletionItemKind.Method);
+	// 		a.documentation = "parameter help";
 
-	context.subscriptions.push(actionsProvider/*, autoComplete*/);
-	context.subscriptions.push(activate, createProject, run);
+	// 		return [
+	// 			a,
+	// 			new vscode.CompletionItem('warn', vscode.CompletionItemKind.Method),
+	// 			new vscode.CompletionItem('error', vscode.CompletionItemKind.Method),
+	// 		];
+	// 	}
+	// }, '-', '$');
+
+	//context.subscriptions.push(autoComplete);
+	context.subscriptions.push(startRhinoLanguageSupport, createRhinoProject, invokeRhinoTestCase);
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }

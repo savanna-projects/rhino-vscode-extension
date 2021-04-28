@@ -12,24 +12,24 @@
 		"Snippets"
 	],
 	"activationEvents": [
-		"onCommand:rhino-language-support.activate",
-		"onCommand:rhino-language-support.createProject",
-		"onCommand:rhino-language-support.run"
+		"onCommand:Start-RhinoLanguageSupport",
+		"onCommand:Create-RhinoProject",
+		"onCommand:Invoke-RhinoTestCase"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "rhino-language-support.activate",
-				"title": "Rhino: Activate Rhino Language Engine"
+				"command": "Start-RhinoLanguageSupport",
+				"title": "Rhino: Activate Rhino Language Support"
 			},
 			{
-				"command": "rhino-language-support.createProject",
-				"title": "Rhino: Create a New Project"
+				"command": "Create-RhinoProject",
+				"title": "Rhino: Creates a New Rhino Project"
 			},
 			{
-				"command": "rhino-language-support.run",
-				"title": "Rhino: Run Automation Test"
+				"command": "Invoke-RhinoTestCase",
+				"title": "Rhino: Runs and Automation Test"
 			}					
 		],
 		"languages": [
@@ -49,13 +49,13 @@
 			{
 				"language": "rhino",
 				"scopeName": "source.rhino",
-				"path": "./syntaxes/rhino.tmLanguage.json"
+				"path": "./src/syntaxes/rhino.tmLanguage.json"
 			}
 		],
 		"snippets": [
 			{
 			  "language": "rhino",
-			  "path": "./syntaxes/snippet-test-full.json"
+			  "path": "./src/syntaxes/snippet-test-full.json"
 			}
 		]		
 	},
