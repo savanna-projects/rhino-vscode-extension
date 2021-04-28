@@ -93,7 +93,7 @@ export class ActionsAutoCompleteProvider {
     /**
      * Summary. Gets a collection of CompletionItem for snippets with auto-complete behavior. 
      */
-    public getCompletionItems(document: vscode.TextDocument, position: vscode.Position)
+    public getActionsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
         // bad request
         if(this.isCli(document.lineAt(position.line).text, position.character)) {
@@ -105,13 +105,13 @@ export class ActionsAutoCompleteProvider {
         var provieders: vscode.CompletionItem[] = [];
 
         // build
-        snippets.forEach(i => provieders.push(this.getCompletionItem(i)));
+        snippets.forEach(i => provieders.push(this.getActionsCompletionItem(i)));
 
         // get
         return provieders;        
     }
 
-    private getCompletionItem(snippet: RhinoSnippet): vscode.CompletionItem {
+    private getActionsCompletionItem(snippet: RhinoSnippet): vscode.CompletionItem {
         // setup
         var item = new vscode.CompletionItem(snippet.name);
 
@@ -252,9 +252,8 @@ export class ActionsAutoCompleteProvider {
       └────────────────────────────────────────────────────────*/
     /**
      * Summary. Gets a collection of CompletionItem for snippets with auto-complete behavior. 
-     * 
      */
-    public getCompletionItemsBehavior(document: vscode.TextDocument, position: vscode.Position)
+    public getParametersCompletionItems(document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
         // setup
         var matches = document.lineAt(position).text.match(this.pattern);
@@ -362,11 +361,11 @@ export class ActionsAutoCompleteProvider {
 
         // build
         while (index > 0) {
-            if(index - 2 < 0) {
+            if(index - 1 < 0) {
                 return false;
             }
             
-            var _isCli = line.substr(index - 2, index) === '{{$';
+            var _isCli = line.substr(index - 1, 3) === '{{$';
             if(_isCli) {
                return true;
             }

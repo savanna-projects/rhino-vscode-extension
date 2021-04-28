@@ -1,4 +1,3 @@
-import path = require('path');
 /*
  * CHANGE LOG - keep only last 5 threads
  * 
@@ -6,6 +5,7 @@ import path = require('path');
  * https://code.visualstudio.com/api/references/vscode-api#window.showInputBox
  */
 import * as vscode from 'vscode';
+import { ConnectRhinoServer } from './commands/connect-rhino-server';
 
 import { Utilities } from './extensions/utilities';
 import { ActionsAutoCompleteProvider } from './framework/actions-auto-complete-provider';
@@ -19,68 +19,72 @@ import { RhinoClient } from './framework/rhino-client';
  */
 export function activate(context: vscode.ExtensionContext) {
 	/**
-	 * Summary. Register 'Start-RhinoLanguageSupport' command.
+	 * Summary. Register 'Connect-RhinoServer' command.
 	 */
-	let startRhinoLanguageSupport = vscode.commands.registerCommand('Start-RhinoLanguageSupport', () => {
-		// setup
-		var projectManifest = Utilities.getProjectManifest();
-		var rhinoServer = projectManifest.rhinoServer;
-		var endpoint = rhinoServer.schema + '://' + rhinoServer.host + ':' + rhinoServer.port;		
-		var client = new RhinoClient(endpoint);
-		var options = {
-			scheme: 'file',
-			language: 'rhino'
-		};
-		vscode.window.showInformationMessage('Start-RhinoLanguageSupport -> Processing...');
+	context.subscriptions.push(vscode.commands.registerCommand('Connect-RhinoServer', () => {
+		new ConnectRhinoServer(context).register();
+	}));
+	
+	// let startRhinoLanguageSupport = vscode.commands.registerCommand('Connect-RhinoServer', () => {
+	// 	// setup
+	// 	var projectManifest = Utilities.getProjectManifest();
+	// 	var rhinoServer = projectManifest.rhinoServer;
+	// 	var endpoint = rhinoServer.schema + '://' + rhinoServer.host + ':' + rhinoServer.port;		
+	// 	var client = new RhinoClient(endpoint);
+	// 	var options = {
+	// 		scheme: 'file',
+	// 		language: 'rhino'
+	// 	};
+	// 	vscode.window.showInformationMessage('Connect-RhinoServer -> Processing...');
 
-		// build
-		client.getPlugins((plugins: any[]) => {
-			client.getMacros((macros: any[]) => {
-				client.getLocators((locators: any[]) => {
-					client.getAttributes((attributes: any[]) => {
-						// setup
-						var pattern = Utilities.getPluginsPattern(plugins);
-						var macrosProvider = new MacrosAutoCompleteProvider().setManifests(macros);
-						var actionsProvider = new ActionsAutoCompleteProvider()
-							.setManifests(plugins)
-							.setLocators(locators)
-							.setAttributes(attributes)
-							.setPattern(pattern);
+	// 	// build
+	// 	client.getPlugins((plugins: any[]) => {
+	// 		client.getMacros((macros: any[]) => {
+	// 			client.getLocators((locators: any[]) => {
+	// 				client.getAttributes((attributes: any[]) => {
+	// 					// setup
+	// 					var pattern = Utilities.getPluginsPattern(plugins);
+	// 					var macrosProvider = new MacrosAutoCompleteProvider().setManifests(macros);
+	// 					var actionsProvider = new ActionsAutoCompleteProvider()
+	// 						.setManifests(plugins)
+	// 						.setLocators(locators)
+	// 						.setAttributes(attributes)
+	// 						.setPattern(pattern);
 
-						// register actions auto-complete
-						context.subscriptions.push(vscode.languages.registerCompletionItemProvider(options, {
-							provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
-								return actionsProvider.getCompletionItems(document, position);
-							}
-						}));
+	// 					// register actions auto-complete
+	// 					context.subscriptions.push(vscode.languages.registerCompletionItemProvider(options, {
+	// 						provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+	// 							return actionsProvider.getActionsCompletionItems(document, position);
+	// 						}
+	// 					}));
 
-						// register parameters behavior
-						context.subscriptions.push(vscode.languages.registerCompletionItemProvider(options, {
-							provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
-								return actionsProvider.getCompletionItemsBehavior(document, position);
-							}
-						}, '-'));
+	// 					// register parameters behavior
+	// 					context.subscriptions.push(vscode.languages.registerCompletionItemProvider(options, {
+	// 						provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+	// 							return actionsProvider.getParametersCompletionItems(document, position);
+	// 						}
+	// 					}, '-'));
 
-						// register properties
-						client.getProperties((properties: any[]) => {
-							context.subscriptions.push(vscode.languages.registerCompletionItemProvider(options, {
-								provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
-									return actionsProvider.getAnnotationsCompletionItems(properties, document, position);
-								}
-							}, '['));
-						});
+	// 					// register properties
+	// 					client.getProperties((properties: any[]) => {
+	// 						context.subscriptions.push(vscode.languages.registerCompletionItemProvider(options, {
+	// 							provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+	// 								return actionsProvider.getAnnotationsCompletionItems(properties, document, position);
+	// 							}
+	// 						}, '['));
+	// 					});
 
-						// TODO: register macro behavior
-						// TODO: register assertion behaviour
+	// 					// TODO: register macro behavior
+	// 					// TODO: register assertion behaviour
 
-						// notification
-						var message = 'Start-RhinoLanguageSupport -> (Status: Ok, NumberOfPlugins: ' + plugins.length + ')';
-						vscode.window.showInformationMessage(message);	
-					});
-				});	
-			});
-		});		
-	});
+	// 					// notification
+	// 					var message = 'Connect-RhinoServer -> (Status: Ok, NumberOfPlugins: ' + plugins.length + ')';
+	// 					vscode.window.showInformationMessage(message);	
+	// 				});
+	// 			});	
+	// 		});
+	// 	});		
+	// });
 
 	/**
 	 * Summary. Register 'Create-RhinoProject' command.
@@ -127,7 +131,7 @@ export function activate(context: vscode.ExtensionContext) {
 			fs.readFile(p, 'utf8', function (err: any, data: any) {
 				if (err) {
 					console.error(err);
-					return vscode.window.showErrorMessage(err.message);
+					vscode.window.showErrorMessage(err.message);
 				}
 				var manifest = JSON.parse(data);
 				Utilities.execute(testCase, manifest);
@@ -194,7 +198,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// }, '-', '$');
 
 	//context.subscriptions.push(autoComplete);
-	context.subscriptions.push(startRhinoLanguageSupport, createRhinoProject, invokeRhinoTestCase);
+	//context.subscriptions.push(startRhinoLanguageSupport, createRhinoProject, invokeRhinoTestCase);
 }
 
 // this method is called when your extension is deactivated

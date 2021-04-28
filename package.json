@@ -12,7 +12,7 @@
 		"Snippets"
 	],
 	"activationEvents": [
-		"onCommand:Start-RhinoLanguageSupport",
+		"onCommand:Connect-RhinoServer",
 		"onCommand:Create-RhinoProject",
 		"onCommand:Invoke-RhinoTestCase"
 	],
@@ -20,8 +20,8 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "Start-RhinoLanguageSupport",
-				"title": "Rhino: Activate Rhino Language Support"
+				"command": "Connect-RhinoServer",
+				"title": "Rhino: Connect to Rhino & Fetch Metadata"
 			},
 			{
 				"command": "Create-RhinoProject",
@@ -30,7 +30,7 @@
 			{
 				"command": "Invoke-RhinoTestCase",
 				"title": "Rhino: Runs and Automation Test"
-			}					
+			}
 		],
 		"languages": [
 			{
@@ -54,10 +54,10 @@
 		],
 		"snippets": [
 			{
-			  "language": "rhino",
-			  "path": "./src/syntaxes/snippet-test-full.json"
+				"language": "rhino",
+				"path": "./src/syntaxes/snippet-test-full.json"
 			}
-		]		
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -68,16 +68,16 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/vscode": "^1.47.0",
 		"@types/glob": "^7.1.1",
 		"@types/mocha": "^7.0.2",
-		"@types/node": "^13.11.0",
-		"eslint": "^6.8.0",
-		"@typescript-eslint/parser": "^2.30.0",
+		"@types/node": "^13.13.51",
+		"@types/vscode": "^1.55.0",
 		"@typescript-eslint/eslint-plugin": "^2.30.0",
+		"@typescript-eslint/parser": "^2.30.0",
+		"eslint": "^6.8.0",
 		"glob": "^7.1.6",
 		"mocha": "^7.1.2",
-		"typescript": "^3.8.3",
-		"vscode-test": "^1.3.0"
+		"typescript": "^3.9.9",
+		"vscode-test": "^1.5.2"
 	}
 }
