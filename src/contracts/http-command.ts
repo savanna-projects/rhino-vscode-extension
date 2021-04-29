@@ -80,7 +80,7 @@ export class HttpCommand {
      * @param name  The header to add to the collection. 
      * @param value The header values to add to the collection.
      */
-    public addHeader(name: string, value: string) {
+    public addHeader(name: string, value: any) {
         // build
         this.headers[name] = value;
 

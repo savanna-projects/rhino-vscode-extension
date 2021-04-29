@@ -51,7 +51,7 @@ export class HttpClient {
 
         // send
         if(httpCommand.body !== null) {
-            request.write(httpCommand.body);
+            request.write(JSON.stringify(httpCommand.body));
         }
         request.end();
     }
@@ -73,8 +73,8 @@ export class HttpClient {
         if(port !== -1) {
             options['port'] = port;
         };
-        if(httpCommand.headers.length > 0) {
-            options['headers'] = httpCommand.headers;
+        if(httpCommand.headers) {
+            options.headers = httpCommand.headers;
         }
 
         // get

@@ -35,7 +35,7 @@ export class MacrosAutoCompleteProvider {
         return this;
     }
 
-    /*┌─[ AUTO-COMPLETE ITEMS BEHAVIOR ]─────────────────────
+    /*┌─[ AUTO-COMPLETE ITEMS BEHAVIOR ]───────────────────────
       │
       │ A collection of functions to factor auto-complete items
       │ behavior for macros.

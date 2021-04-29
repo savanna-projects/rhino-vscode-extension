@@ -4,12 +4,17 @@
  * RESOURCES
  */
 import * as vscode from 'vscode';
+import { Utilities } from '../extensions/utilities';
+import { RhinoClient } from '../framework/rhino-client';
 
 export abstract class Command {
     // members:
     private commandName: string;
     private endpoint: string;
     private context: vscode.ExtensionContext;
+    private options: any;
+    private projectManifest: any;
+    private client: RhinoClient;
 
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
@@ -17,11 +22,27 @@ export abstract class Command {
      * @param context The context under which to register the command.
      */
     constructor(context: vscode.ExtensionContext) {
+        // setup
         this.commandName = '';
         this.endpoint = 'http://localhost:9000';
         this.context = context;
+        this.options = {
+            scheme: 'file',
+            language: 'rhino'
+       };
+
+       // build
+       this.projectManifest = Utilities.getProjectManifest();
+       var server = this.projectManifest.rhinoServer;
+       var rhinoEndpont = this.setEndpoint(server.schema + '://' + server.host + ':' + server.port).getEndpoint();
+       this.client = new RhinoClient(rhinoEndpont);
     }
 
+    /*┌─[ SETTERS ]────────────────────────────────────────────
+      │
+      │ A collection of functions to set object properties
+      │ to avoid initializing members in the object signature.
+      └────────────────────────────────────────────────────────*/
     /**
      * Summary. Sets the command name to register.
      * 
@@ -49,14 +70,68 @@ export abstract class Command {
         // get
         return this;
     }
+    
+    /**
+     * Summary. Sets the Rhino Project manifest to use with the command.
+     * 
+     * @param projectManifest The Rhino Project manifest (found in the project root).
+     * @returns Self reference.
+     */
+    public setProjectManifest(projectManifest: any): Command {
+        // setup
+        this.projectManifest = projectManifest;
+
+        // get
+        return this;
+    }
+
+    /*┌─[ GETTERS ]────────────────────────────────────────────
+      │
+      │ A collection of functions to get object properties.
+      └────────────────────────────────────────────────────────*/
+    /**
+     * Summary. Gets the command name to register.
+     * 
+     * @returns The command name to register.
+     */
+    public getCommandName(): string {
+        return this.commandName;
+    }
 
     /**
      * Summary. Gets the Rhino Server endpoint to use with the command.
      * 
      * @returns The Rhino Server endpoint. 
      */
-     public getEndpoint(): string {
+    public getEndpoint(): string {
         return this.endpoint;
+    }
+
+    /**
+     * Summary. Gets the command options.
+     * 
+     * @returns The Rhino Server endpoint. 
+     */
+    public getOptions(): any {
+        return this.options;
+    }
+
+    /**
+     * Summary. Gets the Rhino API client to use with the command.
+     * 
+     * @returns The Rhino API client. 
+     */
+    public getRhinoClient(): RhinoClient {
+        return this.client;
+    }
+
+    /**
+     * Summary. Gets the Rhino Project manifest object.
+     * 
+     * @returns The Rhino Project manifest object to use with the command. 
+     */
+    public getProjectManifest(): any {
+        return this.projectManifest;
     }
 
     /**
@@ -64,12 +139,22 @@ export abstract class Command {
      * 
      * @returns The VS Code context. 
      */
-     public getContext(): vscode.ExtensionContext {
+    public getContext(): vscode.ExtensionContext {
         return this.context;
     }
 
+    /*┌─[ INTERFACE ]──────────────────────────────────────────
+      │
+      │ A collection of functions to to implement under
+      │ any command.
+      └────────────────────────────────────────────────────────*/
     /**
      * Summary. When implemented, returns registerable command
      */
     public abstract register(): any;
+
+    /**
+     * Summary. Implement the command invoke pipeline.
+     */
+    public abstract invokeCommand(): any;
 }

@@ -29,7 +29,7 @@
 			},
 			{
 				"command": "Invoke-RhinoTestCase",
-				"title": "Rhino: Runs and Automation Test"
+				"title": "Rhino: Runs the automation test(s) from the currently open document"
 			}
 		],
 		"languages": [

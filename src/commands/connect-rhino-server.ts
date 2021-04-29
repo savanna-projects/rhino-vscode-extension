@@ -5,65 +5,61 @@
  */
 import * as vscode from 'vscode';
 
-import { Utilities } from "../extensions/utilities";
 import { ActionsAutoCompleteProvider } from '../framework/actions-auto-complete-provider';
 import { MacrosAutoCompleteProvider } from '../framework/macros-auto-complete-provider';
-import { RhinoClient } from "../framework/rhino-client";
 import { Command } from "./command-base";
 
-export class ConnectRhinoServer extends Command {
-    // members
-    private projectManifest: any;
-    private client: RhinoClient;
-    private options: any;
-    
+export class ConnectRhinoServer extends Command {  
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
      * @param context The context under which to register the command.
      */
-     constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext) {
          super(context);
 
          // build
-         this.projectManifest = Utilities.getProjectManifest();
-         var server = this.projectManifest.rhinoServer;
-         var rhinoEndpont = this.setEndpoint(server.schema + '://' + server.host + ':' + server.port).getEndpoint();
-         this.client = new RhinoClient(rhinoEndpont);
          this.setCommandName('Connect-RhinoServer');
-         this.options = {
-             scheme: 'file',
-             language: 'rhino'
-        };
     }
 
-    /**
-     * Summary. Sets the Rhino Project manifest to use with the command.
-     * 
-     * @param projectManifest The Rhino Project manifest (found in the project root).
-     * @returns Self reference.
-     */
-    public setProjectManifest(projectManifest: any): ConnectRhinoServer {
-        // setup
-        this.projectManifest = projectManifest;
-
-        // get
-        return this;
-    }
-
+    /*┌─[ REGISTER & INVOKE ]──────────────────────────────────
+      │
+      │ A command registration pipeline to expose the command
+      │ in the command interface (CTRL+SHIFT+P).
+      └────────────────────────────────────────────────────────*/
     /**
      * Summary. Register a command for connecting the Rhino Server and loading all
      *          Rhino Language metadata.
      */
-    public register(): any {      
+    public register(): any {
+        // build
+        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+            this.invoke();
+        });
+
+        // set
+        this.getContext().subscriptions.push(command);
+    }
+
+    /**
+     * Summary. Implement the command invoke pipeline.
+     */
+    public invokeCommand() {
+        this.invoke();
+    }
+
+    private invoke() {
         // notification
         vscode.window.showInformationMessage('Connect-RhinoServer -> Processing...');
 
+        // setup
+        var client = this.getRhinoClient();
+
         // build
-        this.client.getPlugins((plugins: any[]) => {
-            this.client.getMacros((macros: any[]) => {
-                this.client.getLocators((locators: any[]) => {
-                     this.client.getProperties((attributes: any[]) => {
+        client.getPlugins((plugins: any[]) => {
+            client.getMacros((macros: any[]) => {
+                client.getLocators((locators: any[]) => {
+                     client.getProperties((attributes: any[]) => {
                         var pattern = ConnectRhinoServer.getPluginsPattern(plugins);
                         var macrosProvider = new MacrosAutoCompleteProvider().setManifests(macros);
                         var actionsProvider = new ActionsAutoCompleteProvider()
@@ -83,15 +79,22 @@ export class ConnectRhinoServer extends Command {
                         
 						var message = 'Connect-RhinoServer -> (Status: Ok, NumberOfPlugins: ' + plugins.length + ')';
 						vscode.window.showInformationMessage(message);
+                        
+                        message = 'Connect-RhinoServer -> (Status: Ok, NumberOfMacros: ' + macros.length + ')';
+                        vscode.window.showInformationMessage(message);
                     });
                 });
             });
         });
     }
 
+    /*┌─[ AUTO-COMPLETE ITEMS ]────────────────────────────────
+      │
+      │ All auto-complete items - data and behavior.
+      └────────────────────────────────────────────────────────*/
     // register actions auto-complete
     private getActions(provider: ActionsAutoCompleteProvider): vscode.Disposable {
-        return vscode.languages.registerCompletionItemProvider(this.options, {
+        return vscode.languages.registerCompletionItemProvider(this.getOptions(), {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return provider.getActionsCompletionItems(document, position);
             }
@@ -100,7 +103,7 @@ export class ConnectRhinoServer extends Command {
 
     // register parameters auto-complete
     private getActionsParamters(provider: ActionsAutoCompleteProvider) {
-        return vscode.languages.registerCompletionItemProvider(this.options, {
+        return vscode.languages.registerCompletionItemProvider(this.getOptions(), {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return provider.getParametersCompletionItems(document, position);
             }
@@ -109,7 +112,7 @@ export class ConnectRhinoServer extends Command {
 
     // register parameters auto-complete
     private getAnnotations(provider: ActionsAutoCompleteProvider, attributes: any[]) {
-        return vscode.languages.registerCompletionItemProvider(this.options, {
+        return vscode.languages.registerCompletionItemProvider(this.getOptions(), {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return provider.getAnnotationsCompletionItems(attributes, document, position);
             }
@@ -118,7 +121,7 @@ export class ConnectRhinoServer extends Command {
 
     // register macros auto-complete
     private getMacros(provider: MacrosAutoCompleteProvider): vscode.Disposable {
-        return vscode.languages.registerCompletionItemProvider(this.options, {
+        return vscode.languages.registerCompletionItemProvider(this.getOptions(), {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return provider.getMacrosCompletionItems(document, position);
             }
@@ -127,14 +130,18 @@ export class ConnectRhinoServer extends Command {
 
     //register macros parameter auto-complete
     private getMacroParameters(provider: MacrosAutoCompleteProvider): vscode.Disposable {
-        return vscode.languages.registerCompletionItemProvider(this.options, {
+        return vscode.languages.registerCompletionItemProvider(this.getOptions(), {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return provider.getMacrosParameters(document, position);
             }
         }, '-');
     }
 
-    // Utilities
+    /*┌─[ UTILITIES ]──────────────────────────────────────────
+      │
+      │ A list of helper methods, relevant for the command.
+      └────────────────────────────────────────────────────────*/
+    // gets a pattern to identify all available plugins in a single text line.
     private static getPluginsPattern(plugins: any[]): string {
         // setup
         var patterns: string[] = [];

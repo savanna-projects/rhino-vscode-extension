@@ -160,5 +160,23 @@ export class RhinoClient {
 
         // get
         this.httpClient.invokeWebRequest(httpCommand, callback);        
-    }    
+    }
+    
+    /**
+     * Summary. Invoke Rhino Configuration against Rhino Server.
+     * 
+     * @param configuration The Rhino Configuration object to invoke.
+     * @param callback      An argument, which is then invoked inside the outer function to complete some kind of routine or action.
+     */
+    public invokeConfiguration(configuration: any, callback: any) {
+        // setup
+        var httpCommand = new HttpCommand()
+            .setMethod('POST')
+            .setBody(configuration)
+            .setCommand('/api/v3/rhino/configurations/invoke')
+            .addHeader('Content-Type', 'application/json');
+        
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
 }
