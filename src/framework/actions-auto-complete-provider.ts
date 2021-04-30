@@ -67,12 +67,12 @@ export class ActionsAutoCompleteProvider {
     /**
      * Summary. Sets a collection of operators.
      * 
-     * @param assertions A collection of operators.
+     * @param operators A collection of operators.
      * @returns Self reference.
      */
-    public setOperators(assertions: any): ActionsAutoCompleteProvider {
+    public setOperators(operators: any): ActionsAutoCompleteProvider {
         // setup
-        this.assertions = assertions;
+        this.operators = operators;
         
         // get
         return this;
@@ -144,11 +144,19 @@ export class ActionsAutoCompleteProvider {
     public getActionsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
         // bad request
+        var isCli =this.isCli(document.lineAt(position.line).text, position.character);
+        var isUnderSection = this.isUnderAnnotation(document, position, 'test-actions');
+        
+        if(isCli || !isUnderSection) {
+            return [];
+        }
 
         // setup
+        var snippets = this.getSnippets();
         var provieders: vscode.CompletionItem[] = [];
 
         // build
+        snippets.forEach(i => provieders.push(this.getActionsCompletionItem(i)));
 
         // get
         return provieders;        
@@ -251,24 +259,18 @@ export class ActionsAutoCompleteProvider {
         return aliases.length < 1 ? action : '{${1|' + action + ',' + aliases.sort().join(',') + '|}}';
     }
 
+    // TODO: handle verbs
     private getElementToken(manifest: any) {
         // setup
-        var locators: any[] = [];
         var locatorsVerbs: string[] = [];
         
         // build
         for (let i = 0; i < this.locators.length; i++) {
-            if(this.locators[i].literal === 'x path') {
-                locators.push('xpath');
-                continue;
-            }
-            locators.push(this.locators[i].literal);
             locatorsVerbs.push(this.locators[i].verb);
         }
 
         // get
-        var _locators = Array.from(new Set(locators)).sort().join(',');
-        return manifest.verb + ' {${5:locator value}} using ' + '{${6|' + _locators + '|}}';
+        return manifest.verb + ' {${5:locator value}} using ' + '{${6|' + this.getLocatorsEnums() + '|}}';
     }
 
     private getAttributeToken() {
@@ -375,7 +377,7 @@ export class ActionsAutoCompleteProvider {
      /**
      * Summary. Gets a collection of CompletionItem for test case properties with auto-complete behavior. 
      */
-    public getAnnotationsCompletionItems(properties: any[], document: vscode.TextDocument, position: vscode.Position)
+    public getAnnotationsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
         // setup conditions
         var isProperty = position.character === 1 && document.lineAt(position.line).text[position.character -1] === '[';
@@ -386,15 +388,15 @@ export class ActionsAutoCompleteProvider {
         }
 
         // build
-        var _properties: vscode.CompletionItem[] = [];
-        for (let i = 0; i < properties.length; i++) {
-            var property = new vscode.CompletionItem(properties[i].key, vscode.CompletionItemKind.Property);
-            property.documentation = properties[i].entity.description;
-            _properties.push(property);
+        var annotations: vscode.CompletionItem[] = [];
+        for (let i = 0; i < this.annotations.length; i++) {
+            var property = new vscode.CompletionItem(this.annotations[i].key, vscode.CompletionItemKind.Property);
+            property.documentation = this.annotations[i].entity.description;
+            annotations.push(property);
         }
 
         // get
-        return _properties;
+        return annotations;
     }
 
     /*┌─[ AUTO-COMPLETE ASSERTION ITEMS ]──────────────────────
@@ -405,26 +407,57 @@ export class ActionsAutoCompleteProvider {
      /**
      * Summary. Gets a collection of CompletionItem for test case properties with auto-complete behavior. 
      */
-    public getAssertionCompletionItems(properties: any[], document: vscode.TextDocument, position: vscode.Position)
+    public getAssertionsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
-        // setup conditions
-        var isProperty = position.character === 1 && document.lineAt(position.line).text[position.character -1] === '[';
 
-        // not found
-        if(!isProperty) {
+        // setup
+        var isUnderSection = this.isUnderAnnotation(document, position, 'test-expected-results');
+
+        // bad request
+        if(!isUnderSection || this.isAssert(document, position)) {
+            return [];
+        }
+
+        // get
+        var locator = 'of {${3:locator value}} using ' + '{${4|' + this.getLocatorsEnums() + '|}} ';
+        var operators = '${5|' + this.operators.map((i) => i.literal.toLowerCase()).sort() + '|}';
+
+        // build: w/ element
+        var snippet =
+            '[${1:step number}] verify that ' +
+            '{${2:method}} ' +
+            locator +
+            operators + ' {${6:expected result}}';
+        var item = new vscode.CompletionItem('assert w/ element');
+        item.insertText = new vscode.SnippetString(snippet);
+        item.documentation = new vscode.MarkdownString('Coming soon.');
+        item.kind = vscode.CompletionItemKind.Method;
+        item.detail = 'code';
+
+        // get
+        var items = [];
+        items.push(item);
+        return items;
+    }
+
+    public getAssertionMethodsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
+        : vscode.CompletionItem[] {
+        // bad request
+        if(!this.isAssert(document, position)) {
             return [];
         }
 
         // build
-        var _properties: vscode.CompletionItem[] = [];
-        for (let i = 0; i < properties.length; i++) {
-            var property = new vscode.CompletionItem(properties[i].key, vscode.CompletionItemKind.Property);
-            property.documentation = properties[i].entity.description;
-            _properties.push(property);
-        }
+        var assertions = this.assertions.map(function(i) {
+            let assertion = new vscode.CompletionItem(i.literal, vscode.CompletionItemKind.Method);
+            assertion.detail = 'code';
+            assertion.documentation = i.entity.description;
+            
+            return assertion;
+        });
 
         // get
-        return _properties;
+        return assertions;
     }
 
     // Utilities
@@ -475,5 +508,40 @@ export class ActionsAutoCompleteProvider {
             .setSnippet(snippet)
             .setDocumentation(manifest.entity.description)
             .setDetail(manifest.source);
+    }
+
+    private getLocatorsEnums(): string {
+        // setup
+        var locators: any[] = [];
+        
+        // build
+        for (let i = 0; i < this.locators.length; i++) {
+            if(this.locators[i].literal === 'x path') {
+                locators.push('xpath');
+                continue;
+            }
+            locators.push(this.locators[i].literal);
+        }
+
+        // get
+        return Array.from(new Set(locators)).sort().join(',');
+    }
+
+    private isAssert(document: vscode.TextDocument, position: vscode.Position): boolean {
+        // setup
+        var text = document.lineAt(position.line).text;
+        var subPre = text.substr(0, position.character);
+
+        var length = (text.length - position.character) < 0
+            ? 0
+            : (text.length - position.character);
+        var subSuf = text.substr(position.character, length);
+
+        // setup
+        var isAssertPre = subPre.match('^\\[\\d+]\\s+(verify that|assert)\\s+\\{') !== null;
+        var isAssertSuf = subSuf.match('.*}') !== null;
+
+        // get
+        return isAssertPre && isAssertSuf;
     }
 }

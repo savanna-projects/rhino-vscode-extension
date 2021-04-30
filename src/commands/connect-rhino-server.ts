@@ -61,7 +61,7 @@ export class ConnectRhinoServer extends Command {
                 client.getLocators((locators: any[]) => {
                     client.getAnnotations((annotations: any[]) => {
                         client.getAttributes((attributes: any) => {
-                            client.getAnnotations((assertions: any) => {
+                            client.getAssertions((assertions: any) => {
                                 client.getOperators((operators: any) => {                                                     
                                     var pattern = ConnectRhinoServer.getPluginsPattern(plugins);
                                     var macrosProvider = new MacrosAutoCompleteProvider().setManifests(macros);
@@ -77,9 +77,11 @@ export class ConnectRhinoServer extends Command {
                                     var items = [
                                         this.getActions(actionsProvider),
                                         this.getActionsParamters(actionsProvider),
-                                        this.getAnnotations(actionsProvider, annotations),
+                                        this.getAnnotations(actionsProvider),
                                         this.getMacros(macrosProvider),
-                                        this.getMacroParameters(macrosProvider)
+                                        this.getMacroParameters(macrosProvider),
+                                        this.getAssertions(actionsProvider),
+                                        this.getAssertionMethods(actionsProvider)
                                     ];
                                     this.getContext().subscriptions.push(...items);
                                     
@@ -120,12 +122,29 @@ export class ConnectRhinoServer extends Command {
     }
 
     // register annotations auto-complete
-    private getAnnotations(provider: ActionsAutoCompleteProvider, properties: any[]) {
+    private getAnnotations(provider: ActionsAutoCompleteProvider) {
         return vscode.languages.registerCompletionItemProvider(this.getOptions(), {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
-                return provider.getAnnotationsCompletionItems(properties, document, position);
+                return provider.getAnnotationsCompletionItems(document, position);
             }
         }, '[');
+    }
+
+    // register assertions auto-complete
+    private getAssertions(provider: ActionsAutoCompleteProvider) {
+        return vscode.languages.registerCompletionItemProvider(this.getOptions(), {
+            provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+                return provider.getAssertionsCompletionItems(document, position);
+            }
+        });
+    }
+
+    private getAssertionMethods(provider: ActionsAutoCompleteProvider) {
+        return vscode.languages.registerCompletionItemProvider(this.getOptions(), {
+            provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+                return provider.getAssertionMethodsCompletionItems(document, position);
+            }
+        }, '{');
     }
 
     // register macros auto-complete
