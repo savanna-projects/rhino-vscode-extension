@@ -67,81 +67,81 @@ export class InvokeRhinoTestCases extends Command {
       return this;
     }
 
-  /*┌─[ REGISTER ]───────────────────────────────────────────
-    │
-    │ A command registration pipeline to expose the command
-    │ in the command interface (CTRL+SHIFT+P).
-    └────────────────────────────────────────────────────────*/
-  /**
-   * Summary. Register a command for invoking one or more Rhino Test Case
-   *          and present the report.
-   */
-  public register(): any {
-        // setup
-        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
-            this.invoke();
+    /*┌─[ REGISTER ]───────────────────────────────────────────
+      │
+      │ A command registration pipeline to expose the command
+      │ in the command interface (CTRL+SHIFT+P).
+      └────────────────────────────────────────────────────────*/
+    /**
+     * Summary. Register a command for invoking one or more Rhino Test Case
+     *          and present the report.
+     */
+    public register(): any {
+          // setup
+          var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+              this.invoke();
+          });
+
+          // set
+          this.getContext().subscriptions.push(command);
+    }
+
+    /**
+     * Summary. Implement the command invoke pipeline.
+     */
+    public invokeCommand() {
+        this.invoke();
+    }
+
+    private invoke() {
+        // notification
+        vscode.window.setStatusBarMessage('$(sync~spin) Invoking test case(s)...');
+
+        // invoke
+        this.getRhinoClient().invokeConfiguration(this.getConfiguration(), (testRun: any) => {
+          if(testRun.actual === true) {
+            vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke completed w/o test(s) failures");
+          }
+          else {
+            vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke completed, w/ test(s) failures");
+          }
+          console.info(testRun);
         });
+    }
 
-        // set
-        this.getContext().subscriptions.push(command);
-  }
+    // creates default configuration with text connector
+    private getConfiguration() {
+      // setup
+      var projectManifest = this.getProjectManifest();
+      var testsRepository = this.getCommandName() === 'Invoke-RhinoTestCase'
+        ? this.getOpenTestCases()
+        : this.testCases;
 
-  /**
-   * Summary. Implement the command invoke pipeline.
-   */
-  public invokeCommand() {
-      this.invoke();
-  }
-
-  private invoke() {
-      // notification
-      vscode.window.setStatusBarMessage('$(sync~spin) Invoking test case(s)...');
-
-      // invoke
-      this.getRhinoClient().invokeConfiguration(this.getConfiguration(), (testRun: any) => {
-        if(testRun.actual === true) {
-          vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke completed w/o test(s) failures");
-        }
-        else {
-          vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke completed, w/ test(s) failures");
-        }
-        console.info(testRun);
-      });
-  }
-
-  // creates default configuration with text connector
-  private getConfiguration() {
-        // setup
-        var projectManifest = this.getProjectManifest();
-        var testsRepository = this.getCommandName() === 'Invoke-RhinoTestCase'
-          ? this.getOpenTestCases()
-          : this.testCases;
-
-        // build
-        return {
-            "name": "VS Code - Stand Alone Test Run",
-            "testsRepository": testsRepository,
-            "driverParameters": projectManifest.drivers,
-            "authentication": projectManifest.authentication,
-            "screenshotsConfiguration": {
-                "keepOriginal": false,
-                "returnScreenshots": false,
-                "onExceptionOnly": false
-            },
-            "reportConfiguration": {
-                "reporters": [
-                    "reporter_basic"
-                ],
-                "archive": false,
-                "localReport": true,
-                "addGravityData": true
-            },
-            "connectorConfiguration": projectManifest.connector
-        };
-  }
+      // build
+      return {
+        name: "VS Code - Stand Alone Test Run",
+        testsRepository: testsRepository,
+        driverParameters: projectManifest.drivers,
+        authentication: projectManifest.authentication,
+        screenshotsConfiguration: {
+          keepOriginal: false,
+          returnScreenshots: false,
+          onExceptionOnly: false
+        },
+        reportConfiguration: {
+          reporters: [
+            "reporter_basic"
+          ],
+          archive: false,
+          localReport: true,
+          addGravityData: true
+        },
+        connectorConfiguration: projectManifest.connector
+      };
+    }
 
     // get test cases from the open document
-  private getOpenTestCases(): string[] {
+    private getOpenTestCases(): string[] {
       // setup
       var editor = vscode.window.activeTextEditor;
       
@@ -152,5 +152,5 @@ export class InvokeRhinoTestCases extends Command {
       
       // get
       return editor.document.getText().split('>>>');
-  }
+    }
 }

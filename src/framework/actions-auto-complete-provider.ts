@@ -13,7 +13,10 @@ export class ActionsAutoCompleteProvider {
     private pattern: string;
     private manifests: any[];
     private locators: any[];
+    private annotations: any[];
     private attributes: any[];
+    private assertions: any[];
+    private operators: any[];
 
     /**
      * Creates a new instance of CommandsProvider
@@ -22,7 +25,10 @@ export class ActionsAutoCompleteProvider {
         this.pattern = '.*';
         this.manifests = [];
         this.locators = [];
+        this.annotations = [];
         this.attributes = [];
+        this.assertions = [];
+        this.operators = [];
     }
 
     /*┌─[ SETTERS ]────────────────────────────────────────────
@@ -30,6 +36,48 @@ export class ActionsAutoCompleteProvider {
       │ A collection of functions to set object properties
       │ to avoid initializing members in the object signature.
       └────────────────────────────────────────────────────────*/
+    /**
+     * Summary. Sets a collection of element special attributes.
+     * 
+     * @param attributes A collection of element special attributes.
+     * @returns Self reference.
+     */
+    public setAttributes(attributes: any): ActionsAutoCompleteProvider {
+        // setup
+        this.attributes = attributes;
+        
+        // get
+        return this;
+    }
+
+    /**
+     * Summary. Sets a collection of assertions.
+     * 
+     * @param assertions A collection of assertions.
+     * @returns Self reference.
+     */
+    public setAssertions(assertions: any): ActionsAutoCompleteProvider {
+        // setup
+        this.assertions = assertions;
+        
+        // get
+        return this;
+    }
+
+    /**
+     * Summary. Sets a collection of operators.
+     * 
+     * @param assertions A collection of operators.
+     * @returns Self reference.
+     */
+    public setOperators(assertions: any): ActionsAutoCompleteProvider {
+        // setup
+        this.assertions = assertions;
+        
+        // get
+        return this;
+    }
+
     /**
      * Summary. Sets the regular expression pattern to find a valid plugin in a document line.
      * 
@@ -73,18 +121,18 @@ export class ActionsAutoCompleteProvider {
     }
 
     /**
-     * Summary. Sets the collection of element special attribute references as returns by Rhino Server.
+     * Summary. Sets the collection of test case annotations.
      * 
-     * @param attributes A collection of element special attribute references as returns by Rhino Server.
+     * @param annotations A collection of test case annotations.
      * @returns Self reference.
      */
-    public setAttributes(attributes: any[]): ActionsAutoCompleteProvider {
+    public setAnnotations(annotations: any[]): ActionsAutoCompleteProvider {
         // setup
-        this.attributes = attributes;
+        this.annotations = annotations;
         
         // get
         return this;
-    }    
+    }
 
     /*┌─[ AUTO-COMPLETE ITEMS ]────────────────────────────────
       │
@@ -96,16 +144,11 @@ export class ActionsAutoCompleteProvider {
     public getActionsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
         // bad request
-        if(this.isCli(document.lineAt(position.line).text, position.character)) {
-            return [];
-        }
 
         // setup
-        var snippets = this.getSnippets();
         var provieders: vscode.CompletionItem[] = [];
 
         // build
-        snippets.forEach(i => provieders.push(this.getActionsCompletionItem(i)));
 
         // get
         return provieders;        
@@ -234,7 +277,7 @@ export class ActionsAutoCompleteProvider {
 
         // build
         for (let i = 0; i < this.attributes.length; i++) {
-            attributes.push( this.attributes[i].key);
+            attributes.push(this.attributes[i].key);
         }
 
         // get
@@ -330,7 +373,7 @@ export class ActionsAutoCompleteProvider {
       │ for test case annotations.
       └────────────────────────────────────────────────────────*/
      /**
-     * Summary. Gets a collection of CompletionItem for test case annotations with auto-complete behavior. 
+     * Summary. Gets a collection of CompletionItem for test case properties with auto-complete behavior. 
      */
     public getAnnotationsCompletionItems(properties: any[], document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
@@ -343,15 +386,45 @@ export class ActionsAutoCompleteProvider {
         }
 
         // build
-        var attributes: vscode.CompletionItem[] = [];
+        var _properties: vscode.CompletionItem[] = [];
         for (let i = 0; i < properties.length; i++) {
-            var attribute = new vscode.CompletionItem(properties[i].key, vscode.CompletionItemKind.Property);
-            attribute.documentation = properties[i].entity.description;
-            attributes.push(attribute);
+            var property = new vscode.CompletionItem(properties[i].key, vscode.CompletionItemKind.Property);
+            property.documentation = properties[i].entity.description;
+            _properties.push(property);
         }
 
         // get
-        return attributes;
+        return _properties;
+    }
+
+    /*┌─[ AUTO-COMPLETE ASSERTION ITEMS ]──────────────────────
+      │
+      │ A collection of functions to factor auto-complete items
+      │ for test case assertion.
+      └────────────────────────────────────────────────────────*/
+     /**
+     * Summary. Gets a collection of CompletionItem for test case properties with auto-complete behavior. 
+     */
+    public getAssertionCompletionItems(properties: any[], document: vscode.TextDocument, position: vscode.Position)
+        : vscode.CompletionItem[] {
+        // setup conditions
+        var isProperty = position.character === 1 && document.lineAt(position.line).text[position.character -1] === '[';
+
+        // not found
+        if(!isProperty) {
+            return [];
+        }
+
+        // build
+        var _properties: vscode.CompletionItem[] = [];
+        for (let i = 0; i < properties.length; i++) {
+            var property = new vscode.CompletionItem(properties[i].key, vscode.CompletionItemKind.Property);
+            property.documentation = properties[i].entity.description;
+            _properties.push(property);
+        }
+
+        // get
+        return _properties;
     }
 
     // Utilities
@@ -373,6 +446,26 @@ export class ActionsAutoCompleteProvider {
         }
 
         // get
+        return false;
+    }
+
+    // gets a value indicating if the current line is under a specific property (annotation)
+    private isUnderAnnotation(document: vscode.TextDocument, position: vscode.Position, annotation: string) {
+        // setup
+        var pattern  = this.annotations.map((i) => '^\\[' + i.key + ']').join('|');
+        var testPattern = '^\\[' + annotation + ']';
+
+        // iterate
+        var line = position.line;
+        while (line !== 0) {
+            if(!document.lineAt(line).text.match(pattern)) {
+                line = line - 1;
+                continue;
+            }
+            return document.lineAt(line).text.match(testPattern) !== null;
+        }
+
+        // default
         return false;
     }
 

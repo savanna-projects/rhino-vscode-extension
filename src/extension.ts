@@ -6,6 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { ConnectRhinoServer } from './commands/connect-rhino-server';
+import { CreateIntegratedTestCase } from './commands/create-integrated-test-case';
 import { CreateRhinoProject } from './commands/create-rhino-project';
 import { InvokeRhinoTestCases } from './commands/invoke-rhino-test-cases';
 
@@ -19,6 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
 	new ConnectRhinoServer(context).register();
 	new InvokeRhinoTestCases(context).setCommandName('Invoke-RhinoTestCase').register();
 	new CreateRhinoProject(context).register();
+	new CreateIntegratedTestCase(context).register();
 }
 
 // this method is called when your extension is deactivated

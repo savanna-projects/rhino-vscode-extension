@@ -13,15 +13,14 @@
 	],
 	"activationEvents": [
 		"onCommand:Connect-RhinoServer",
-		"onCommand:Create-RhinoProject",
-		"onCommand:Invoke-RhinoTestCase"
+		"onCommand:Create-RhinoProject"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
 				"command": "Connect-RhinoServer",
-				"title": "Rhino: Connect to Rhino & Fetch Metadata"
+				"title": "Rhino: Connect to Rhino, fetch Metadata & activate commands"
 			},
 			{
 				"command": "Create-RhinoProject",
@@ -30,6 +29,10 @@
 			{
 				"command": "Invoke-RhinoTestCase",
 				"title": "Rhino: Runs the automation test(s) from the currently open document"
+			},
+			{
+				"command": "Create-IntegratedTestCase",
+				"title": "Rhino: Creates a new Test Case(s) entity on the integrated application from the currently open document"
 			}
 		],
 		"languages": [

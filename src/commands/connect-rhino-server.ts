@@ -59,29 +59,38 @@ export class ConnectRhinoServer extends Command {
         client.getPlugins((plugins: any[]) => {
             client.getMacros((macros: any[]) => {
                 client.getLocators((locators: any[]) => {
-                     client.getProperties((attributes: any[]) => {
-                        var pattern = ConnectRhinoServer.getPluginsPattern(plugins);
-                        var macrosProvider = new MacrosAutoCompleteProvider().setManifests(macros);
-                        var actionsProvider = new ActionsAutoCompleteProvider()
-                            .setManifests(plugins)
-                            .setLocators(locators)
-                            .setAttributes(attributes)
-                            .setPattern(pattern);
+                    client.getAnnotations((annotations: any[]) => {
+                        client.getAttributes((attributes: any) => {
+                            client.getAnnotations((assertions: any) => {
+                                client.getOperators((operators: any) => {                                                     
+                                    var pattern = ConnectRhinoServer.getPluginsPattern(plugins);
+                                    var macrosProvider = new MacrosAutoCompleteProvider().setManifests(macros);
+                                    var actionsProvider = new ActionsAutoCompleteProvider()
+                                        .setManifests(plugins)
+                                        .setLocators(locators)
+                                        .setAnnotations(annotations)
+                                        .setPattern(pattern)
+                                        .setAttributes(attributes)
+                                        .setAssertions(assertions)
+                                        .setOperators(operators);
 
-                        var items = [
-                            this.getActions(actionsProvider),
-                            this.getActionsParamters(actionsProvider),
-                            this.getAnnotations(actionsProvider, attributes),
-                            this.getMacros(macrosProvider),
-                            this.getMacroParameters(macrosProvider)
-                        ];
-                        this.getContext().subscriptions.push(...items);
-                        
-						var message = 'Connect-RhinoServer -> (Status: Ok, NumberOfPlugins: ' + plugins.length + ')';
-						vscode.window.showInformationMessage(message);
-                        
-                        message = 'Connect-RhinoServer -> (Status: Ok, NumberOfMacros: ' + macros.length + ')';
-                        vscode.window.showInformationMessage(message);
+                                    var items = [
+                                        this.getActions(actionsProvider),
+                                        this.getActionsParamters(actionsProvider),
+                                        this.getAnnotations(actionsProvider, annotations),
+                                        this.getMacros(macrosProvider),
+                                        this.getMacroParameters(macrosProvider)
+                                    ];
+                                    this.getContext().subscriptions.push(...items);
+                                    
+                                    var message = 'Connect-RhinoServer -> (Status: Ok, NumberOfPlugins: ' + plugins.length + ')';
+                                    vscode.window.showInformationMessage(message);
+                                    
+                                    message = 'Connect-RhinoServer -> (Status: Ok, NumberOfMacros: ' + macros.length + ')';
+                                    vscode.window.showInformationMessage(message);
+                                });
+                            });
+                        });
                     });
                 });
             });
@@ -110,11 +119,11 @@ export class ConnectRhinoServer extends Command {
         }, '-');
     }
 
-    // register parameters auto-complete
-    private getAnnotations(provider: ActionsAutoCompleteProvider, attributes: any[]) {
+    // register annotations auto-complete
+    private getAnnotations(provider: ActionsAutoCompleteProvider, properties: any[]) {
         return vscode.languages.registerCompletionItemProvider(this.getOptions(), {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
-                return provider.getAnnotationsCompletionItems(attributes, document, position);
+                return provider.getAnnotationsCompletionItems(properties, document, position);
             }
         }, '[');
     }

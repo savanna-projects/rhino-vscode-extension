@@ -46,29 +46,29 @@ export class RhinoClient {
     }
 
     /**
-     * Summary. Returns a single available test case property.
+     * Summary. Returns a single available test case annotation.
      * 
      * @param key      The unique identifier by which to find the requested resource.
      * @param callback An argument, which is then invoked inside the outer function to complete some kind of routine or action.
      */
-     public getProperty(key: string, callback: any) {
+     public getAnnotation(key: string, callback: any) {
         // setup
         var httpCommand = new HttpCommand();
-        httpCommand.command = '/api/v3/meta/properties/' + key;
+        httpCommand.command = '/api/v3/meta/annotations/' + key;
 
         // get
         this.httpClient.invokeWebRequest(httpCommand, callback);        
     }
 
     /**
-     * Summary. Returns a list of available test case properties.
+     * Summary. Returns a list of available test case annotations.
      * 
      * @param callback An argument, which is then invoked inside the outer function to complete some kind of routine or action.
      */
-    public getProperties(callback: any) {
+    public getAnnotations(callback: any) {
         // setup
         var httpCommand = new HttpCommand();
-        httpCommand.command = '/api/v3/meta/properties';
+        httpCommand.command = '/api/v3/meta/annotations';
 
         // get
         this.httpClient.invokeWebRequest(httpCommand, callback);
@@ -102,7 +102,35 @@ export class RhinoClient {
 
         // get
         this.httpClient.invokeWebRequest(httpCommand, callback);
-    }   
+    }
+
+    /**
+     * Summary. Returns a collection of available assertions.
+     * 
+     * @param callback An argument, which is then invoked inside the outer function to complete some kind of routine or action.
+     */
+    public getAssertions(callback: any) {
+        // setup
+        var httpCommand = new HttpCommand();
+        httpCommand.command = '/api/v3/meta/assertions';
+
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);        
+    }
+
+    /**
+     * Summary. Returns a collection of available assertions.
+     * 
+     * @param callback An argument, which is then invoked inside the outer function to complete some kind of routine or action.
+     */
+    public getOperators(callback: any) {
+        // setup
+        var httpCommand = new HttpCommand();
+        httpCommand.command = '/api/v3/meta/operators';
+
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);        
+    }
 
     /**
      * Summary. Returns a list of available Plugins (both Rhino and Code).
@@ -138,7 +166,7 @@ export class RhinoClient {
      * 
      * @param callback An argument, which is then invoked inside the outer function to complete some kind of routine or action.
      */
-     public getAttributes(callback: any) {
+    public getAttributes(callback: any) {
         // setup
         var httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/attributes';
@@ -174,6 +202,24 @@ export class RhinoClient {
             .setMethod('POST')
             .setBody(configuration)
             .setCommand('/api/v3/rhino/configurations/invoke')
+            .addHeader('Content-Type', 'application/json');
+        
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
+
+    /**
+     * Summary. Creates a new Test Case entity on the integrated application.
+     * 
+     * @param createModel Integrated Test Case create model.
+     * @param callback    An argument, which is then invoked inside the outer function to complete some kind of routine or action. 
+     */
+    public createTestCase(createModel: any, callback: any) {
+        // setup
+        var httpCommand = new HttpCommand()
+            .setMethod('POST')
+            .setBody(createModel)
+            .setCommand('/api/v3/integration/create')
             .addHeader('Content-Type', 'application/json');
         
         // get
