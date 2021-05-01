@@ -3,7 +3,7 @@
 	"publisher": "rhinoapi",
 	"displayName": "Rhino Language Support",
 	"description": "Syntax highlights and Language Server for Rhino API",
-	"version": "0.0.1-BETA",
+	"version": "1.0.0",
 	"engines": {
 		"vscode": "^1.55.0"
 	},
