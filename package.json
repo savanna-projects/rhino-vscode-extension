@@ -1,10 +1,14 @@
 {
 	"name": "rhino-language-support",
+	"publisher": "rhinoapi",
 	"displayName": "Rhino Language Support",
 	"description": "Syntax highlights and Language Server for Rhino API",
-	"version": "0.0.1",
+	"version": "0.0.1-BETA",
 	"engines": {
-		"vscode": "^1.47.0"
+		"vscode": "^1.55.0"
+	},
+	"repository": {
+		"url": "https://github.com/savanna-projects/rhino-vscode-extension"
 	},
 	"categories": [
 		"Other",

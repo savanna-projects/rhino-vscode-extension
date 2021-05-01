@@ -14,7 +14,7 @@
 ### [Basics](#basics)
 * [Create New Project](#create-new-project)
 * [Manifest Overview](#manifest-overview)
-* [Create Your First Test Using Test Snippet](create-your-first-test-using-test-snippet)
+* [Create Your First Test Using Test Snippet](#create-your-first-test-using-test-snippet)
 * [Run Your Test](#run-your-test)
 
 ### Advanced
