@@ -135,8 +135,7 @@ export class InvokeRhinoTestCases extends Command {
           archive: false,
           localReport: true,
           addGravityData: true
-        },
-        connectorConfiguration: projectManifest.connectorConfiguration
+        }
       };
     }
 
