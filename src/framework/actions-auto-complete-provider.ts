@@ -4,6 +4,7 @@
  * RESOURCES
  * https://github.com/microsoft/vscode-extension-samples
  * https://css-tricks.com/what-i-learned-by-building-my-own-vs-code-extension/
+ * https://www.freecodecamp.org/news/definitive-guide-to-snippets-visual-studio-code/
  */
 import * as vscode from 'vscode';
 import { RhinoSnippet } from '../contracts/rhino-snippet';
@@ -270,24 +271,15 @@ export class ActionsAutoCompleteProvider {
         }
 
         // get
-        return manifest.verb + ' {${5:locator value}} using ' + '{${6|' + this.getLocatorsEnums() + '|}}';
+        return manifest.verb + ' {${5:locator value}} by ' + '{${6|' + this.getLocatorsEnums() + '|}}';
     }
 
     private getAttributeToken() {
-        // setup
-        var attributes: any[] = [];
-
-        // build
-        for (let i = 0; i < this.attributes.length; i++) {
-            attributes.push(this.attributes[i].key);
-        }
-
-        // get
-        return 'from {${7|' + attributes.sort().join(',') + '|}}';
+        return 'from {${7|' + this.attributes.sort().map(i => i.key).join(',') + '|}}';
     }
 
     private getRegexToken() {
-        return '${8|filter,mask|} with pattern {${9:.*}}';
+        return 'with regex {${8:.*}}';
     }    
 
     /*┌─[ AUTO-COMPLETE ITEMS BEHAVIOR ]─────────────────────
@@ -418,16 +410,27 @@ export class ActionsAutoCompleteProvider {
             return [];
         }
 
-        // get
-        var locator = 'of {${3:locator value}} using ' + '{${4|' + this.getLocatorsEnums() + '|}} ';
-        var operators = '${5|' + this.operators.map((i) => i.literal.toLowerCase()).sort() + '|}';
+        // build
+        var locators = 'of {${3:locator value}} by ' + '{${4|' + this.getLocatorsEnums() + '|}} ';
+        var operators = '${5|' + this.operators.map((i) => i.literal.toLowerCase()).sort() + '|} ';
+        var attributes = '{${6|' + this.attributes.sort().map(i => i.key).join(',') + '|}} ';
 
-        // build: w/ element
+        // get
+        return [
+            this.getWithElement(locators, operators),
+            this.getWithElementWithAttribute(locators, operators, attributes),
+            this.getWithElementWithRegex(locators, operators),
+            this.getWithElementWithAttributeWithRegex(locators, operators, attributes)
+        ];
+    }
+
+    private getWithElement(locators: string, operators: string): vscode.CompletionItem {
+        // build
         var snippet =
             '[${1:step number}] verify that ' +
-            '{${2:method}} ' +
-            locator +
-            operators + ' {${6:expected result}}';
+            '{${2:text}} ' +
+            locators +
+            operators + '{${6:expected result}}';
         var item = new vscode.CompletionItem('assert w/ element');
         item.insertText = new vscode.SnippetString(snippet);
         item.documentation = new vscode.MarkdownString('Coming soon.');
@@ -435,11 +438,69 @@ export class ActionsAutoCompleteProvider {
         item.detail = 'code';
 
         // get
-        var items = [];
-        items.push(item);
-        return items;
+        return item;
     }
 
+    private getWithElementWithAttribute(locators: string, operators: string, attributes: string)
+        : vscode.CompletionItem {
+        // build
+        var snippet =
+            '[${1:step number}] verify that ' +
+            '{${2:method}} ' +
+            locators +
+            attributes +
+            operators + '{${7:expected result}}';
+        var item = new vscode.CompletionItem('assert w/ element /w attribute');
+        item.insertText = new vscode.SnippetString(snippet);
+        item.documentation = new vscode.MarkdownString('Coming soon.');
+        item.kind = vscode.CompletionItemKind.Method;
+        item.detail = 'code';
+
+        // get
+        return item;
+    }
+
+    private getWithElementWithRegex(locators: string, operators: string): vscode.CompletionItem {
+        // build
+        var snippet =
+            '[${1:step number}] verify that ' +
+            '{${2:method}} ' +
+            locators +
+            'with regex {${6:.*}} ' +
+            operators + '{${7:expected result}}';
+        var item = new vscode.CompletionItem('assert w/ element w/ regex');
+        item.insertText = new vscode.SnippetString(snippet);
+        item.documentation = new vscode.MarkdownString('Coming soon.');
+        item.kind = vscode.CompletionItemKind.Method;
+        item.detail = 'code';
+
+        // get
+        return item;
+    }
+
+    private getWithElementWithAttributeWithRegex(locators: string, operators: string, attributes: string)
+        : vscode.CompletionItem {
+        // build
+        var snippet =
+            '[${1:step number}] verify that ' +
+            '{${2:method}} ' +
+            locators +
+            attributes +
+            'with regex {${7:.*}} ' +
+            operators + '{${8:expected result}}';
+        var item = new vscode.CompletionItem('assert w/ element /w attribute /w regex');
+        item.insertText = new vscode.SnippetString(snippet);
+        item.documentation = new vscode.MarkdownString('Coming soon.');
+        item.kind = vscode.CompletionItemKind.Method;
+        item.detail = 'code';
+
+        // get
+        return item;
+    }
+
+    /**
+     * Summary. Gets a collection of all available assertion methods.
+     */
     public getAssertionMethodsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
         // bad request
@@ -449,7 +510,7 @@ export class ActionsAutoCompleteProvider {
 
         // build
         var assertions = this.assertions.map(function(i) {
-            let assertion = new vscode.CompletionItem(i.literal, vscode.CompletionItemKind.Method);
+            let assertion = new vscode.CompletionItem(i.literal, vscode.CompletionItemKind.Variable);
             assertion.detail = 'code';
             assertion.documentation = i.entity.description;
             
@@ -458,6 +519,33 @@ export class ActionsAutoCompleteProvider {
 
         // get
         return assertions;
+    }
+
+    /*┌─[ AUTO-COMPLETE ASSERTION ITEMS ]──────────────────────
+      │
+      │ A collection of functions to factor auto-complete items
+      │ for test case assertion.
+      └────────────────────────────────────────────────────────*/
+    /**
+     * Summary. Gets a collection of CompletionItem for test case properties with auto-complete behavior. 
+     */
+    public getDataCompletionItems(document: vscode.TextDocument, position: vscode.Position)
+        : vscode.CompletionItem[] {
+        // bad request
+        if(!this.isUnderAnnotation(document, position, 'test-data-provider')) {
+            return [];
+        }
+
+        // get
+        var mdTable = new vscode.CompletionItem('data input, markdown', vscode.CompletionItemKind.Snippet);
+        mdTable.documentation = 'Basic MD (markdown) table snippet for data driven testing.';
+        mdTable.detail = 'vscode';
+        mdTable.insertText =
+            '|ParameterOne         |ParameterTwo         |\n' +
+            '|---------------------|---------------------|\n' +
+            '|value one iteration 1|value two iteration 1|\n' +
+            '|value one iteration 2|value two iteration 2|';
+        return [mdTable];
     }
 
     // Utilities

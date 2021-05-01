@@ -15,7 +15,7 @@
 				},
 				{
 					"name": "keyword.control",
-					"match": "\\b(on|into|take|from|using|by|filter|mask|match|equal|not equal|not match)\\b"
+					"match": "\\b(on|into|take|of|from|using|by|filter|mask|regex|pattern|match|equal|greater|greater or equal|lower|lower or equal|match|not equal|not match)\\b"
 				},
 				{
 					"name": "string.quoted.double",

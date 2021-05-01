@@ -81,7 +81,8 @@ export class ConnectRhinoServer extends Command {
                                         this.getMacros(macrosProvider),
                                         this.getMacroParameters(macrosProvider),
                                         this.getAssertions(actionsProvider),
-                                        this.getAssertionMethods(actionsProvider)
+                                        this.getAssertionMethods(actionsProvider),
+                                        this.getDataProvider(actionsProvider)
                                     ];
                                     this.getContext().subscriptions.push(...items);
                                     
@@ -156,13 +157,22 @@ export class ConnectRhinoServer extends Command {
         }, '$');
     }
 
-    //register macros parameter auto-complete
+    // register macros parameter auto-complete
     private getMacroParameters(provider: MacrosAutoCompleteProvider): vscode.Disposable {
         return vscode.languages.registerCompletionItemProvider(this.getOptions(), {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return provider.getMacrosParameters(document, position);
             }
         }, '-');
+    }
+
+    // register data provider auto-complete
+    private getDataProvider(provider: ActionsAutoCompleteProvider) {
+        return vscode.languages.registerCompletionItemProvider(this.getOptions(), {
+            provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+                return provider.getDataCompletionItems(document, position);
+            }
+        });
     }
 
     /*┌─[ UTILITIES ]──────────────────────────────────────────
