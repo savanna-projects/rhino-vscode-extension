@@ -121,7 +121,7 @@ export class InvokeRhinoTestCases extends Command {
       return {
         name: "VS Code - Stand Alone Test Run",
         testsRepository: testsRepository,
-        driverParameters: projectManifest.drivers,
+        driverParameters: projectManifest.driverParameters,
         authentication: projectManifest.authentication,
         screenshotsConfiguration: {
           keepOriginal: false,
@@ -136,7 +136,7 @@ export class InvokeRhinoTestCases extends Command {
           localReport: true,
           addGravityData: true
         },
-        connectorConfiguration: projectManifest.connector
+        connectorConfiguration: projectManifest.connectorConfiguration
       };
     }
 

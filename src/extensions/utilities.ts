@@ -56,6 +56,10 @@ export class Utilities {
                 "project": null,
                 "userName": null
             },
+            "authentication": {
+                "userName": "<rhino user name>",
+                "password": "<rhino password>"
+            },
             "drivers": [
                 {
                     driver: "ChromeDriver",

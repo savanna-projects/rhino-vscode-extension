@@ -66,7 +66,7 @@ export class CreateIntegratedTestCase extends Command {
         // setup
         var manifest = Utilities.getProjectManifest();
         var configuration = {
-            connector: manifest.connector,
+            connector: manifest.connectorConfiguration,
             entity: {
                 spec: this.getOpenTestCases(),
                 testSuites: this.testSuites
