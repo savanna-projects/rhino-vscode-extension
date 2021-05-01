@@ -49,7 +49,7 @@ export class Utilities {
                 "host": "localhost",
                 "port": "9000"
             },
-            "connector": {
+            "connectorConfiguration": {
                 "collection": null,
                 "connector": "connector_text",
                 "password": null,
@@ -60,7 +60,7 @@ export class Utilities {
                 "userName": "<rhino user name>",
                 "password": "<rhino password>"
             },
-            "drivers": [
+            "driverParameters": [
                 {
                     driver: "ChromeDriver",
                     driverBinaries: "."
