@@ -3,7 +3,8 @@
 	"publisher": "rhinoapi",
 	"displayName": "Rhino Language Support",
 	"description": "Syntax highlights and Language Server for Rhino API",
-	"version": "1.0.0",
+	"version": "1.0.1",
+	"icon": "images/128x128.png",
 	"engines": {
 		"vscode": "^1.55.0"
 	},
@@ -56,13 +57,13 @@
 			{
 				"language": "rhino",
 				"scopeName": "source.rhino",
-				"path": "./src/syntaxes/rhino.tmLanguage.json"
+				"path": "./rhino-tm-language.json"
 			}
 		],
 		"snippets": [
 			{
 				"language": "rhino",
-				"path": "./src/syntaxes/snippet-test-full.json"
+				"path": "./snippet-test-full.json"
 			}
 		]
 	},

@@ -8,6 +8,9 @@ import * as vscode from 'vscode';
 import { ActionsAutoCompleteProvider } from '../framework/actions-auto-complete-provider';
 import { MacrosAutoCompleteProvider } from '../framework/macros-auto-complete-provider';
 import { Command } from "./command-base";
+import { CreateIntegratedTestCase } from './create-integrated-test-case';
+import { CreateRhinoProject } from './create-rhino-project';
+import { InvokeRhinoTestCases } from './invoke-rhino-test-cases';
 
 export class ConnectRhinoServer extends Command {  
     /**
@@ -199,5 +202,15 @@ export class ConnectRhinoServer extends Command {
         
         // get
         return patterns.join('|');
+    }
+
+    // remove all auto-comlete items
+    private clearSubscriptions() {
+        try {
+            this.getContext().subscriptions.splice(0, this.getContext().subscriptions.length);
+        } catch (error) {
+            var a = error;
+        }
+        
     }
 }

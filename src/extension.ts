@@ -16,7 +16,7 @@ import { InvokeRhinoTestCases } from './commands/invoke-rhino-test-cases';
  * @param context The context of the extension.
  */
 export function activate(context: vscode.ExtensionContext) {
-	// register commands
+	// fetch meta data and register Rhino language engine
 	new ConnectRhinoServer(context).register();
 	new InvokeRhinoTestCases(context).setCommandName('Invoke-RhinoTestCase').register();
 	new CreateRhinoProject(context).register();
