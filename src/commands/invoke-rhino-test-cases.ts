@@ -5,8 +5,10 @@
  * https://stackoverflow.com/questions/45203543/vs-code-extension-api-to-get-the-range-of-the-whole-text-of-a-document
  * https://code.visualstudio.com/api/references/icons-in-labels
  * https://stackoverflow.com/questions/55633453/rotating-octicon-in-statusbar-of-vs-code
+ * https://code.visualstudio.com/api/extension-guides/webview
  */
 import * as vscode from 'vscode';
+import { ReportManager } from '../extensions/report-manager';
 import { Command } from "./command-base";
 
 export class InvokeRhinoTestCases extends Command {
@@ -99,13 +101,17 @@ export class InvokeRhinoTestCases extends Command {
 
         // invoke
         this.getRhinoClient().invokeConfiguration(this.getConfiguration(), (testRun: any) => {
-          if(testRun.actual === true) {
-            vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke completed w/o test(s) failures");
-          }
-          else {
-            vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke completed, w/ test(s) failures");
-          }
+          testRun.actual === true
+            ? vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke completed w/o test(s) failures")
+            : vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke completed, w/ test(s) failures");
+
           console.info(testRun);
+          try {
+            const panel = vscode.window.createWebviewPanel("RhinoReport", "Rhino Report", vscode.ViewColumn.One);
+            panel.webview.html = new ReportManager(testRun).getHtmlReport(); 
+          } catch (error) {
+            var a = error;
+          }
         });
     }
 

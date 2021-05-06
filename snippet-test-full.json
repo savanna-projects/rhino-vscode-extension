@@ -5,7 +5,7 @@
     ],
     "body": [
       "[test-id] ${1:RHINO-01}",
-      "[test-scenario] verify that ${2:<expected result>} when ${3:<action taken>}",
+      "[test-scenario] verify that ${2:expected result} when ${3:action taken}",
       "[test-priority] ${4|1 - critical,2 - high,3 - medium,4 - low|}",
       "[test-severity] ${5|1 - critical,2 - high,3 - medium,4 - low|}",
       "[test-tolerance] - ${6:0}%",
