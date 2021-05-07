@@ -17,21 +17,46 @@ export class ReportManager {
      * @returns HTML string with the report data. 
      */
     public getHtmlReport(): string {
-        // TODO: get summary
-        // TODO: get passed test cases - by quality (lower to higher)
-        // TODO: get failed test cases - by quality (lower to higher)
+        // [v] TODO: get summary
+        // [v] TODO: get test case
+        // [v] TODO: get test steps
+        // [v] TODO: get HTML layout
+        // [ ] TODO: get passed test cases - by quality (lower to higher)
+        // [ ] TODO: get failed test cases - by quality (lower to higher)
 
-        return this.getHtml()
+        // build
+        var testCases = [];
+        for (let i = 0; i < this.testRun.testCases.length; i++) {
+            testCases.push(this.getSummaryTestCase(this.testRun.testCases[i]));           
+        }
+
+        var html = this.getHtml()
             .replace('$(title)', this.testRun.title)
             .replace('$(summaryOutcome)', this.getSummaryOutcome())
-            .replace('$(summaryTestCase)', this.getSummaryTestCase(this.testRun.testCases[0]));
+            .replace('$(summaryTestCase)', testCases.join(''));
+        
+        return html;
     }
 
+    // get the HTML report layout
     private getHtml(): string {
-        return `
-        <html>
+        // setup
+        var metaData =
+            '<div style="margin: 0.25rem;">' +
+            '   <pre>Start   : ' + this.testRun.start +
+            '   <br/>End     : ' + this.testRun.end +
+            '   <br/>Run Time: ' + this.testRun.runTime.totalSeconds + '</pre>' +
+            '</div>';
+        
+        // get
+        return `<html>
         <head>
             <style>
+                .steps-table {
+                    padding: 0;
+                    border: 0;
+                    line-height: normal
+                }
                 .label {
                     box-sizing: border-box;
                     display: inline;
@@ -100,92 +125,106 @@ export class ReportManager {
         </head>
         <body>
             <h2>$(title)</h2>
-<div style="margin: 0.25rem;">
-<pre>Start   : ${this.testRun.start}
-End     : ${this.testRun.end}
-Run Time: ${this.testRun.runTime.totalSeconds}</pre>
-</div>
+            ${metaData}
             $(summaryOutcome)
             $(summaryTestCase)
         </body>
         </html>`;
     }
 
+    // get tests summary HTML
     private getSummaryOutcome(): string {
-        //  style="position: fixed; top: 1rem; left: 1rem;"
-        var qulityColor = this.testRun.qualityRank < 80 ? '#E74C3C' : '#1ABB9C';
+        // build components
+        var qulityColor = this.testRun.qualityRank < 80 ? '#e74c3c' : '#1abb9c';
+        var totalPass = `
+        <td>
+        <div class="card">
+            <div class="card-header" title="The amount of successful tests.">Total Pass</div>
+            <div class="card-body" style="color: #1abb9c;">${this.testRun.totalPass}</div>
+        </div>
+        </td>`;
+
+        var totalFail = `
+        <td>
+        <div class="card">
+            <div class="card-header" title="The amount of failed tests.">Total Fail</div>
+            <div class="card-body" style="color: #e74c3c;">${this.testRun.totalFail}</div>
+        </div>
+        </td>`;
+
+        var totalInconclusive = `
+        <td>
+        <div class="card">
+            <div class="card-header" title="The amount of tests which Rhino did not verify or skipped due to, lack of assertions or tolerance configuration.">Total Inconclusive</div>
+            <div class="card-body" style="color: #f0ad4e;">${this.testRun.totalInconclusive}</div>
+        </div>
+        </td>`;
+
+        var qualityRank = `
+        <td>
+        <div class="card">
+            <div class="card-header" title="The overall quality (the expected application behavior) of the test run.">Quality Rank</div>
+            <div class="card-body" style="color: ${qulityColor}">${this.testRun.qualityRank}%</div>
+        </div>
+        </td>`;
+
+        // get
         return `
         <table>
         <tr>
-            <td>
-                <div class="card" id="x">
-                    <div class="card-header" title="The amount of successful tests.">Total Pass</div>
-                    <div class="card-body" style="color: #1ABB9C;">${this.testRun.totalPass}</div>
-                </div>
-            </td>
-            <td>
-                <div class="card">
-                    <div class="card-header" title="The amount of failed tests.">Total Fail</div>
-                    <div class="card-body" style="color: #E74C3C">${this.testRun.totalFail}</div>
-                </div>
-            </td>
-            <td>
-                <div class="card">
-                    <div class="card-header" title="The amount of tests which Rhino did not verify or skipped due to, lack of assertions or tolerance configuration.">Total Inconclusive</div>
-                    <div class="card-body" style="color: #f0ad4e;">${this.testRun.totalInconclusive}</div>
-                </div>
-            </td>
-            <td>
-                <div class="card">
-                    <div class="card-header" title="The overall quality (the expected application behavior) of the test run.">Quality Rank</div>
-                    <div class="card-body" style="color: ${qulityColor}">${this.testRun.qualityRank}%</div>
-                </div>
-            </td>
+            ${totalPass}
+            ${totalFail}
+            ${totalInconclusive}
+            ${qualityRank}
         </tr>
         </table>`;
     }
 
+    // get a single test case HTML
     private getSummaryTestCase(testCase: any): string {
-        var qulityColor = this.testRun.qualityRank < 80 ? '#E74C3C' : '#1ABB9C';
+        // setup
+        var qulityColor = this.testRun.qualityRank < 80 ? '#e74c3c' : '#1abb9c';
+        var metaData =
+            '<pre>Start       : ' + testCase.start +
+            '<br/>End         : ' + testCase.end +
+            '<br/>Quality Rank: <span style="color: ' + qulityColor + '">' + testCase.qualityRank + '</span>' +
+            '<br/>Run Time    : <span style="color: #3498db">' + testCase.runTime.totalSeconds + '</span>' +
+            '<br/>On Attempt  : ' + testCase.passedOnAttempt + '</pre>';
+        
+        // build
         var steps = [];
         for (let i = 0; i < testCase.steps.length; i++) {
             steps.push(this.getTestStepsHtml(testCase.steps[i], i));
         }
 
+        // get
         return `
-            <div class="panel">
-                <div style="padding: 0.25rem;">
-                <span class="label">${testCase.key}</span>
-<pre>Start       : ${testCase.start}
-End         : ${testCase.end}
-Quality Rank: <span style="color: ${qulityColor}">${testCase.qualityRank}</span>
-Run Time    : <span style="color: #3498DB">${testCase.runTime.totalSeconds}</span>
-On Attempt  : ${testCase.passedOnAttempt + 1}</pre>
-                </div><br/>
-                <div style="padding: 0.25rem;">
-                    <table cellpadding="1" cellspacing="0" style="padding: 0; border: 0; line-height: normal">
-                    ${steps.join('')}
-                    </table>
-                </div>
-            </div>`;
+        <div class="panel">
+        <div style="padding: 0.25rem;">
+            <span class="label">${testCase.key}</span>
+            ${metaData}<br/>
+            <div style="padding: 0.25rem;">
+                <table cellpadding="1" cellspacing="0" class="steps-table">${steps.join('')}</table>
+            </div>
+        </div>`;
     }
 
     private getTestStepsHtml(testStep: any, index: number): string {
         // setup
-        var rowColor = index % 2 ? '#fff' : '#E7E9EB';
-        var actionColor = testStep.actual === true ? '#1ABB9C' : '#E74C3C';
+        var rowColor = index % 2 ? '#fff' : '#e7e9eB';
+        var actionColor = testStep.actual === true ? '#1abb9c' : '#e74c3c';
         var actionSign = testStep.actual === true ? 'P' : 'F';
         
         var html = `
         <tr style="background-color: ${rowColor};">
-        <td style="width: 5%; text-align: center;"><pre>${index + 1}</pre></td>
-        <td style="width: 3%; text-align: center;"><pre style="font-weight: 900; color: ${actionColor}">${actionSign}<pre></td>
-        <td style="width: 41%;"><pre>${testStep.action}</pre></td>
-        <td style="width: 41%;"><pre>${testStep.expected}</pre></td>
-        <td style="width: 10%;"><pre style="color: #3498DB">${testStep.runTime.totalMilliseconds}<pre></td>
-        </tr>
-        `;
+            <td style="width: 5%; text-align: center;"><pre>${index + 1}</pre></td>
+            <td style="width: 3%; text-align: center;"><pre style="font-weight: 900; color: ${actionColor}">${actionSign}<pre></td>
+            <td style="width: 41%;"><pre>${testStep.action}</pre></td>
+            <td style="width: 41%;"><pre>${testStep.expected}</pre></td>
+            <td style="width: 10%;"><pre style="color: #3498db">${testStep.runTime.totalMilliseconds}<pre></td>
+        </tr>`;
 
+        // get
         return html;
     }
 }
