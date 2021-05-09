@@ -164,7 +164,7 @@ export class ReportManager {
         <td>
         <div class="card">
             <div class="card-header" title="The overall quality (the expected application behavior) of the test run.">Quality Rank</div>
-            <div class="card-body" style="color: ${qulityColor}">${this.testRun.qualityRank}%</div>
+            <div class="card-body" style="color: ${qulityColor}">${Math.round(this.testRun.qualityRank)}%</div>
         </div>
         </td>`;
 
@@ -217,11 +217,11 @@ export class ReportManager {
         
         var html = `
         <tr style="background-color: ${rowColor};">
-            <td style="width: 5%; text-align: center;"><pre>${index + 1}</pre></td>
-            <td style="width: 3%; text-align: center;"><pre style="font-weight: 900; color: ${actionColor}">${actionSign}<pre></td>
-            <td style="width: 41%;"><pre>${testStep.action}</pre></td>
-            <td style="width: 41%;"><pre>${testStep.expected}</pre></td>
-            <td style="width: 10%;"><pre style="color: #3498db">${testStep.runTime.totalMilliseconds}<pre></td>
+            <td style="width: 5%; vertical-align: top;"><pre>${index + 1}</pre></td>
+            <td style="width: 3%; vertical-align: top;"><pre style="font-weight: 900; color: ${actionColor}">${actionSign}<pre></td>
+            <td style="width: 41%; vertical-align: top;"><pre>${testStep.action}</pre></td>
+            <td style="width: 41%; vertical-align: top;"><pre>${testStep.expected}</pre></td>
+            <td style="width: 10%; vertical-align: top;"><pre style="color: #3498db">${testStep.runTime.totalMilliseconds}<pre></td>
         </tr>`;
 
         // get
