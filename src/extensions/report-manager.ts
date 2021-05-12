@@ -52,6 +52,14 @@ export class ReportManager {
         return `<html>
         <head>
             <style>
+                pre {
+                    overflow-x: auto;
+                    white-space: pre-wrap;
+                    white-space: -moz-pre-wrap;
+                    white-space: -pre-wrap;
+                    white-space: -o-pre-wrap;
+                    word-wrap: break-word;
+                }
                 .steps-table {
                     padding: 0;
                     border: 0;
