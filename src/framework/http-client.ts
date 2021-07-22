@@ -6,7 +6,7 @@
  * https://nodejs.dev/learn/making-http-requests-with-nodejs
  */
 import * as vscode from 'vscode';
-import { HttpCommand } from '../contracts/http-command';
+import { HttpCommand } from './http-command';
 import { URL } from "url";
 
 /**
@@ -47,8 +47,13 @@ export class HttpClient {
         request.on('error', (error: any) => this.onError(error));
 
         // send
-        if(httpCommand.body !== null) {
+        var isBody = httpCommand.body !== null && httpCommand.body !== undefined;
+        var isJson = 'Content-Type' in httpCommand.headers && httpCommand.headers['Content-Type'] === 'application/json';
+        if(isBody && isJson) {
             request.write(JSON.stringify(httpCommand.body));
+        }
+        else if(isBody && !isJson) {
+            request.write(httpCommand.body.toString());
         }
         request.end();
     }
@@ -89,5 +94,6 @@ export class HttpClient {
     private onError(error: any) {
         console.error(error);
         vscode.window.showErrorMessage(error.message);
+        vscode.window.setStatusBarMessage("$(testing-error-icon) " + error.message);
     }
 }

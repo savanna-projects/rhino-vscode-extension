@@ -10,20 +10,20 @@ import os = require('os');
 import * as ph from 'path';
 import * as vscode from 'vscode';
 
-import { Command } from "./command-base";
+import { Command } from "./command";
 import { Utilities } from '../extensions/utilities';
 
-export class CreateRhinoProject extends Command {  
+export class CreateProjectCommand extends Command {
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
      * @param context The context under which to register the command.
      */
     constructor(context: vscode.ExtensionContext) {
-         super(context);
+        super(context);
 
-         // build
-         this.setCommandName('Create-RhinoProject');
+        // build
+        this.setCommandName('Create-Project');
     }
 
     /*┌─[ REGISTER & INVOKE ]──────────────────────────────────
@@ -55,16 +55,16 @@ export class CreateRhinoProject extends Command {
     private invoke() {
         // setup
         var dialogOptions = {
-			canSelectFiles: false,
-			canSelectFolders: true,
-			canSelectMany: false
-		};
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false
+        };
 
         // build
-		vscode.window.showOpenDialog(dialogOptions).then(folderUri => {
-            CreateRhinoProject.createProjectFolder(folderUri);
-            CreateRhinoProject.createProjectManifest(folderUri);
-            CreateRhinoProject.openFolder(folderUri);
+        vscode.window.showOpenDialog(dialogOptions).then(folderUri => {
+            CreateProjectCommand.createProjectFolder(folderUri);
+            CreateProjectCommand.createProjectManifest(folderUri);
+            CreateProjectCommand.openFolder(folderUri);
         });
     }
 
@@ -72,7 +72,7 @@ export class CreateRhinoProject extends Command {
     private static createProjectFolder(userPath: any) {
         // setup path
         var path = '';
-        if(userPath && userPath[0]) {
+        if (userPath && userPath[0]) {
             path = userPath[0].path;
         }
         path = os.platform() === 'win32' ? path.replaceAll('/', '\\').substr(1, path.length - 1) : path;
@@ -95,10 +95,10 @@ export class CreateRhinoProject extends Command {
     private static createProjectManifest(userPath: any) {
         var manifastObjt = Utilities.getDefaultProjectManifest();
         var manifastData = JSON.stringify(manifastObjt, null, '\t');
-        
+
         // setup path
         var path = '';
-        if(userPath && userPath[0]) {
+        if (userPath && userPath[0]) {
             path = userPath[0].path;
         }
         path = os.platform() === 'win32' ? path.replaceAll('/', '\\').substr(1, path.length - 1) : path;
@@ -106,7 +106,7 @@ export class CreateRhinoProject extends Command {
         // create manifest
         var manifestPath = ph.join(path, 'manifest.json');
         fs.writeFile(manifestPath, manifastData, (err) => {
-            if(err) {
+            if (err) {
                 vscode.window.showErrorMessage(err.message);
             }
         });
@@ -116,7 +116,7 @@ export class CreateRhinoProject extends Command {
     private static openFolder(userPath: any) {
         // build
         var path = '';
-        if(userPath && userPath[0]) {
+        if (userPath && userPath[0]) {
             path = userPath[0].path;
         }
         path = os.platform() === 'win32' ? path.replaceAll('/', '\\').substr(1, path.length - 1) : path;

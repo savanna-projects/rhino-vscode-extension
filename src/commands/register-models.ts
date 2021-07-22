@@ -12,7 +12,7 @@ import * as vscode from 'vscode';
 import { Command } from "./command";
 import { RegisterRhinoCommand } from './register-rhino';
 
-export class RegisterPluginsCommand extends Command {
+export class RegisterModelsCommand extends Command {
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
@@ -22,7 +22,7 @@ export class RegisterPluginsCommand extends Command {
         super(context);
 
         // build
-        this.setCommandName('Register-Plugins');
+        this.setCommandName('Register-Models');
     }
 
     /*┌─[ REGISTER ]───────────────────────────────────────────
@@ -53,64 +53,63 @@ export class RegisterPluginsCommand extends Command {
 
     private invoke(callback: any) {
         // notification
-        vscode.window.setStatusBarMessage('$(sync~spin) Registering plugin(s)...');
+        vscode.window.setStatusBarMessage('$(sync~spin) Registering model(s)...');
 
         // build
-        var plugins = this.getPluginsFromFiles();
-        var createModel = plugins
-            .join("\n>>>\n")
-            .split('\n')
-            .map(i => i.replace(/^\d+\.\s+/, ''))
-            .join('\n');
+        var createModel = this.getModelsFromFiles();
 
         // register
-        this.registerPlugins(createModel, callback);
+        this.registerModels(createModel, callback);
     }
 
-    private getPluginsFromFiles(): string[] {
+    private getModelsFromFiles(): any[] {
         // setup
         var workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
 
-        var pluginsFolder = path.join(workspace, 'Plugins');
-        pluginsFolder = pluginsFolder.startsWith('\\')
-            ? pluginsFolder.substr(1, pluginsFolder.length)
-            : pluginsFolder;
+        var modelsFolder = path.join(workspace, 'Models');
+        modelsFolder = modelsFolder.startsWith('\\')
+            ? modelsFolder.substr(1, modelsFolder.length)
+            : modelsFolder;
 
         // build
         const fs = require('fs');
-        var files = fs.readdirSync(pluginsFolder);
-        var pluginsData = [];
+        var files = fs.readdirSync(modelsFolder);
+        var modelsData = [];
 
         for (let index = 0; index < files.length; index++) {
             try {
-                var pluginFile = path.join(pluginsFolder, files[index]);
-                var pluginData = fs.readFileSync(pluginFile, 'utf8');//.replace(/(\r\n|\n|\r)/gm, "");
-                pluginsData.push(pluginData);
+                var modelFile = path.join(modelsFolder, files[index]);
+                var modelJson = fs.readFileSync(modelFile, 'utf8');
+                var modelData = JSON.parse(modelJson);
+                modelsData.push(modelData);
             } catch (e) {
                 console.log('Error:', e.stack);
             }
         }
 
         // get
-        return pluginsData;
+        return modelsData;
     }
 
-    private registerPlugins(createModel: string, callback: any) {
-        this.getRhinoClient().createPlugins(createModel, (response: any) => {
-            // setup
-            var total = response.toString().split('>>>').length;
+    private registerModels(createModel: any[], callback: any) {
+        // setup
+        var client = this.getRhinoClient();
 
-            // notification
-            vscode.window.setStatusBarMessage('$(testing-passed-icon) Total of ' + total + ' plugin(s) registered');
+        // clean and register
+        client.deleteModels(() => {
+            client.createModels(createModel, () => {
+                // notification
+                vscode.window.setStatusBarMessage('$(testing-passed-icon) Models registered');
 
-            // register
-            new RegisterRhinoCommand(this.getContext()).invokeCommand();
+                // register
+                new RegisterRhinoCommand(this.getContext()).invokeCommand();
 
-            // callback
-            if (callback !== undefined) {
-                callback();
-            }
+                // callback
+                if (callback !== undefined) {
+                    callback();
+                }
+            });
         });
     }
 }

@@ -6,9 +6,9 @@
  */
 import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
-import { Command } from "./command-base";
+import { Command } from "./command";
 
-export class CreateIntegratedTestCase extends Command {
+export class RegisterTestCaseCommand extends Command {
     // members
     private testSuites: string[] | undefined;
 
@@ -18,11 +18,11 @@ export class CreateIntegratedTestCase extends Command {
      * @param context The context under which to register the command.
      */
     constructor(context: vscode.ExtensionContext) {
-         super(context);
+        super(context);
 
-         // build
-         this.testSuites = [];
-         this.setCommandName('Create-IntegratedTestCase');
+        // build
+        this.testSuites = [];
+        this.setCommandName('Register-TestCase');
     }
 
     /*┌─[ REGISTER & INVOKE ]──────────────────────────────────
@@ -75,7 +75,7 @@ export class CreateIntegratedTestCase extends Command {
 
         // build
         this.getRhinoClient().createTestCase(configuration, () => {
-            vscode.window.setStatusBarMessage('$(info) Integrated test cases created');
+            vscode.window.setStatusBarMessage('$(testing-passed-icon) Integrated test cases created');
         });
     }
 
@@ -83,12 +83,12 @@ export class CreateIntegratedTestCase extends Command {
     private getOpenTestCases(): string {
         // setup
         var editor = vscode.window.activeTextEditor;
-        
+
         // bad request
-        if(!editor) {
+        if (!editor) {
             return '';
         }
-        
+
         // get
         return editor.document.getText();
     }

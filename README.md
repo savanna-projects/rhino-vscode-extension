@@ -1,5 +1,5 @@
 # Rhino API - Language & Integration Extension
-10/12/2020 - 0 minutes to read
+19/07/2021 - 45 minutes to read
 
 > Information
 >
@@ -11,6 +11,14 @@
 > Please send your open source project URL to rhino.api@gmail.com and your Rhino user name to get a sponsored account.
 
 ## In This Article
+### [Commands](#commands)
+* Connect to Rhino Server
+* [Create a New Project](#create-project)
+* Submit (Register) Test Case(s)
+* Submit (Register) Plugin(s)
+* Run Test
+* Format Document
+
 ### [Basics](#basics)
 * [Create New Project](#create-new-project)
 * [Manifest Overview](#manifest-overview)
@@ -20,26 +28,32 @@
 ### Advanced
 * [Deploy Rhino Server](https://github.com/savanna-projects/rhino-agent/blob/master/docs/pages/GettingStarted/Deployment.md)
 * Manifest in Depth
-* Connect to Application Lifecycle Management
-    - Create Test
-    - Import Test
-    - Update Test
-
-### References
-* VS Code Content
-    - Rhino Snippets
-    - Rhino Commands  
 
 Rhino as an open source [W3C Web Driver](https://www.w3.org/TR/webdriver/) based client (much like selenium) for executing various automation scenarios. Rhino is based on [Gravity API Engine](https://github.com/gravity-api) which manipulates Selenium, Appium and other automation technologies in order to execute unified, single interface abstract automation.  
 
 > Rhino is a full W3C Web Driver compliant which means it can connect out of the box to any other Web Driver either locally, cloud or remote.
+
+## Commands
+You can activate the command panel when pressing `CTRL+SHIFT+P` keys combination. This will open the **Command Palette** from which you select and run extensions commands.  
+
+Once the **Command Palette** is open, type `Rhino:` into the **Command Palette** text-box to filter out Rhino only commands.
+
+### Create-Project
+The `Create-Project` command opens the `Select Folder` dialog, from which you can select the folder to create Rhino Project under.  
+
+Upon creating a project, the following folders and files will be created:
+1. `Configurations` a folder under which you can create configurations to run your tests with. Test can run on multiple configurations.
+2. `Models` a folder under which you can create page objects map for a quick access to UI elements or reuseable data.
+3. `Plugins` a folder under which you can create a resuable plugin for a quick access to common functionality.
+4. `TestCases` a folder under which you can create test cases for integration into ALM or for a direct execution.
+5. `manifest.json`, default project manifest.
 
 ## Basics
 ### Create New Project
 When you first open Visual Studio Code, the start window appears, and from there, you can run the ```Create a new project``` command.  
 
 1. Launch VS Code.
-2. Open the **Command Palette** (```CTRL+SHIFT+P```).
+2. Open the **Command Palette** (`CTRL+SHIFT+P`).
 3. Type 'Rhino' to find the ```Rhino: Creates a New Rhino Project``` command.  
 
 ![image 1.1](https://raw.githubusercontent.com/savanna-projects/rhino-vscode-extension/master/images/create_new_project_1.png "Command Palette")  
@@ -54,6 +68,9 @@ When you first open Visual Studio Code, the start window appears, and from there
 
 ### Manifest Overview
 Every project has a JSON-formatted manifest file, named ```manifest.json```, that provides important information. The following code shows the supported manifest fields for Rhino Project.
+
+> Tip
+> A default manifest is created when you create a project.
 
 ```js
 {

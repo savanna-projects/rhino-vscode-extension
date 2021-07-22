@@ -27,14 +27,14 @@ export class ReportManager {
         // build
         var testCases = [];
         for (let i = 0; i < this.testRun.testCases.length; i++) {
-            testCases.push(this.getSummaryTestCase(this.testRun.testCases[i]));           
+            testCases.push(this.getSummaryTestCase(this.testRun.testCases[i]));
         }
 
         var html = this.getHtml()
             .replace('$(title)', this.testRun.title)
             .replace('$(summaryOutcome)', this.getSummaryOutcome())
             .replace('$(summaryTestCase)', testCases.join(''));
-        
+
         return html;
     }
 
@@ -47,7 +47,7 @@ export class ReportManager {
             '   <br/>End     : ' + this.testRun.end +
             '   <br/>Run Time: ' + this.testRun.runTime.totalSeconds + '</pre>' +
             '</div>';
-        
+
         // get
         return `<html>
         <head>
@@ -198,7 +198,7 @@ export class ReportManager {
             '<br/>Quality Rank: <span style="color: ' + qulityColor + '">' + testCase.qualityRank + '</span>' +
             '<br/>Run Time    : <span style="color: #3498db">' + testCase.runTime.totalSeconds + '</span>' +
             '<br/>On Attempt  : ' + testCase.passedOnAttempt + '</pre>';
-        
+
         // build
         var steps = [];
         for (let i = 0; i < testCase.steps.length; i++) {
@@ -209,7 +209,7 @@ export class ReportManager {
         return `
         <div class="panel">
         <div style="padding: 0.25rem;">
-            <span class="label">${testCase.key}</span>
+            <span class="label">${testCase.key}-${testCase.iteration}</span>
             ${metaData}<br/>
             <div style="padding: 0.25rem;">
                 <table cellpadding="1" cellspacing="0" class="steps-table">${steps.join('')}</table>
@@ -222,7 +222,7 @@ export class ReportManager {
         var rowColor = index % 2 ? '#fff' : '#e7e9eB';
         var actionColor = testStep.actual === true ? '#1abb9c' : '#e74c3c';
         var actionSign = testStep.actual === true ? 'P' : 'F';
-        
+
         var html = `
         <tr style="background-color: ${rowColor};">
             <td style="width: 5%; vertical-align: top;"><pre>${index + 1}</pre></td>

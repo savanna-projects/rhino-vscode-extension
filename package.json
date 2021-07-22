@@ -1,48 +1,51 @@
 {
 	"name": "rhino-language-support",
-	"publisher": "rhinoapi",
-	"displayName": "Rhino Language Support",
-	"description": "Syntax highlights and Language Server for Rhino API",
-	"version": "1.0.3",
-	"icon": "images/128x128.png",
+	"displayName": "rhino-language-support",
+	"description": "",
+	"version": "0.0.1",
 	"engines": {
-		"vscode": "^1.55.0"
+		"vscode": "^1.57.0"
 	},
 	"markdown": "github",
-	"repository": {
-		"url": "https://github.com/savanna-projects/rhino-vscode-extension"
-	},
 	"categories": [
 		"Other",
 		"Programming Languages",
 		"Snippets"
 	],
 	"activationEvents": [
-		"onCommand:Connect-RhinoServer",
-		"onCommand:Create-RhinoProject"
+		"onCommand:Register-Rhino",
+		"onCommand:Create-Project"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "Connect-RhinoServer",
-				"title": "Rhino: Connect to Rhino, fetch Metadata & activate commands"
-			},
-			{
-				"command": "Create-RhinoProject",
+				"command": "Create-Project",
 				"title": "Rhino: Creates a New Rhino Project"
 			},
 			{
-				"command": "Invoke-RhinoTestCase",
+				"command": "Format-TestCase",
+				"title": "Rhino: Format the TestCase(s) Spec under the active editor window"
+			},
+			{
+				"command": "Invoke-TestCase",
 				"title": "Rhino: Runs the automation test(s) from the currently open document"
 			},
 			{
-				"command": "Create-IntegratedTestCase",
-				"title": "Rhino: Creates a new Test Case(s) entity on the integrated application from the currently open document"
+				"command": "Register-Models",
+				"title": "Rhino: Register all the models under 'Models' folder"
 			},
 			{
 				"command": "Register-Plugins",
 				"title": "Rhino: Register all the plugins under 'Plugins' folder"
+			},
+			{
+				"command": "Register-Rhino",
+				"title": "Rhino: Connect to Rhino, fetch Metadata & activate commands"
+			},
+			{
+				"command": "Register-TestCase",
+				"title": "Rhino: Creates a new Test Case(s) entity on the integrated application from the currently open document"
 			}
 		],
 		"languages": [
@@ -62,7 +65,7 @@
 			{
 				"language": "rhino",
 				"scopeName": "source.rhino",
-				"path": "./rhino-tm-language.json"
+				"path": "./rhino-tmLanguage.json"
 			}
 		],
 		"snippets": [
@@ -75,22 +78,22 @@
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
-		"lint": "eslint src --ext ts",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
+		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/glob": "^7.1.1",
-		"@types/mocha": "^7.0.2",
-		"@types/node": "^13.13.51",
-		"@types/vscode": "^1.55.0",
-		"@typescript-eslint/eslint-plugin": "^2.30.0",
-		"@typescript-eslint/parser": "^2.30.0",
-		"eslint": "^6.8.0",
+		"@types/vscode": "^1.57.0",
+		"@types/glob": "^7.1.3",
+		"@types/mocha": "^8.0.4",
+		"@types/node": "^12.11.7",
+		"eslint": "^7.19.0",
+		"@typescript-eslint/eslint-plugin": "^4.14.1",
+		"@typescript-eslint/parser": "^4.14.1",
 		"glob": "^7.1.6",
-		"mocha": "^7.1.2",
-		"typescript": "^3.9.9",
-		"vscode-test": "^1.5.2"
+		"mocha": "^8.2.1",
+		"typescript": "^4.1.3",
+		"vscode-test": "^1.5.0"
 	}
 }
