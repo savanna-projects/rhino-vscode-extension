@@ -72,7 +72,6 @@ export class RhinoClient {
 
         // get
         this.httpClient.invokeWebRequest(httpCommand, callback);
-
     }
 
     /**
@@ -224,5 +223,32 @@ export class RhinoClient {
         
         // get
         this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
+
+    /**
+     * Summary. Creates a collection of Rhino Plugins using Rhino Plugins spec.
+     * 
+     * @param createModel Rhino Plugins spec.
+     * @param callback    An argument, which is then invoked inside the outer function to complete some kind of routine or action. 
+     */
+    public createPlugins(createModel: string, callback: any) {
+        // setup
+        var httpCommand = new HttpCommand()
+            .setMethod('POST')
+            .setBody(createModel)
+            .setCommand('/api/v3/plugins')
+            .addHeader('Content-Type', 'text/plain');
+        
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
+
+    public getRhinoPlugin(key: string, callback: any) {
+        // setup
+        var httpCommand = new HttpCommand();
+        httpCommand.command = '/api/v3/plugins/' + key;
+
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);   
     }
 }

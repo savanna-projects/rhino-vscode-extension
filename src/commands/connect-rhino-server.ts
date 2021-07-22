@@ -8,9 +8,7 @@ import * as vscode from 'vscode';
 import { ActionsAutoCompleteProvider } from '../framework/actions-auto-complete-provider';
 import { MacrosAutoCompleteProvider } from '../framework/macros-auto-complete-provider';
 import { Command } from "./command-base";
-import { CreateIntegratedTestCase } from './create-integrated-test-case';
-import { CreateRhinoProject } from './create-rhino-project';
-import { InvokeRhinoTestCases } from './invoke-rhino-test-cases';
+import { RegisterPlugins } from './register-plugins';
 
 export class ConnectRhinoServer extends Command {  
     /**
@@ -59,23 +57,27 @@ export class ConnectRhinoServer extends Command {
         var client = this.getRhinoClient();
 
         // build
-        client.getPlugins((plugins: any[]) => {
-            client.getMacros((macros: any[]) => {
-                client.getLocators((locators: any[]) => {
-                    client.getAnnotations((annotations: any[]) => {
+        client.getPlugins((plugins: any) => {
+            client.getMacros((macros: any) => {
+                client.getLocators((locators: any) => {
+                    client.getAnnotations((annotations: any) => {
                         client.getAttributes((attributes: any) => {
                             client.getAssertions((assertions: any) => {
-                                client.getOperators((operators: any) => {                                                     
-                                    var pattern = ConnectRhinoServer.getPluginsPattern(plugins);
-                                    var macrosProvider = new MacrosAutoCompleteProvider().setManifests(macros);
+                                client.getOperators((operators: any) => {
+                                    new RegisterPlugins(this.getContext()).invokeCommand();
+                                    
+                                    var _plugins = JSON.parse(plugins);
+                                    var _macros = JSON.parse(macros);                               
+                                    var pattern = ConnectRhinoServer.getPluginsPattern(_plugins);
+                                    var macrosProvider = new MacrosAutoCompleteProvider().setManifests(_macros);
                                     var actionsProvider = new ActionsAutoCompleteProvider()
-                                        .setManifests(plugins)
-                                        .setLocators(locators)
-                                        .setAnnotations(annotations)
+                                        .setManifests(_plugins)
+                                        .setLocators(JSON.parse(locators))
+                                        .setAnnotations(JSON.parse(annotations))
                                         .setPattern(pattern)
-                                        .setAttributes(attributes)
-                                        .setAssertions(assertions)
-                                        .setOperators(operators);
+                                        .setAttributes(JSON.parse(attributes))
+                                        .setAssertions(JSON.parse(assertions))
+                                        .setOperators(JSON.parse(operators));
 
                                     var items = [
                                         this.getActions(actionsProvider),
@@ -89,10 +91,10 @@ export class ConnectRhinoServer extends Command {
                                     ];
                                     this.getContext().subscriptions.push(...items);
                                     
-                                    var message = 'Connect-RhinoServer -> (Status: Ok, NumberOfPlugins: ' + plugins.length + ')';
+                                    var message = 'Connect-RhinoServer -> (Status: Ok, NumberOfPlugins: ' + _plugins.length + ')';
                                     vscode.window.showInformationMessage(message);
                                     
-                                    message = 'Connect-RhinoServer -> (Status: Ok, NumberOfMacros: ' + macros.length + ')';
+                                    message = 'Connect-RhinoServer -> (Status: Ok, NumberOfMacros: ' + _macros.length + ')';
                                     vscode.window.showInformationMessage(message);
                                 });
                             });
@@ -183,7 +185,7 @@ export class ConnectRhinoServer extends Command {
       │ A list of helper methods, relevant for the command.
       └────────────────────────────────────────────────────────*/
     // gets a pattern to identify all available plugins in a single text line.
-    private static getPluginsPattern(plugins: any[]): string {
+    private static getPluginsPattern(plugins: any): string {
         // setup
         var patterns: string[] = [];
         
@@ -211,6 +213,5 @@ export class ConnectRhinoServer extends Command {
         } catch (error) {
             var a = error;
         }
-        
     }
 }

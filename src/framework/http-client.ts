@@ -5,9 +5,6 @@
  * https://make.wordpress.org/core/handbook/best-practices/inline-documentation-standards/javascript/
  * https://nodejs.dev/learn/making-http-requests-with-nodejs
  */
-import fs = require('fs');
-import os = require('os');
-
 import * as vscode from 'vscode';
 import { HttpCommand } from '../contracts/http-command';
 import { URL } from "url";
@@ -44,8 +41,8 @@ export class HttpClient {
         // build
         const request = http.request(options, (response: any) => {
             var data = '';
-            response.on('data', (d: any) =>  data += this.onData(d));
-            response.on('end', () => callback(JSON.parse(data)));
+            response.on('data', (d: any) => data += this.onData(d));
+            response.on('end', () => callback(data));
         });
         request.on('error', (error: any) => this.onError(error));
 

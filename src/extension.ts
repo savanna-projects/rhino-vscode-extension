@@ -9,6 +9,7 @@ import { ConnectRhinoServer } from './commands/connect-rhino-server';
 import { CreateIntegratedTestCase } from './commands/create-integrated-test-case';
 import { CreateRhinoProject } from './commands/create-rhino-project';
 import { InvokeRhinoTestCases } from './commands/invoke-rhino-test-cases';
+import { RegisterPlugins } from './commands/register-plugins';
 
 /**
  * Summary. This function will be called upon activating the extension.
@@ -16,11 +17,11 @@ import { InvokeRhinoTestCases } from './commands/invoke-rhino-test-cases';
  * @param context The context of the extension.
  */
 export function activate(context: vscode.ExtensionContext) {
-	// fetch meta data and register Rhino language engine
 	new ConnectRhinoServer(context).register();
 	new InvokeRhinoTestCases(context).setCommandName('Invoke-RhinoTestCase').register();
 	new CreateRhinoProject(context).register();
 	new CreateIntegratedTestCase(context).register();
+	new RegisterPlugins(context).register();
 }
 
 // this method is called when your extension is deactivated

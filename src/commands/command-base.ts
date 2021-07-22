@@ -149,7 +149,7 @@ export abstract class Command {
       │ any command.
       └────────────────────────────────────────────────────────*/
     /**
-     * Summary. When implemented, returns registerable command
+     * Summary. When implemented, returns registerable command.
      */
     public abstract register(): any;
 

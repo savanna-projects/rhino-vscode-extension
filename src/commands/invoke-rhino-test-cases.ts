@@ -49,7 +49,6 @@ export class InvokeRhinoTestCases extends Command {
       /**
      * Summary. Adds one or more Rhino Test Case(s) into the tests collection.
      * 
-     * @param testCases One or more Rhino Test Case(s) to invoke.
      * @returns Self reference
      */
     public addOpenTestCases(): InvokeRhinoTestCases {

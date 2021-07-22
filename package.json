@@ -8,6 +8,7 @@
 	"engines": {
 		"vscode": "^1.55.0"
 	},
+	"markdown": "github",
 	"repository": {
 		"url": "https://github.com/savanna-projects/rhino-vscode-extension"
 	},
@@ -38,6 +39,10 @@
 			{
 				"command": "Create-IntegratedTestCase",
 				"title": "Rhino: Creates a new Test Case(s) entity on the integrated application from the currently open document"
+			},
+			{
+				"command": "Register-Plugins",
+				"title": "Rhino: Register all the plugins under 'Plugins' folder"
 			}
 		],
 		"languages": [
