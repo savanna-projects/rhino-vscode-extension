@@ -80,7 +80,7 @@ export class CreateTm extends Command {
 
     private getTmConfiguration(nameClass: string[], keywordControl: string[]) {
         // build
-        var _nameClass = "\\b(" + nameClass.sort((a, b) => b.length - a.length).join('|') + ")\\b";
+        var _nameClass = "\\b(" + nameClass.filter(i => i !== '').sort((a, b) => b.length - a.length).join('|') + ")\\b";
         var _keywordControl = "\\b(" + keywordControl.sort((a, b) => b.length - a.length).join('|') + ")\\b";
 
         // get
@@ -118,6 +118,14 @@ export class CreateTm extends Command {
                         {
                             "name": "comment.line",
                             "match": "(\\s+)?/\\*\\*.*"
+                        },
+                        {
+                            "name": "entity.name.class",
+                            "match": "(\\|)"
+                        },
+                        {
+                            "name": "entity.name.class",
+                            "match": "(-{3,})"
                         }
                     ]
                 }

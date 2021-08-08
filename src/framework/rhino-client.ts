@@ -249,6 +249,18 @@ export class RhinoClient {
      * @param createModel Rhino models request (an array of models).
      * @param callback    An argument, which is then invoked inside the outer function to complete some kind of routine or action. 
      */
+    public createModelsMd(createModel: string, callback: any) {
+        // setup
+        var httpCommand = new HttpCommand()
+            .setMethod('POST')
+            .setBody(createModel)
+            .setCommand('/api/v3/models/md')
+            .addHeader('Content-Type', 'text/plain');
+
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
+
     public createModels(createModel: any[], callback: any) {
         // setup
         var httpCommand = new HttpCommand()

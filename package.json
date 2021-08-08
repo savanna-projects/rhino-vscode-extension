@@ -24,8 +24,8 @@
 				"title": "Rhino: Creates a New Rhino Project"
 			},
 			{
-				"command": "Format-TestCase",
-				"title": "Rhino: Format the TestCase(s) Spec under the active editor window"
+				"command": "Format-Document",
+				"title": "Rhino: Format the document under the active editor window"
 			},
 			{
 				"command": "Invoke-TestCase",

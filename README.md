@@ -11,7 +11,7 @@
 > Please send your open source project URL to rhino.api@gmail.com and your Rhino user name to get a sponsored account.
 
 ## In This Article
-### [Commands](#commands)
+* [Commands](#commands)
 * Connect to Rhino Server
 * [Create a New Project](#create-project)
 * Submit (Register) Test Case(s)

@@ -10,7 +10,7 @@
 import * as vscode from 'vscode';
 import { ReportManager } from '../rhino/report-manager';
 import { Command } from "./command";
-import { FormatTestCaseCommand } from './format-test-case';
+import { FormatTestCaseCommand } from './format-document';
 
 export class InvokeTestCasesCommand extends Command {
     // members

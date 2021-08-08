@@ -10,7 +10,7 @@ import { CreateProjectCommand } from './create-project';
 import { InvokeTestCasesCommand } from './invoke-test-case';
 import { RegisterPluginsCommand } from './register-plugins';
 import { RegisterTestCaseCommand } from './register-test-case';
-import { FormatTestCaseCommand } from './format-test-case';
+import { FormatTestCaseCommand } from './format-document';
 import { RegisterModelsCommand } from './register-models';
 
 export class RegisterRhinoCommand extends Command {

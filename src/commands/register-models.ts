@@ -8,6 +8,7 @@
  * https://code.visualstudio.com/api/extension-guides/webview
  */
 import path = require('path');
+import { off } from 'process';
 import * as vscode from 'vscode';
 import { Command } from "./command";
 import { RegisterRhinoCommand } from './register-rhino';
@@ -80,9 +81,13 @@ export class RegisterModelsCommand extends Command {
         for (let index = 0; index < files.length; index++) {
             try {
                 var modelFile = path.join(modelsFolder, files[index]);
-                var modelJson = fs.readFileSync(modelFile, 'utf8');
-                var modelData = JSON.parse(modelJson);
-                modelsData.push(modelData);
+                var modelstr = fs.readFileSync(modelFile, 'utf8');
+                var isJson = this.isJson(modelstr);
+                var modelData = isJson ? JSON.parse(modelstr) : modelstr;
+                modelsData.push({
+                    type: isJson ? 'json' : 'md',
+                    data: modelData
+                });
             } catch (e) {
                 console.log('Error:', e.stack);
             }
@@ -94,22 +99,64 @@ export class RegisterModelsCommand extends Command {
 
     private registerModels(createModel: any[], callback: any) {
         // setup
-        var client = this.getRhinoClient();
+        let client = this.getRhinoClient();
 
         // clean and register
         client.deleteModels(() => {
-            client.createModels(createModel, () => {
-                // notification
-                vscode.window.setStatusBarMessage('$(testing-passed-icon) Models registered');
-
-                // register
-                new RegisterRhinoCommand(this.getContext()).invokeCommand();
-
-                // callback
-                if (callback !== undefined) {
-                    callback();
-                }
-            });
+            this.createModels(createModel, callback);
         });
+    }
+
+    private createModels(createModel: any[], callback: any) {
+        // setup
+        let client = this.getRhinoClient();
+        let markdownModels = createModel.filter(i => i.type === 'md');
+        let mdModels = markdownModels.map(i => i.data).join('\n>>>\n');
+        let jsModels = createModel.filter(i => i.type === 'json').map(i => i.data);
+        let isJson = jsModels.length > 0;
+        let isMdwn = markdownModels.length > 0;
+
+        // local functions
+        function _callback(context: vscode.ExtensionContext, callback: any) {
+            // notification
+            vscode.window.setStatusBarMessage('$(testing-passed-icon) Models registered');
+
+            // register
+            new RegisterRhinoCommand(context).invokeCommand();
+
+            // callback
+            if (callback !== undefined) {
+                callback();
+            }
+        }
+
+        // factory
+        if (isJson && !isMdwn) {
+            client.createModels(createModel, () => {
+                _callback(this.getContext(), callback);
+            });
+        }
+        if (isMdwn && !isJson) {
+            client.createModelsMd(mdModels, () => {
+                _callback(this.getContext(), callback);
+            });
+        }
+        if (isMdwn && isJson) {
+            client.createModels(createModel, () => {
+                client.createModelsMd(mdModels, () => {
+                    _callback(this.getContext(), callback);
+                });
+            });
+        }
+    }
+
+    private isJson(str: string): boolean {
+        try {
+            JSON.parse(str);
+            return true;
+        }
+        catch {
+            return false;
+        }
     }
 }
