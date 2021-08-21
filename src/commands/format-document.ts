@@ -222,6 +222,25 @@ export class FormatTestCaseCommand extends Command {
         }
     }
 
+    private getTestActions(testCase: string[]): string[] {
+        var isComment = ""
+        return [];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     private getActionsMap(testCase: string[], annotations: string[]): any {
         // setup
         var map: any[] = [];
@@ -275,14 +294,14 @@ export class FormatTestCaseCommand extends Command {
         for (let i = 1; i < section.length; i++) {
             const expected = section[i];
             var isEmpty = expected === '' || expected.match(/^(\s+)?\/\*{2}$/g) !== null;
-            var isComment = !isEmpty && expected.match(/(^(\s+)?\/\*{2})/g) !== null;
-            var isValid = !isEmpty && expected.match(/((\[\d+\])(?!(\s+\/\*{2})))/g) !== null;
+            var isComment = !isEmpty && expected.match(/^(^(\s+)?\/\*{2})(\s+)?\[\d+]/g) !== null;
+            var isValid = !isComment || (!isEmpty && expected.match(/((\[\d+\])(?!(\s+\/\*{2})))/g) !== null);
             var isMatch = isValid && expected.match("(?<=^\\[)" + index.toString() + "(?=\\])") !== null;
 
             if (isEmpty && !validOnly) {
                 continue;
             }
-            if (isComment && !validOnly) {
+            if (isComment) {
                 map.push({ type: 'comment', action: expected, index: -1 });
                 continue;
             }
@@ -331,36 +350,7 @@ export class FormatTestCaseCommand extends Command {
     private buildExpectedSection(data: any): string {
         // setup
         var section: string[] = [];
-        // var invalids: string[] = [
-        //     "/**",
-        //     "/**┌[ INVALID ASSERTIONS ] ───────────────────────────────────────────────┐",
-        //     "/**│                                                                      │",
-        //     "/**│ A list of invalid assertions that were found                         │",
-        //     "/**│ during spec format. Some of the reasons for                          │",
-        //     "/**│ an invalid assertions might happen due to:                           │",
-        //     "/**│                                                                      │",
-        //     "/**│ 1. Action reference was not provided (e.g. [3] before the assertion).│",
-        //     "/**│ 2. The action reference is broken (e.g. '[3' or '3]'.                │",
-        //     "/**│ 3. The action reference is not a number (e.g. [A] or [01].           │",
-        //     "/**│ 4. An empty or wrong commented (e.g. '[3]' or '[3] /** verify...').  │",
-        //     "/**│                                                                      │",
-        //     "/**│ (i) Please Note: you can fix the issues and format the spec again.   |",
-        //     "/**│ (i) Please Note: assertions are automatically commented out.         |",
-        //     "/**└──────────────────────────────────────────────────────────────────────┘",
-        //     "/**"
-        // ];
         var invalids: string[] = [''];
-        // var comments: string[] = [
-        //     "/**",
-        //     "/**┌[ COMMENTED OUT ASSERTIONS ] ─────────────────────────────────────────┐",
-        //     "/**│                                                                      │",
-        //     "/**│ A list of assertions that were commented out and are not in use by   │",
-        //     "/**│ the test spec.                                                       │",
-        //     "/**│                                                                      │",
-        //     "/**│ (i) Please Note: you can uncomment them and format the spec again.   |",
-        //     "/**└──────────────────────────────────────────────────────────────────────┘",
-        //     "/**"
-        // ];
         var comments: string[] = [''];
         var hasComments = data.invalids.filter((i: any) => i.type === 'comment').length > 0;
         var hasInvalids = data.invalids.filter((i: any) => i.type === 'invalid').length > 0;;
