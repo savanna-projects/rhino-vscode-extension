@@ -199,7 +199,8 @@ export class FormatTestCaseCommand extends Command {
     private getInvocationSection(testCase: string[], annotations: string[]): string[] {
         try {
             // setup
-            var map = this.getActionsMap(testCase, annotations);
+            var map = this.getActions(testCase, annotations);
+            var m = this.getE(testCase, annotations, 0);
 
             // normalize
             for (let i = 1; i < map.map.length - 1; i++) {
@@ -222,69 +223,169 @@ export class FormatTestCaseCommand extends Command {
         }
     }
 
-    private getTestActions(testCase: string[]): string[] {
-        var isComment = ""
-        return [];
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    private getActionsMap(testCase: string[], annotations: string[]): any {
+    private getActions(testCase: string[], annotations: string[]): any {
         // setup
+        const commentRegex = /^((\W+)?\d+\.?)?(\s+)?\/\*{2}/g;
+        const indexRegex = /^((\s+)?(\d+(\.+)?))+(\s+)?/g;
         var map: any[] = [];
-        var index = 1;
-        var commentRegex = /^((\W+)?\d+\.?)?(\s+)?\/\*{2}/g;
-        var actionRegex = /^(\s+)?\/\*{2}$/g;
 
+        // build
         var actions = this
             .getSection(testCase, 'test-actions', annotations)
             .lines
             .map((i: string) => i.trim());
-
-        var expecteds = this
-            .getSection(testCase, 'test-expected-results', annotations)
-            .lines
-            .map((i: string) => i.trim());
         var totalActions = actions.filter((i: string) => i !== '' && i.match(commentRegex) === null).length - 1;
-        var invalids = this.getExpected(-1, expecteds, totalActions, false);
+        map.push({ type: "annotation", action: actions[0], index: -1, expecpted: [] });
 
-        // build
-        map.push({ type: 'annotation', action: actions[0], index: -1 });
+        // iterate
+        var index = 1;
         for (let i = 1; i < actions.length; i++) {
             const action = actions[i];
-            var isEmpty = action === '' || action.match(actionRegex) !== null;
-            var isComment = !isEmpty && action.match(commentRegex) !== null;
+            var isComment = action.match(commentRegex) !== null;
+            var isEmpty = action === '';
 
             if (isEmpty) {
                 continue;
             }
             if (isComment) {
-                map.push({ type: 'comment', action: action, index: -1 });
+                map.push({ type: "comment", action: action, index: -1, expecpted: [] });
                 continue;
             }
 
-            var expected: any[] = this.getExpected(index, expecteds, totalActions, true);
-            map.push({ type: 'action', action: action, index: index++, expected: expected });
+            var _index = index.toString();
+            var _action = action.replace(indexRegex, '');
+            var indent = totalActions.toString().length - _index.length;
+            _action = _index + '. ' + ' '.repeat(indent) + _action;
+
+            map.push({ type: "action", action: _action, index: index++, expecpted: [] });
         }
 
         // get
         return {
-            map: map,
-            invalids: invalids
+            section: map,
+            total: totalActions
         };
     }
+
+    private getE(testCase: string[], annotations: string[], lastAction: number): any {
+        // setup
+        const assertCommentRegex = /^(\W+)?\/\*{2}(\s+)?(\[\d+\])/g;
+        const brokenCommentRegex = /^((\W+)?(\[\d+\]))(\s+)?\/\*{2}/g;
+        const commentRegex = /^(\W+)?(\s+)?\/\*{2}/g;
+        const ignoreRegex = /^(\/\*{2})(\s+)?(commented|out of bound|broken)/igm;
+        const indexRegex = /^\[\d+\]/g;
+        const indexNumberRegex = /(?<=^\[)\d+(?=\])/g;
+        var map: any[] = [];
+
+        // build
+        var expectedResults = this
+            .getSection(testCase, 'test-expected-results', annotations)
+            .lines
+            .map((i: string) => i.trim())
+            .filter((i: string) => i !== '');
+        map.push({ type: "annotation", action: expectedResults[0], index: -1, expecpted: [] });
+
+        // iterate
+        for (let i = 1; i < expectedResults.length; i++) {
+            const result = expectedResults[i];
+            var isAssertComment = result.match(assertCommentRegex) !== null;
+            var isComment = !isAssertComment && result.match(commentRegex) !== null;
+            var isBroken = !isAssertComment && !isComment && (result.match(indexRegex) === null || result.match(brokenCommentRegex) !== null);
+            var ignore = result.math(ignoreRegex) !== null;
+
+            if (ignore) {
+                continue;
+            }
+            if (isAssertComment) {
+                map.push({ type: "assertComment", action: result, index: -1, expecpted: [] });
+                continue;
+            }
+            if (isComment) {
+                map.push({ type: "comment", action: result, index: -1, expecpted: [] });
+                continue;
+            }
+            if (isBroken) {
+                map.push({ type: "broken", action: result, index: -1, expecpted: [] });
+                continue;
+            }
+
+            var index = parseInt(result.match(indexNumberRegex)[0]);
+            var isOutOfBound = lastAction < index;
+            if (isOutOfBound) {
+                map.push({ type: "outOfBound", action: result, index: -1, expecpted: [] });
+                continue;
+            }
+            map.push({ type: "assertion", action: result, index });
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // private getActionsMap(testCase: string[], annotations: string[]): any {
+    //     // setup
+    //     var map: any[] = [];
+    //     var index = 1;
+    //     var commentRegex = /^((\W+)?\d+\.?)?(\s+)?\/\*{2}/g;
+    //     var actionRegex = /^(\s+)?\/\*{2}$/g;
+
+    //     var actions = this
+    //         .getSection(testCase, 'test-actions', annotations)
+    //         .lines
+    //         .map((i: string) => i.trim());
+
+    //     var expecteds = this
+    //         .getSection(testCase, 'test-expected-results', annotations)
+    //         .lines
+    //         .map((i: string) => i.trim());
+    //     var totalActions = actions.filter((i: string) => i !== '' && i.match(commentRegex) === null).length - 1;
+    //     var invalids = this.getExpected(-1, expecteds, totalActions, false);
+
+    //     // build
+    //     map.push({ type: 'annotation', action: actions[0], index: -1 });
+    //     for (let i = 1; i < actions.length; i++) {
+    //         const action = actions[i];
+    //         var isEmpty = action === '' || action.match(actionRegex) !== null;
+    //         var isComment = !isEmpty && action.match(commentRegex) !== null;
+
+    //         if (isEmpty) {
+    //             continue;
+    //         }
+    //         if (isComment) {
+    //             map.push({ type: 'comment', action: action, index: -1 });
+    //             continue;
+    //         }
+
+    //         var expected: any[] = this.getExpected(index, expecteds, totalActions, true);
+    //         map.push({ type: 'action', action: action, index: index++, expected: expected });
+    //     }
+
+    //     // get
+    //     return {
+    //         map: map,
+    //         invalids: invalids
+    //     };
+    // }
 
     private getExpected(index: number, section: string[], totalAction: number, validOnly: boolean = false): any[] {
         // setup
@@ -636,11 +737,5 @@ export class FormatTestCaseCommand extends Command {
 
         // get
         return new vscode.Range(firstLine.range.start, lastLine.range.end);
-    }
-
-    private distinct(array: any[]): any[] {
-        return array
-            .filter((value, index, array) =>
-                !array.filter((v, i) => JSON.stringify(value) === JSON.stringify(v) && i < index).length);
     }
 }
