@@ -199,24 +199,15 @@ export class FormatTestCaseCommand extends Command {
     private getInvocationSection(testCase: string[], annotations: string[]): string[] {
         try {
             // setup
-            var map = this.getActions(testCase, annotations);
-            var m = this.getE(testCase, annotations, 0);
-
-            // normalize
-            for (let i = 1; i < map.map.length - 1; i++) {
-                var item = map.map[i];
-                if (item.type !== 'action') {
-                    continue;
-                }
-                item.expected = item.expected.filter((i: any) => i.index === item.index);
-            }
+            var actions = this.getActions(testCase, annotations);
+            var expected = this.getAssertions(testCase, annotations, actions.total);
 
             // build
-            var actionsSection = this.buildActionsSection(map);
-            var expectedSection = this.buildExpectedSection(map);
+            var actionsSection = actions.section.map((i: any) => i.action);
+            var assertionsSection = this.buildExpectedSection(expected);
 
             // get
-            return [actionsSection, expectedSection];
+            return [...actionsSection, ...assertionsSection];
         }
         catch {
             return [];
@@ -235,7 +226,7 @@ export class FormatTestCaseCommand extends Command {
             .lines
             .map((i: string) => i.trim());
         var totalActions = actions.filter((i: string) => i !== '' && i.match(commentRegex) === null).length - 1;
-        map.push({ type: "annotation", action: actions[0], index: -1, expecpted: [] });
+        map.push({ type: "annotation", action: actions[0], index: -1 });
 
         // iterate
         var index = 1;
@@ -248,7 +239,7 @@ export class FormatTestCaseCommand extends Command {
                 continue;
             }
             if (isComment) {
-                map.push({ type: "comment", action: action, index: -1, expecpted: [] });
+                map.push({ type: "comment", action: action, index: index });
                 continue;
             }
 
@@ -257,17 +248,17 @@ export class FormatTestCaseCommand extends Command {
             var indent = totalActions.toString().length - _index.length;
             _action = _index + '. ' + ' '.repeat(indent) + _action;
 
-            map.push({ type: "action", action: _action, index: index++, expecpted: [] });
+            map.push({ type: "action", action: _action, index: index++ });
         }
 
         // get
         return {
-            section: map,
+            section: map.sort((a, b) => (a.index < b.index ? -1 : 1)),
             total: totalActions
         };
     }
 
-    private getE(testCase: string[], annotations: string[], lastAction: number): any {
+    private getAssertions(testCase: string[], annotations: string[], totalActions: number): any {
         // setup
         const assertCommentRegex = /^(\W+)?\/\*{2}(\s+)?(\[\d+\])/g;
         const brokenCommentRegex = /^((\W+)?(\[\d+\]))(\s+)?\/\*{2}/g;
@@ -284,255 +275,89 @@ export class FormatTestCaseCommand extends Command {
             .map((i: string) => i.trim())
             .filter((i: string) => i !== '');
         map.push({ type: "annotation", action: expectedResults[0], index: -1, expecpted: [] });
+        var lastIndex = 1;
 
         // iterate
         for (let i = 1; i < expectedResults.length; i++) {
-            const result = expectedResults[i];
-            var isAssertComment = result.match(assertCommentRegex) !== null;
-            var isComment = !isAssertComment && result.match(commentRegex) !== null;
-            var isBroken = !isAssertComment && !isComment && (result.match(indexRegex) === null || result.match(brokenCommentRegex) !== null);
-            var ignore = result.math(ignoreRegex) !== null;
+            const assertion = expectedResults[i].trim();
+            var isCommentedOut = assertion.match(assertCommentRegex) !== null;
+            var isComment = !isCommentedOut && assertion.match(commentRegex) !== null;
+            var isBroken = !isCommentedOut && !isComment && (assertion.match(indexRegex) === null || assertion.match(brokenCommentRegex) !== null);
+            var ignore = assertion.match(ignoreRegex) !== null;
 
             if (ignore) {
                 continue;
             }
-            if (isAssertComment) {
-                map.push({ type: "assertComment", action: result, index: -1, expecpted: [] });
+            if (isCommentedOut) {
+                map.push({ type: "commentedOut", action: assertion, index: -1, expecpted: [] });
                 continue;
             }
             if (isComment) {
-                map.push({ type: "comment", action: result, index: -1, expecpted: [] });
+                var commentIndex = lastIndex > 1 ? lastIndex : i;
+                map.push({ type: "comment", action: assertion, index: commentIndex, expecpted: [] });
                 continue;
             }
             if (isBroken) {
-                map.push({ type: "broken", action: result, index: -1, expecpted: [] });
+                map.push({ type: "broken", action: assertion, index: -1, expecpted: [] });
                 continue;
             }
 
-            var index = parseInt(result.match(indexNumberRegex)[0]);
-            var isOutOfBound = lastAction < index;
+            lastIndex = parseInt(assertion.match(indexNumberRegex)[0]);
+            var isOutOfBound = totalActions < lastIndex || lastIndex < 1;
             if (isOutOfBound) {
-                map.push({ type: "outOfBound", action: result, index: -1, expecpted: [] });
-                continue;
-            }
-            map.push({ type: "assertion", action: result, index });
-        }
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // private getActionsMap(testCase: string[], annotations: string[]): any {
-    //     // setup
-    //     var map: any[] = [];
-    //     var index = 1;
-    //     var commentRegex = /^((\W+)?\d+\.?)?(\s+)?\/\*{2}/g;
-    //     var actionRegex = /^(\s+)?\/\*{2}$/g;
-
-    //     var actions = this
-    //         .getSection(testCase, 'test-actions', annotations)
-    //         .lines
-    //         .map((i: string) => i.trim());
-
-    //     var expecteds = this
-    //         .getSection(testCase, 'test-expected-results', annotations)
-    //         .lines
-    //         .map((i: string) => i.trim());
-    //     var totalActions = actions.filter((i: string) => i !== '' && i.match(commentRegex) === null).length - 1;
-    //     var invalids = this.getExpected(-1, expecteds, totalActions, false);
-
-    //     // build
-    //     map.push({ type: 'annotation', action: actions[0], index: -1 });
-    //     for (let i = 1; i < actions.length; i++) {
-    //         const action = actions[i];
-    //         var isEmpty = action === '' || action.match(actionRegex) !== null;
-    //         var isComment = !isEmpty && action.match(commentRegex) !== null;
-
-    //         if (isEmpty) {
-    //             continue;
-    //         }
-    //         if (isComment) {
-    //             map.push({ type: 'comment', action: action, index: -1 });
-    //             continue;
-    //         }
-
-    //         var expected: any[] = this.getExpected(index, expecteds, totalActions, true);
-    //         map.push({ type: 'action', action: action, index: index++, expected: expected });
-    //     }
-
-    //     // get
-    //     return {
-    //         map: map,
-    //         invalids: invalids
-    //     };
-    // }
-
-    private getExpected(index: number, section: string[], totalAction: number, validOnly: boolean = false): any[] {
-        // setup
-        var map = [];
-
-        // build
-        for (let i = 1; i < section.length; i++) {
-            const expected = section[i];
-            var isEmpty = expected === '' || expected.match(/^(\s+)?\/\*{2}$/g) !== null;
-            var isComment = !isEmpty && expected.match(/^(^(\s+)?\/\*{2})(\s+)?\[\d+]/g) !== null;
-            var isValid = !isComment || (!isEmpty && expected.match(/((\[\d+\])(?!(\s+\/\*{2})))/g) !== null);
-            var isMatch = isValid && expected.match("(?<=^\\[)" + index.toString() + "(?=\\])") !== null;
-
-            if (isEmpty && !validOnly) {
-                continue;
-            }
-            if (isComment) {
-                map.push({ type: 'comment', action: expected, index: -1 });
-                continue;
-            }
-            if (!isValid && !validOnly) {
-                map.push({ type: 'invalid', action: expected, index: -1 });
-                continue;
-            }
-            if (!isMatch && validOnly) {
-                var match = expected.match(/(?<=\[)\d+(?=\])/g);
-                var _index = match === null ? -1 : parseInt(match[0]);
-                if (_index < totalAction && _index === index) {
-                    map.push({ type: 'expected', action: expected, index: _index });
-                }
+                map.push({ type: "outOfBound", action: assertion, index: -1, expecpted: [] });
                 continue;
             }
 
-            if (validOnly) {
-                map.push({ type: 'expected', action: expected, index: index });
-            }
+            var _index = lastIndex.toString();
+            var _result = assertion.replace(indexRegex, '');
+            var indent = totalActions.toString().length - _index.length;
+            _result = '[' + _index + ']' + ' '.repeat(indent) + _result;
+
+            map.push({ type: "assertion", action: _result, lastIndex });
         }
 
         // get
-        return map.sort((a, b) => (a.index < b.index ? -1 : 1));
+        return {
+            section: map.sort((a, b) => (a.index < b.index ? -1 : 1)),
+            total: map.filter(i => i === 'assertion').length
+        };
     }
 
-    private buildActionsSection(data: any): string {
+    private buildExpectedSection(expectedMap: any): string[] {
         // setup
+        var assertions = expectedMap.section.filter((i: any) => i.type === 'assertion' || i.type === 'comment');
+        var broken = expectedMap.section.filter((i: any) => i.type === 'broken');
+        var commentedOut = expectedMap.section.filter((i: any) => i.type === 'commentedOut');
+        var outOfBound = expectedMap.section.filter((i: any) => i.type === 'outOfBound');
+
+        // build
+        var brokenSection = ['[broken]'];
+        brokenSection.push(...broken.map((i: any) => '/** ' + i.action));
+
+        var outOfBoundSection = ['[out-of-bound]'];
+        outOfBoundSection.push(...outOfBound.map((i: any) => '/** ' + i.action));
+
+        var commentedOutSection = ['[commented-out]'];
+        commentedOutSection.push(...commentedOut.map((i: any) => i.action));
+
+        var assertionsSection = ['[test-expected-results]'];
+        assertionsSection.push(...assertions.sort((i: any) => i.index).map((i: any) => i.action));
+
+        // build
+        var newLine = ['\n'];
         var section = [];
-        var maxLength = (data.map.filter((i: any) => i.type === 'action').length).toString().length + 1;
-
-        // build
-        for (let i = 0; i < data.map.length; i++) {
-            var line = data.map[i].action.replace(/^((\s+)?(\d+(\.+)?))+\s+/g, '');
-            if (data.map[i].index !== -1) {
-                var indent = maxLength - data.map[i].index.toString().length;
-                line = data.map[i].index.toString() + '.' + ' '.repeat(indent) + line;
-            }
-            section.push(line);
-        }
-        section.push('');
+        section.push(...newLine);
+        section.push(...assertionsSection);
+        section.push(...newLine);
+        section.push(...commentedOutSection);
+        section.push(...newLine);
+        section.push(...outOfBoundSection);
+        section.push(...newLine);
+        section.push(...brokenSection);
 
         // get
-        return section.join("\n");
-    }
-
-    private buildExpectedSection(data: any): string {
-        // setup
-        var section: string[] = [];
-        var invalids: string[] = [''];
-        var comments: string[] = [''];
-        var hasComments = data.invalids.filter((i: any) => i.type === 'comment').length > 0;
-        var hasInvalids = data.invalids.filter((i: any) => i.type === 'invalid').length > 0;;
-
-        // build: invalid
-        for (let i = 0; i < data.invalids.length; i++) {
-            const expected = data.invalids[i];
-            if (expected.type === 'comment') {
-                comments.push(expected.action);
-            }
-            if (expected.type === 'invalid') {
-                invalids.push('/**' + expected.action);
-            }
-        }
-
-        // build: valid
-        for (let i = 1; i < data.map.length; i++) {
-            const expected = data.map[i].expected;
-            if (expected === null || expected === undefined) {
-                continue;
-            }
-
-            for (let j = 0; j < expected.length; j++) {
-                const line = expected[j];
-                if (line.type !== 'expected') {
-                    continue;
-                }
-                section.push(line.action);
-            }
-        }
-
-        // not found
-        if (section.length === 0) {
-            return '';
-        }
-
-        // build indent
-        section = this.buildIndent(section);
-        var indentedSetion = [
-            '[test-expected-results]'
-        ];
-        indentedSetion.push(...section);
-
-        // get
-        if (hasComments) {
-            indentedSetion.push(...comments);
-        }
-        if (hasInvalids) {
-            indentedSetion.push(...invalids);
-        }
-        return indentedSetion.join("\n");
-    }
-
-    private buildIndent(section: string[]): string[] {
-        // setup
-        function onFilter(i: string): any {
-            var match = i.match(/\[\d+\]/);
-            if (match === null) {
-                return {
-                    index: '-1',
-                    action: '-1'
-                };
-            }
-            return {
-                index: match[0].trim(),
-                action: i.replace(match[0], '').trim()
-            };
-        }
-        var onData = section.map(onFilter).filter((i: any) => i.index !== '-1');
-        var maxLength = Math.max(...onData.map(i => i.index.length)) + 1;
-
-        // build
-        var onSection: string[] = [];
-        for (let i = 0; i < onData.length; i++) {
-            const item = onData[i];
-            var indent = maxLength - item.index.length;
-            onSection.push(item.index + ' '.repeat(indent) + item.action);
-        }
-
-        // get
-        return onSection;
+        return section;
     }
 
     /*┌─[ TEST PARAMETERS & DATA PROVIDER ]────────────────────
