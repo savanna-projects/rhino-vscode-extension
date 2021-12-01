@@ -134,7 +134,7 @@ export class InvokeTestCasesCommand extends Command {
 
         // build
         return {
-            name: "VS Code - Stand Alone Test Run",
+            name: "VS Code - Standalone Test Run",
             testsRepository: testsRepository,
             driverParameters: projectManifest.driverParameters,
             authentication: projectManifest.authentication,

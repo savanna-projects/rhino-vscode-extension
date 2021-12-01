@@ -3,8 +3,8 @@
  * 
  * RESOURCES
  * https://github.com/microsoft/vscode-extension-samples
- * https://css-tricks.com/what-i-learned-by-building-my-own-vs-code-extension/
- * https://www.freecodecamp.org/news/definitive-guide-to-snippets-visual-studio-code/
+ * https://css-tricks.comw/hat-i-learned-by-building-my-own-vs-code-extension/
+ * https:/w/ww.freecodecamp.org/news/definitive-guide-to-snippets-visual-studio-code/
  */
 import * as vscode from 'vscode';
 import { ExtensionSettings } from '../extension-settings';
@@ -122,7 +122,7 @@ export class AssertionsAutoCompleteProvider extends Provider {
 
         // build
         var assertions = this.manifests.map(function (i) {
-            let assertion = new vscode.CompletionItem(i.literal, vscode.CompletionItemKind.Variable);
+            let assertion = new vscode.CompletionItem(i.key, vscode.CompletionItemKind.Variable);
             assertion.detail = 'code';
             assertion.documentation = i.entity.description;
 
@@ -184,7 +184,7 @@ export class AssertionsAutoCompleteProvider extends Provider {
             locators +
             attributes +
             operators + '{${7:expected result}}';
-        var item = new vscode.CompletionItem('assert w/ element /w attribute');
+        var item = new vscode.CompletionItem('assert w/ element w/ attribute');
         item.insertText = new vscode.SnippetString(snippet);
         item.documentation = new vscode.MarkdownString('Coming soon.');
         item.kind = vscode.CompletionItemKind.Method;
@@ -222,7 +222,7 @@ export class AssertionsAutoCompleteProvider extends Provider {
             attributes +
             'with regex {${7:.*}} ' +
             operators + '{${8:expected result}}';
-        var item = new vscode.CompletionItem('assert w/ element /w attribute /w regex');
+        var item = new vscode.CompletionItem('assert w/ element w/ attribute w/ regex');
         item.insertText = new vscode.SnippetString(snippet);
         item.documentation = new vscode.MarkdownString('Coming soon.');
         item.kind = vscode.CompletionItemKind.Method;

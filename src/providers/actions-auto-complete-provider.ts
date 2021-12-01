@@ -175,6 +175,8 @@ export class ActionsAutoCompleteProvider extends Provider {
         item.documentation = new vscode.MarkdownString(snippet.documentation);
         item.kind = vscode.CompletionItemKind.Method;
         item.detail = snippet.detail;
+        
+        // TODO: search rhino plugins and add link if found.
 
         // get
         return item;

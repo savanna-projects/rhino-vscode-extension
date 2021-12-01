@@ -310,9 +310,9 @@ export class FormatTestCaseCommand extends Command {
             }
 
             var _index = lastIndex.toString();
-            var _result = assertion.replace(indexRegex, '');
+            var _result = assertion.replace(indexRegex, '').trim();
             var indent = totalActions.toString().length - _index.length;
-            _result = '[' + _index + ']' + ' '.repeat(indent) + _result;
+            _result = '[' + _index + '] ' + ' '.repeat(indent) + _result;
 
             map.push({ type: "assertion", action: _result, lastIndex });
         }
@@ -332,28 +332,27 @@ export class FormatTestCaseCommand extends Command {
         var outOfBound = expectedMap.section.filter((i: any) => i.type === 'outOfBound');
 
         // build
-        var brokenSection = ['[broken]'];
-        brokenSection.push(...broken.map((i: any) => '/** ' + i.action));
+        var brokenSection = ['\n/** Broken'];
+        brokenSection.push(...broken.map((i: any) => i.action));
+        brokenSection = brokenSection.length === 1 ? [] : brokenSection;
 
-        var outOfBoundSection = ['[out-of-bound]'];
-        outOfBoundSection.push(...outOfBound.map((i: any) => '/** ' + i.action));
+        var outOfBoundSection = ['\n/** Out of Bound'];
+        outOfBoundSection.push(...outOfBound.map((i: any) => i.action));
+        outOfBoundSection = outOfBoundSection.length === 1 ? [] : outOfBoundSection;
 
-        var commentedOutSection = ['[commented-out]'];
+        var commentedOutSection = ['\n/** Commented'];
         commentedOutSection.push(...commentedOut.map((i: any) => i.action));
+        commentedOutSection = commentedOutSection.length === 1 ? [] : commentedOutSection;
 
-        var assertionsSection = ['[test-expected-results]'];
+        var assertionsSection = ['\n[test-expected-results]'];
         assertionsSection.push(...assertions.sort((i: any) => i.index).map((i: any) => i.action));
+        assertionsSection = assertionsSection.length === 1 ? [] : assertionsSection;
 
         // build
-        var newLine = ['\n'];
         var section = [];
-        section.push(...newLine);
         section.push(...assertionsSection);
-        section.push(...newLine);
         section.push(...commentedOutSection);
-        section.push(...newLine);
         section.push(...outOfBoundSection);
-        section.push(...newLine);
         section.push(...brokenSection);
 
         // get

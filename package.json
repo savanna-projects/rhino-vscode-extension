@@ -56,7 +56,8 @@
 					"rhino"
 				],
 				"extensions": [
-					".rhino"
+					".rhino",
+					".rmodel"
 				],
 				"configuration": "./language-configuration.json"
 			}

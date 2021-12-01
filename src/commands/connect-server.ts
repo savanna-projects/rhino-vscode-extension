@@ -66,7 +66,7 @@ export class ConnectServerCommand extends Command {
         try {
             this.registerActions(client, context, (client: any, context: any) => {
                 this.registerAnnotations(client, context, (client: any, context: any) => {
-                    this.registerAssetions(client, context, (client: any, context: any) => {
+                    this.registerAssertions(client, context, (client: any, context: any) => {
                         this.registerMacros(client, context, (client: any, context: any) => {
                             this.registerDataDrivenSnippet(client, context, (client: any, context: any) => {
                                 this.registerModels(client, context, () => {
@@ -144,7 +144,7 @@ export class ConnectServerCommand extends Command {
         });
     }
 
-    private registerAssetions(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
+    private registerAssertions(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
         // user interface
         vscode.window.setStatusBarMessage('$(sync~spin) Loading assertion method(s)...');
 

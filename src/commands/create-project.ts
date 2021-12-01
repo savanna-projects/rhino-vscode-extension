@@ -104,7 +104,7 @@ export class CreateProjectCommand extends Command {
         path = os.platform() === 'win32' ? path.replaceAll('/', '\\').substr(1, path.length - 1) : path;
 
         // create manifest
-        var manifestPath = ph.join(path, 'manifest.json');
+        var manifestPath = ph.join(path, 'Manifest.json');
         fs.writeFile(manifestPath, manifastData, (err) => {
             if (err) {
                 vscode.window.showErrorMessage(err.message);
