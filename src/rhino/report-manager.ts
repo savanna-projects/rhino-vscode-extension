@@ -40,12 +40,12 @@ export class ReportManager {
 
     // get the HTML report layout
     private getHtml(): string {
-        // setup
+        // build
         var metaData =
             '<div style="margin: 0.25rem;">' +
             '   <pre>Start   : ' + this.testRun.start +
             '   <br/>End     : ' + this.testRun.end +
-            '   <br/>Run Time: ' + (Math.round(this.testRun.runTime.totalSeconds * 100) / 100).toFixed(2) + '</pre>' +
+            '   <br/>Run Time: ' + this.testRun.runTime.substr(0, 11) + '</pre>' +
             '</div>';
 
         // get
@@ -191,12 +191,12 @@ export class ReportManager {
     // get a single test case HTML
     private getSummaryTestCase(testCase: any): string {
         // setup
-        var qulityColor = this.testRun.qualityRank < 80 ? '#e74c3c' : '#1abb9c';
+        var qualityColor = this.testRun.qualityRank < 80 ? '#e74c3c' : '#1abb9c';
         var metaData =
             '<pre>Start       : ' + testCase.start +
             '<br/>End         : ' + testCase.end +
-            '<br/>Quality Rank: <span style="color: ' + qulityColor + '">' + testCase.qualityRank + '</span>' +
-            '<br/>Run Time    : <span style="color: #3498db">' + (Math.round(testCase.runTime.totalSeconds * 100) / 100).toFixed(2) + '</span>' +
+            '<br/>Quality Rank: <span style="color: ' + qualityColor + '">' + testCase.qualityRank + '</span>' +
+            '<br/>Run Time    : <span style="color: #3498db">' + testCase.runTime.substr(0, 11) + '</span>' +
             '<br/>On Attempt  : ' + testCase.passedOnAttempt + '</pre>';
 
         // build
@@ -229,7 +229,7 @@ export class ReportManager {
             <td style="width: 3%; vertical-align: top;"><pre style="font-weight: 900; color: ${actionColor}">${actionSign}<pre></td>
             <td style="width: 41%; vertical-align: top;"><pre>${testStep.action}</pre></td>
             <td style="width: 41%; vertical-align: top;"><pre>${testStep.expected}</pre></td>
-            <td style="width: 10%; vertical-align: top;"><pre style="color: #3498db">${(Math.round(testStep.runTime.totalMilliseconds * 100) / 100).toFixed(2)}<pre></td>
+            <td style="width: 10%; vertical-align: top;"><pre style="color: #3498db">${testStep.runTime.substr(0, 11)}<pre></td>
         </tr>`;
 
         // get
