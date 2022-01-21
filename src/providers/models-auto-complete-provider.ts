@@ -12,7 +12,7 @@ import * as vscode from 'vscode';
 import { ExtensionSettings } from '../extension-settings';
 import { Provider } from './provider';
 
-export class ModelsAutoCompleteProvier extends Provider {
+export class ModelsAutoCompleteProvider extends Provider {
     // members
     private manifests: any[];
     /**
@@ -32,7 +32,7 @@ export class ModelsAutoCompleteProvier extends Provider {
      */
     public register(context: vscode.ExtensionContext): any {
         // setup
-        var instance = new ModelsAutoCompleteProvier().setManifests(this.manifests);
+        var instance = new ModelsAutoCompleteProvider().setManifests(this.manifests);
 
         // register: models
         var models = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
@@ -52,7 +52,7 @@ export class ModelsAutoCompleteProvier extends Provider {
      * @param manifests A collection of plugins references as returns by Rhino Server.
      * @returns Self reference.
      */
-    public setManifests(manifests: any): ModelsAutoCompleteProvier {
+    public setManifests(manifests: any): ModelsAutoCompleteProvider {
         // setup
         this.manifests = manifests;
 

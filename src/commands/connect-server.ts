@@ -8,12 +8,12 @@ import { Utilities } from '../extensions/utilities';
 import { RhinoClient } from '../framework/rhino-client';
 
 import { ActionsAutoCompleteProvider } from '../providers/actions-auto-complete-provider';
-import { AnnotationsAutoCompleteProvider } from '../providers/annotations-autom-complete-provider';
+import { AnnotationsAutoCompleteProvider } from '../providers/annotations-auto-complete-provider';
 import { AssertionsAutoCompleteProvider } from '../providers/assertions-auto-complete-provider';
 import { DataAutoCompleteProvider } from '../providers/data-auto-complete-provider';
 import { MacrosAutoCompleteProvider } from '../providers/macros-auto-complete-provider';
-import { ModelsAutoCompleteProvier } from '../providers/models-auto-complete-provider';
-import { ParametersAutoCompleteProvier } from '../providers/parameters-auto-complete-provider';
+import { ModelsAutoCompleteProvider } from '../providers/models-auto-complete-provider';
+import { ParametersAutoCompleteProvider } from '../providers/parameters-auto-complete-provider';
 import { Command } from "./command";
 import { CreateTm } from './create-tm';
 
@@ -56,7 +56,7 @@ export class ConnectServerCommand extends Command {
         this.invoke();
     }
 
-    // invokation routine
+    // invocation routine
     private invoke() {
         // setup
         var client = this.getRhinoClient();
@@ -95,13 +95,13 @@ export class ConnectServerCommand extends Command {
                     client.getAnnotations((annotations: any) => {
                         var actionsManifests = JSON.parse(plugins);
                         var _locators = JSON.parse(locators);
-                        var _attribtues = JSON.parse(attributes);
+                        var _attributes = JSON.parse(attributes);
                         var _annotations = JSON.parse(annotations);
                         var pluginsPattern = Utilities.getPluginsPattern(actionsManifests);
 
                         new ActionsAutoCompleteProvider()
                             .setPattern(pluginsPattern)
-                            .setAttributes(_attribtues)
+                            .setAttributes(_attributes)
                             .setManifests(actionsManifests)
                             .setLocators(_locators)
                             .setAnnotations(_annotations)
@@ -135,7 +135,7 @@ export class ConnectServerCommand extends Command {
             vscode.window.setStatusBarMessage(message);
 
             // dependent providers
-            new ParametersAutoCompleteProvier().setManifests(manifests).register(context);
+            new ParametersAutoCompleteProvider().setManifests(manifests).register(context);
 
             if (callback === null) {
                 return;
@@ -222,7 +222,7 @@ export class ConnectServerCommand extends Command {
         // build
         client.getModels((models: any) => {
             let _models = JSON.parse(models);
-            new ModelsAutoCompleteProvier().setManifests(_models).register(context);
+            new ModelsAutoCompleteProvider().setManifests(_models).register(context);
             vscode.window.setStatusBarMessage('$(testing-passed-icon) Page models loaded');
 
             if (callback === null) {

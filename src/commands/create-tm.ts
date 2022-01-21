@@ -58,30 +58,42 @@ export class CreateTm extends Command {
         client.getPlugins((plugins: any) => {
             client.getOperators((operators: any) => {
                 client.getVerbs((verbs: any) => {
-                    const _plugins = JSON.parse(plugins);
-                    const _operators = JSON.parse(operators);
-                    const _verbs = JSON.parse(verbs);
+                    client.getAssertions((assertions: any) => {
+                        client.getLocators((locators: any) => {
+                            const _plugins = JSON.parse(plugins);
+                            const _operators = JSON.parse(operators);
+                            const _verbs = JSON.parse(verbs);
+                            const _assertions = JSON.parse(assertions);
+                            const _locators = JSON.parse(locators);
+        
+                            // build
+                            var nameClass = _plugins.map((i: any) => i.literal);
+                            
+                            var keywordControl = [];
+                            keywordControl.push(..._operators.map((i: any) => '\\s+' + i.literal + '\\s+'));
+                            keywordControl.push(..._verbs.map((i: any) => '\\s+' + i.literal + '\\s+'));
 
-                    // build
-                    var nameClass = _plugins.map((i: any) => i.literal);
-                    var keywordControl = [];
-                    keywordControl.push(..._operators.map((i: any) => i.literal));
-                    keywordControl.push(..._verbs.map((i: any) => i.literal));
-
-                    // create
-                    var tmLanguage = this.getTmConfiguration(nameClass, keywordControl);
-                    Utilities.updateTmConfiguration(this.getContext(), JSON.stringify(tmLanguage));
-
-                    vscode.window.setStatusBarMessage('$(testing-passed-icon) TM Language loaded');
+                            var functions = [];
+                            functions.push(..._assertions.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'));
+                            functions.push(..._locators.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'))
+        
+                            // create
+                            var tmLanguage = this.getTmConfiguration(nameClass, keywordControl, functions);
+                            Utilities.updateTmConfiguration(this.getContext(), JSON.stringify(tmLanguage));
+        
+                            vscode.window.setStatusBarMessage('$(testing-passed-icon) TM Language loaded');
+                        });
+                    });
                 });
             });
         });
     }
 
-    private getTmConfiguration(nameClass: string[], keywordControl: string[]) {
+    private getTmConfiguration(nameClass: string[], keywordControl: string[], functions: string[]) {
         // build
         var _nameClass = "\\b(" + nameClass.filter(i => i !== '').sort((a, b) => b.length - a.length).join('|') + ")\\b";
-        var _keywordControl = "\\b(" + keywordControl.sort((a, b) => b.length - a.length).join('|') + ")\\b";
+        var _keywordControl = "(" + keywordControl.sort((a, b) => b.length - a.length).join('|') + ")";
+        var _functions = "(" + functions.sort((a, b) => b.length - a.length).join('|') + ")";;
 
         // get
         return {
@@ -104,28 +116,44 @@ export class CreateTm extends Command {
                             "match": _keywordControl
                         },
                         {
-                            "name": "string.quoted.double",
-                            "match": "(?<=\\{)[^\\$,\\{].*?(?=})"
+                            "name": "entity.name.function",
+                            "match": _functions
                         },
                         {
-                            "name": "entity.name.function",
-                            "match": "(?<=\\{{)\\$.*?(?=}})"
+                            "name": "string.quoted.double",
+                            "match": "(\\{)"
+                        },
+                        {
+                            "name": "string.quoted.double",
+                            "match": "(\\})"
                         },
                         {
                             "name": "markup.heading",
                             "match": "(?<=^\\[).*?(?=])|\\{|}"
                         },
                         {
+                            "name": "entity.name.class",
+                            "match": "(?<=\\{{)\\$"
+                        },
+                        {
+                            "name": "entity.name.class",
+                            "match": "(?<=\\{\\{\\$)\\w+(?=\\s+|})"
+                        },
+                        {
+                            "name": "variable.parameter",
+                            "match": "(--\\w+:)"
+                        },
+                        {
+                            "name": "support.constant",
+                            "match": "(?<=--\\w+:(\\s+)?).*?(?=(\\s+--)|})"
+                        },
+                        {
+                            "name": "entity.name.function",
+                            "match": "^\\d+(\.)?"
+                        },
+                        {
                             "name": "comment.line",
                             "match": "(\\s+)?/\\*\\*.*"
-                        },
-                        {
-                            "name": "entity.name.class",
-                            "match": "(\\|)"
-                        },
-                        {
-                            "name": "entity.name.class",
-                            "match": "(-{3,})"
                         }
                     ]
                 }

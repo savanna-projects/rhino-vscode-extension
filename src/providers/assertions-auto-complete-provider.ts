@@ -122,7 +122,7 @@ export class AssertionsAutoCompleteProvider extends Provider {
 
         // build
         var assertions = this.manifests.map(function (i) {
-            let assertion = new vscode.CompletionItem(i.key, vscode.CompletionItemKind.Variable);
+            let assertion = new vscode.CompletionItem(i.literal, vscode.CompletionItemKind.Variable);
             assertion.detail = 'code';
             assertion.documentation = i.entity.description;
 
