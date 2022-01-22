@@ -60,28 +60,31 @@ export class CreateTm extends Command {
                 client.getVerbs((verbs: any) => {
                     client.getAssertions((assertions: any) => {
                         client.getLocators((locators: any) => {
-                            const _plugins = JSON.parse(plugins);
-                            const _operators = JSON.parse(operators);
-                            const _verbs = JSON.parse(verbs);
-                            const _assertions = JSON.parse(assertions);
-                            const _locators = JSON.parse(locators);
-        
-                            // build
-                            var nameClass = _plugins.map((i: any) => i.literal);
-                            
-                            var keywordControl = [];
-                            keywordControl.push(..._operators.map((i: any) => '\\s+' + i.literal + '\\s+'));
-                            keywordControl.push(..._verbs.map((i: any) => '\\s+' + i.literal + '\\s+'));
+                            client.getAnnotations((annotations: any) => {
+                                const _plugins = JSON.parse(plugins);
+                                const _operators = JSON.parse(operators);
+                                const _verbs = JSON.parse(verbs);
+                                const _assertions = JSON.parse(assertions);
+                                const _locators = JSON.parse(locators);
+                                const _annotations = JSON.parse(annotations).map((i: any) => i.key.trim());
+            
+                                // build
+                                var nameClass = _plugins.map((i: any) => i.literal);
+                                
+                                var keywordControl = [];
+                                keywordControl.push(..._operators.map((i: any) => '\\s+' + i.literal + '\\s+'));
+                                keywordControl.push(..._verbs.map((i: any) => '\\s+' + i.literal + '\\s+'));
+    
+                                var functions = [];
+                                functions.push(..._assertions.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'));
+                                functions.push(..._locators.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'))
 
-                            var functions = [];
-                            functions.push(..._assertions.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'));
-                            functions.push(..._locators.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'))
-        
-                            // create
-                            var tmLanguage = this.getTmConfiguration(nameClass, keywordControl, functions);
-                            Utilities.updateTmConfiguration(this.getContext(), JSON.stringify(tmLanguage));
-        
-                            vscode.window.setStatusBarMessage('$(testing-passed-icon) TM Language loaded');
+                                // create
+                                var tmLanguage = this.getTmConfiguration(nameClass, keywordControl, functions, _annotations);
+                                Utilities.updateTmConfiguration(this.getContext(), JSON.stringify(tmLanguage));
+            
+                                vscode.window.setStatusBarMessage('$(testing-passed-icon) TM Language loaded');
+                            });
                         });
                     });
                 });
@@ -89,11 +92,14 @@ export class CreateTm extends Command {
         });
     }
 
-    private getTmConfiguration(nameClass: string[], keywordControl: string[], functions: string[]) {
+    private getTmConfiguration(nameClass: string[], keywordControl: string[], functions: string[], annotations: string[]) {
         // build
         var _nameClass = "\\b(" + nameClass.filter(i => i !== '').sort((a, b) => b.length - a.length).join('|') + ")\\b";
         var _keywordControl = "(" + keywordControl.sort((a, b) => b.length - a.length).join('|') + ")";
         var _functions = "(" + functions.sort((a, b) => b.length - a.length).join('|') + ")";;
+        
+        // TODO: find style for metadata
+        var _annotations = '(?<=\\[(' + annotations.join('|')  + ')]\\s+)[^\\s].*$';
 
         // get
         return {
