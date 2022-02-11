@@ -5,6 +5,7 @@
  */
 import { HttpCommand } from "./http-command";
 import { HttpClient } from "./http-client";
+import { DH_UNABLE_TO_CHECK_GENERATOR } from "constants";
 
 export class RhinoClient {
     // members
@@ -218,7 +219,25 @@ export class RhinoClient {
         var httpCommand = new HttpCommand()
             .setMethod('POST')
             .setBody(createModel)
-            .setCommand('/api/v3/integration/create')
+            .setCommand('/api/v3/integration/test/create')
+            .addHeader('Content-Type', 'application/json');
+
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
+
+    /**
+     * Summary. Creates a new Test Case entity on the integrated application.
+     * 
+     * @param createModel Integrated Test Case create model.
+     * @param callback    An argument, which is then invoked inside the outer function to complete some kind of routine or action. 
+     */
+    public getTestCase(integrationModel: any, callback: any) {
+        // setup
+        var httpCommand = new HttpCommand()
+            .setMethod('POST')
+            .setBody(integrationModel)
+            .setCommand('/api/v3/integration/test/spec')
             .addHeader('Content-Type', 'application/json');
 
         // get

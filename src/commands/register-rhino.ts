@@ -12,6 +12,7 @@ import { RegisterPluginsCommand } from './register-plugins';
 import { RegisterTestCaseCommand } from './register-test-case';
 import { FormatTestCaseCommand } from './format-document';
 import { RegisterModelsCommand } from './register-models';
+import { GetTestCaseCommand } from './get-test-case';
 
 export class RegisterRhinoCommand extends Command {
     /**
@@ -52,7 +53,7 @@ export class RegisterRhinoCommand extends Command {
         this.invoke();
     }
 
-    // invokation routine
+    // invocation routine
     private invoke() {
         // setup
         var context = this.getContext();
@@ -73,5 +74,6 @@ export class RegisterRhinoCommand extends Command {
         new RegisterPluginsCommand(context).register();
         new FormatTestCaseCommand(context).register();
         new RegisterModelsCommand(context).register();
+        new GetTestCaseCommand(context).register();
     }
 }

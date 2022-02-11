@@ -104,7 +104,7 @@ export class FormatTestCaseCommand extends Command {
                     continue;
                 }
 
-                // seprator
+                // separator
                 documentFormatted.push(">>>");
             }
 
@@ -501,8 +501,7 @@ export class FormatTestCaseCommand extends Command {
       │
       │ A collection of utility methods
       └────────────────────────────────────────────────────────*/
-    private getSection(document: string[], annotation: string, annotations: any[])
-        : any {
+    private getSection(document: string[], annotation: string, annotations: any[]): any {
         try {
             // bad request
             if (annotations === undefined || annotations === null || annotations.length === 0) {
