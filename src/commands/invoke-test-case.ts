@@ -153,7 +153,8 @@ export class InvokeTestCasesCommand extends Command {
             },
             engineConfiguration: {
                 maxParallel: projectManifest.engineConfiguration.maxParallel
-            }
+            },
+            connectorConfiguration: projectManifest.connectorConfiguration
         };
     }
 

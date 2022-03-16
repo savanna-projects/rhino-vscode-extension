@@ -126,9 +126,67 @@ export class ReportManager {
                     table-layout: fixed ;
                     width: 100% ;
                   }
+                  tr:nth-child(even) {
+                    background-color: #e7e9eB;
+                  }
                   td {
                     width: 25% ;
                   }
+
+                input[type="checkbox"] {
+                    display: none;
+                }
+                .wrap-collabsible {
+                    margin: 1.2rem 0;
+                }
+                .lbl-toggle {
+                    display: block;
+                    font-weight: bold;
+                    font-family: monospace;
+                    font-size: 1.2rem;
+                    text-transform: uppercase;
+                    text-align: center;
+                    padding: 1rem;
+                    color: #ddd;
+                    background: #0069ff;
+                    cursor: pointer;
+                    transition: all 0.25s ease-out;
+                }
+                .lbl-toggle:hover {
+                    color: #fff;
+                }
+                .lbl-toggle::before {
+                    content: " ";
+                    display: inline-block;
+                    border-top: 5px solid transparent;
+                    border-bottom: 5px solid transparent;
+                    border-left: 5px solid currentColor;
+                    vertical-align: middle;
+                    margin-right: 0.7rem;
+                    transform: translateY(-2px);
+                    transition: transform 0.2s ease-out;
+                }
+                .toggle:checked + .lbl-toggle::before {
+                    transform: rotate(90deg) translateX(-3px);
+                }
+                .collapsible-content {
+                    max-height: 0px;
+                    overflow: hidden;
+                    transition: max-height 0.25s ease-in-out;
+                }
+                .toggle:checked + .lbl-toggle + .collapsible-content {
+                    max-height: 100%;
+                }
+                .toggle:checked + .lbl-toggle {
+                }
+                .collapsible-content .content-inner {
+                    background: rgba(0, 105, 255, 0.2);
+                    border-bottom: 1px solid rgba(0, 105, 255, 0.45);
+                    padding: 0.5rem 1rem;
+                }
+                .collapsible-content p {
+                    margin-bottom: 0;
+                }
             </style>
         </head>
         <body>
@@ -202,8 +260,28 @@ export class ReportManager {
         // build
         var steps = [];
         for (let i = 0; i < testCase.steps.length; i++) {
-            steps.push(this.getTestStepsHtml(testCase.steps[i], i));
+            steps.push(this.getTestStepsHtml(testCase.steps[i], (i + 1).toString()));
         }
+
+        // TODO: implement collapsable div for each test
+        // // get
+        // return `
+        //     <div class="wrap-collabsible">
+        //     <input id="${testCase.key}-${testCase.iteration}" class="toggle" type="checkbox" />
+        //     <label for="${testCase.key}-${testCase.iteration}" class="lbl-toggle">${testCase.key}-${testCase.iteration}</label>
+        //     <div class="collapsible-content">
+        //         <div class="content-inner">
+        //             <div class="panel">
+        //             <div style="padding: 0.25rem;">
+        //                 <span class="label">${testCase.key}-${testCase.iteration}</span>
+        //                 ${metaData}<br/>
+        //                 <div style="padding: 0.25rem;">
+        //                     <table cellpadding="1" cellspacing="0" class="steps-table">${steps.join('')}</table>
+        //                 </div>
+        //             </div>
+        //         </div>
+        //     </div>
+        //     </div>`
 
         // get
         return `
@@ -217,19 +295,62 @@ export class ReportManager {
         </div>`;
     }
 
-    private getTestStepsHtml(testStep: any, index: number): string {
+    private getTestStepsHtml(testStep: any, index: string): string {
+        var isNull = testStep.steps === null || testStep.steps === undefined;
+        var isRoot = isNull || testStep.steps.length === 0;
+
+        if (isRoot) {
+            return this.getTestStepHtml(testStep, index);
+        }
+
+        var stepsHtml: string[] = [];
+        stepsHtml.push(this.getMetaStepHtml(testStep, index));
+        for (var i = 0; i < testStep.steps.length; i++) {
+            var html = this.getTestStepsHtml(testStep.steps[i], index + "." + (i + 1).toString());
+            stepsHtml.push(html);
+        }
+        return stepsHtml.join('');
+    }
+
+    private getMetaStepHtml(testStep: any, index: string): string {
+        // build
+        const pattern = '(?<=\\{).*(?=\\})';
+        const match = testStep.action.match(pattern);
+        var action = match === null || match === undefined ? testStep.action : match[0]
+        var html = `
+        <tr>
+            <td style="width: 5%; vertical-align: top;"><pre>${index}</pre></td>
+            <td style="width: 3%; vertical-align: top;"><pre style="font-weight: 900; color: #3498db">M</pre></td>
+            <td colspan="2" style="font-weight: 900; width: 41%; vertical-align: top;"><pre>${action}</pre></td>
+            <td style="width: 10%; vertical-align: top;"><pre style="color: #3498db">${testStep.runTime.substr(0, 11)}</pre></td>
+        </tr>`;
+
+        // get
+        return html;
+    }
+
+    private getTestStepHtml(testStep: any, index: string): string {
         // setup
-        var rowColor = index % 2 ? '#fff' : '#e7e9eB';
         var actionColor = testStep.actual === true ? '#1abb9c' : '#e74c3c';
         var actionSign = testStep.actual === true ? 'P' : 'F';
 
+        // get expected results
+        var assertions = [];
+        for (var i = 0; i < testStep.expectedResults.length; i++) {
+            var assertion = testStep.expectedResults[i];
+            var assertionColor = assertion.actual === true ? '#000000' : '#e74c3c';
+            var assertionHtml = `<pre style="color: ${assertionColor}">${assertion.expectedResult}</pre>`;
+            assertions.push(assertionHtml);
+        }
+        var assertionsHtml = assertions.join('<br />');
+
         var html = `
-        <tr style="background-color: ${rowColor};">
-            <td style="width: 5%; vertical-align: top;"><pre>${index + 1}</pre></td>
-            <td style="width: 3%; vertical-align: top;"><pre style="font-weight: 900; color: ${actionColor}">${actionSign}<pre></td>
+        <tr>
+            <td style="width: 5%; vertical-align: top;"><pre>${index}</pre></td>
+            <td style="width: 3%; vertical-align: top;"><pre style="font-weight: 900; color: ${actionColor}">${actionSign}</pre></td>
             <td style="width: 41%; vertical-align: top;"><pre>${testStep.action}</pre></td>
-            <td style="width: 41%; vertical-align: top;"><pre>${testStep.expected}</pre></td>
-            <td style="width: 10%; vertical-align: top;"><pre style="color: #3498db">${testStep.runTime.substr(0, 11)}<pre></td>
+            <td style="width: 41%; vertical-align: top;">${assertionsHtml}</td>
+            <td style="width: 10%; vertical-align: top;"><pre style="color: #3498db">${testStep.runTime.substr(0, 11)}</pre></td>
         </tr>`;
 
         // get
