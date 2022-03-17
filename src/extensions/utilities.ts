@@ -50,7 +50,7 @@ export class Utilities {
         try {
             var data = fs.readFileSync(manifest, 'utf8');
             return JSON.parse(data);
-        } catch (e) {
+        } catch (e: any) {
             console.log('Error:', e.stack);
         }
 
@@ -76,23 +76,24 @@ export class Utilities {
                 "port": "9000"
             },
             "connectorConfiguration": {
-                "collection": null,
-                "connector": "connector_text",
-                "password": null,
-                "project": null,
-                "userName": null
+                "connector": "ConnectorText"
             },
             "authentication": {
-                "userName": "<rhino user name>",
+                "userName": "<rhino username>",
                 "password": "<rhino password>"
             },
             "driverParameters": [
                 {
-                    driver: "ChromeDriver",
-                    driverBinaries: "."
+                    "driver": "ChromeDriver",
+                    "driverBinaries": "."
                 }
-            ]
-        };
+            ],
+            "engineConfiguration": {
+                "maxParallel": 1,
+                "elementSearchingTimeout": 15000,
+                "pageLoadTimeout": 60000
+            }
+        }
     }
 
     /**
@@ -108,7 +109,7 @@ export class Utilities {
         const fs = require('fs');
         try {
             fs.writeFileSync(tmFile, tmConfiguration);
-        } catch (e) {
+        } catch (e: any) {
             console.log('Error:', e.stack);
         }
     }
