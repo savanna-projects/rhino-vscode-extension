@@ -8,6 +8,7 @@
  * https://code.visualstudio.com/api/extension-guides/webview
  */
 import * as vscode from 'vscode';
+import { Utilities } from '../extensions/utilities';
 import { ReportManager } from '../rhino/report-manager';
 import { Command } from "./command";
 import { FormatTestCaseCommand } from './format-document';
@@ -133,28 +134,46 @@ export class InvokeTestCasesCommand extends Command {
             : this.testCases;
 
         // build
-        return {
-            name: "VS Code - Standalone Test Run",
-            testsRepository: testsRepository,
-            driverParameters: projectManifest.driverParameters,
-            authentication: projectManifest.authentication,
-            screenshotsConfiguration: {
-                keepOriginal: false,
-                returnScreenshots: false,
-                onExceptionOnly: false
-            },
-            reportConfiguration: {
+        var engineConfiguration = !Utilities.isNullOrUndefined(projectManifest.engineConfiguration)
+            ? projectManifest.engineConfiguration
+            : {
+                maxParallel: 1,
+                elementSearchingTimeout: 15000,
+                pageLoadTimeout: 60000
+            };
+        var reportConfiguration = !Utilities.isNullOrUndefined(projectManifest.reportConfiguration)
+            ? projectManifest.reportConfiguration
+            : {
                 reporters: [
                     "ReporterBasic"
                 ],
                 archive: false,
                 localReport: true,
                 addGravityData: true
-            },
-            engineConfiguration: {
-                maxParallel: projectManifest.engineConfiguration.maxParallel
-            },
-            connectorConfiguration: projectManifest.connectorConfiguration
+            }
+        var screenshotsConfiguration = !Utilities.isNullOrUndefined(projectManifest.screenshotsConfiguration)
+            ? projectManifest.screenshotsConfiguration
+            : {
+                keepOriginal: false,
+                returnScreenshots: false,
+                onExceptionOnly: false
+            }
+        var connectorConfiguration = !Utilities.isNullOrUndefined(projectManifest.connectorConfiguration)
+            ? projectManifest.connectorConfiguration
+            : {
+                connector: "ConnectorText"
+            }
+
+        // get
+        return {
+            name: "VS Code - Standalone Test Run",
+            testsRepository: testsRepository,
+            driverParameters: projectManifest.driverParameters,
+            authentication: projectManifest.authentication,
+            screenshotsConfiguration: screenshotsConfiguration,
+            reportConfiguration: reportConfiguration,
+            engineConfiguration: engineConfiguration,
+            connectorConfiguration: connectorConfiguration
         };
     }
 

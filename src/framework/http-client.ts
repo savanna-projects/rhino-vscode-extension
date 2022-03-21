@@ -16,7 +16,7 @@ import { URL } from "url";
 export class HttpClient {
     // members
     private baseUrl: string;
-    
+
     /**
      * Summary. Creates a new instance of an HttpClient.
      * 
@@ -49,10 +49,10 @@ export class HttpClient {
         // send
         var isBody = httpCommand.body !== null && httpCommand.body !== undefined;
         var isJson = 'Content-Type' in httpCommand.headers && httpCommand.headers['Content-Type'] === 'application/json';
-        if(isBody && isJson) {
+        if (isBody && isJson) {
             request.write(JSON.stringify(httpCommand.body));
         }
-        else if(isBody && !isJson) {
+        else if (isBody && !isJson) {
             request.write(httpCommand.body.toString());
         }
         request.end();
@@ -72,21 +72,21 @@ export class HttpClient {
             path: httpCommand.command,
             method: httpCommand.method
         };
-        if(port !== -1) {
+        if (port !== -1) {
             options['port'] = port;
         };
-        if(httpCommand.headers) {
+        if (httpCommand.headers) {
             options.headers = httpCommand.headers;
         }
 
         // get
         return options;
-    } 
+    }
 
     private onData(data: any) {
         // log
         console.debug('Invoke-WebRequest -> Processing');
-        
+
         // get
         return data;
     }

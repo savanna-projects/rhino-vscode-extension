@@ -113,4 +113,17 @@ export class Utilities {
             console.log('Error:', e.stack);
         }
     }
+
+    /**
+     * Summary. Get an indication if an object is null or undefined.
+     * 
+     * @returns true if null or undefined, otherwise false.
+     */
+    public static isNullOrUndefined(obj: any) {
+        try {
+            return obj === null || obj === undefined;
+        } catch {
+            return true;
+        }
+    }
 }
