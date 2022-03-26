@@ -88,7 +88,7 @@ export class RegisterPluginsCommand extends Command {
                 var pluginData = fs.readFileSync(pluginFile, 'utf8');//.replace(/(\r\n|\n|\r)/gm, "");
                 pluginsData.push(pluginData);
             } catch (e) {
-                console.log('Error:', e.stack);
+                console.log('Error:', e);
             }
         }
 

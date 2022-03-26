@@ -89,7 +89,7 @@ export class RegisterModelsCommand extends Command {
                     data: modelData
                 });
             } catch (e) {
-                console.log('Error:', e.stack);
+                console.log('Error:', e);
             }
         }
 

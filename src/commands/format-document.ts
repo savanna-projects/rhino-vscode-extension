@@ -193,7 +193,7 @@ export class FormatTestCaseCommand extends Command {
 
     /*┌─[ TEST CASE & EXPECTED RESULTS ]───────────────────────
       │
-      │ Sort, arrange and format the test and exepected results
+      │ Sort, arrange and format the test and expected results
       │ sections.
       └────────────────────────────────────────────────────────*/
     private getInvocationSection(testCase: string[], annotations: string[]): string[] {
@@ -274,7 +274,7 @@ export class FormatTestCaseCommand extends Command {
             .lines
             .map((i: string) => i.trim())
             .filter((i: string) => i !== '');
-        map.push({ type: "annotation", action: expectedResults[0], index: -1, expecpted: [] });
+        map.push({ type: "annotation", action: expectedResults[0], index: -1, expected: [] });
         var lastIndex = 1;
 
         // iterate
@@ -289,23 +289,23 @@ export class FormatTestCaseCommand extends Command {
                 continue;
             }
             if (isCommentedOut) {
-                map.push({ type: "commentedOut", action: assertion, index: -1, expecpted: [] });
+                map.push({ type: "commentedOut", action: assertion, index: -1, expected: [] });
                 continue;
             }
             if (isComment) {
                 var commentIndex = lastIndex > 1 ? lastIndex : i;
-                map.push({ type: "comment", action: assertion, index: commentIndex, expecpted: [] });
+                map.push({ type: "comment", action: assertion, index: commentIndex, expected: [] });
                 continue;
             }
             if (isBroken) {
-                map.push({ type: "broken", action: assertion, index: -1, expecpted: [] });
+                map.push({ type: "broken", action: assertion, index: -1, expected: [] });
                 continue;
             }
 
             lastIndex = parseInt(assertion.match(indexNumberRegex)[0]);
             var isOutOfBound = totalActions < lastIndex || lastIndex < 1;
             if (isOutOfBound) {
-                map.push({ type: "outOfBound", action: assertion, index: -1, expecpted: [] });
+                map.push({ type: "outOfBound", action: assertion, index: -1, expected: [] });
                 continue;
             }
 
@@ -440,14 +440,14 @@ export class FormatTestCaseCommand extends Command {
 
             // build
             var header = '|' + column.column + ' '.repeat(maxLength - column.column.length);
-            var seperator = '|' + '-'.repeat(maxLength);
+            var separator = '|' + '-'.repeat(maxLength);
 
             // normalize
             header = isLast ? header + '|' : header;
-            seperator = isLast ? seperator + '|' : seperator;
+            separator = isLast ? separator + '|' : separator;
 
             // build
-            var columnMarkdown: string[] = [header, seperator];
+            var columnMarkdown: string[] = [header, separator];
             for (let j = 0; j < column.rows.length; j++) {
                 let row = column.rows[j];
 
@@ -469,11 +469,11 @@ export class FormatTestCaseCommand extends Command {
     private getComposedTable(markdown: string[]): any[] {
         // constants
         const HEADER_INDEX = 0;
-        const SEPERATOR_INDEX = 1;
+        const SEPARATOR_INDEX = 1;
 
         // setup
         var columns = markdown[HEADER_INDEX].split('|').map(i => i.trim()).filter(i => i !== '');
-        var dataPointer = markdown[SEPERATOR_INDEX].match(/^\|(-+\|?)+\|$/g) !== null ? 2 : 1;
+        var dataPointer = markdown[SEPARATOR_INDEX].match(/^\|(-+\|?)+\|$/g) !== null ? 2 : 1;
 
         // build
         var table: any[] = [];
