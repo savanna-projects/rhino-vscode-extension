@@ -8,7 +8,9 @@
  * https://code.visualstudio.com/api/extension-guides/webview
  */
 import path = require('path');
+import { stringify } from 'querystring';
 import * as vscode from 'vscode';
+import { Utilities } from '../extensions/utilities';
 import { Command } from "./command";
 import { RegisterRhinoCommand } from './register-rhino';
 
@@ -54,46 +56,47 @@ export class RegisterPluginsCommand extends Command {
     private invoke(callback: any) {
         // notification
         vscode.window.setStatusBarMessage('$(sync~spin) Registering plugin(s)...');
-
-        // build
-        var plugins = this.getPluginsFromFiles();
-        var createModel = plugins
-            .join("\n>>>\n")
-            .split('\n')
-            .map(i => i.replace(/^\d+\.\s+/, ''))
-            .join('\n');
-
-        // register
-        this.registerPlugins(createModel, callback);
-    }
-
-    private getPluginsFromFiles(): string[] {
+        
         // setup
         var workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
-
         var pluginsFolder = path.join(workspace, 'Plugins');
         pluginsFolder = pluginsFolder.startsWith('\\')
-            ? pluginsFolder.substr(1, pluginsFolder.length)
+            ? pluginsFolder.substring(1, pluginsFolder.length)
             : pluginsFolder;
 
-        // build
-        const fs = require('fs');
-        var files = fs.readdirSync(pluginsFolder);
-        var pluginsData = [];
+        Utilities.getFiles(pluginsFolder, (files: string[]) => {
+            var plugins: string[] = [];
 
-        for (let index = 0; index < files.length; index++) {
-            try {
-                var pluginFile = path.join(pluginsFolder, files[index]);
-                var pluginData = fs.readFileSync(pluginFile, 'utf8');//.replace(/(\r\n|\n|\r)/gm, "");
-                pluginsData.push(pluginData);
-            } catch (e) {
-                console.log('Error:', e);
+            for (let i = 0; i < files.length; i++) {
+                var file = files[i];
+                var plugin = this.getPluginsFromFile(file);
+                plugins.push(plugin);
             }
-        }
+
+            var createModel = plugins
+                .join("\n>>>\n")
+                .split('\n')
+                .map(i => i.replace(/^\d+\.\s+/, ''))
+                .join('\n');
+
+            this.registerPlugins(createModel, callback);
+        });
+    }
+
+    private getPluginsFromFile(file: string): string {
+        // setup
+        const fs = require('fs');
 
         // get
-        return pluginsData;
+        try {
+            return fs.readFileSync(file, 'utf8');
+        } catch (e) {
+            console.log(e);
+        }
+
+        // default
+        return '';
     }
 
     private registerPlugins(createModel: string, callback: any) {

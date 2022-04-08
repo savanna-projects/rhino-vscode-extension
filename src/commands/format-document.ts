@@ -99,13 +99,22 @@ export class FormatTestCaseCommand extends Command {
                 documentFormatted.push(...dataSection.examples);
                 documentFormatted.push(...dataSection.models);
 
+                // clean
+                var index = documentFormatted.length - 1;
+                while (documentFormatted[index] === '' && index > 0) {
+                    documentFormatted.splice(index, 1);
+                    index--;
+                }
+
                 // skip last
                 if (i === documentEntities.length - 1) {
                     continue;
                 }
 
                 // separator
+                documentFormatted.push('')
                 documentFormatted.push(">>>");
+                documentFormatted.push('')
             }
 
             var t = documentFormatted.join("\n").trim();

@@ -126,4 +126,37 @@ export class Utilities {
             return true;
         }
     }
+
+    /**
+     * Summary. Get a flat list of all files under a directory including all sub-directories.
+     */
+    public static getFiles(directory: string, callback: any) {
+        // setup
+        const fs = require('fs');
+        const path = require('path');
+        const list: string[] = [];
+
+        // iterate
+        const getFilesFromDirectory: any = (directoryPath: any) => {
+            const files = fs.readdirSync(directoryPath);
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const filePath = path.join(directoryPath, file);
+                const stats = fs.statSync(filePath);
+
+                if(stats.isDirectory()) {
+                    getFilesFromDirectory(filePath);
+                }
+                else{
+                    list.push(filePath);
+                }
+            }
+
+            callback(list);
+        };
+
+        // get
+        return getFilesFromDirectory(directory)
+    }
 }
