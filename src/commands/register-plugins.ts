@@ -8,7 +8,6 @@
  * https://code.visualstudio.com/api/extension-guides/webview
  */
 import path = require('path');
-import { stringify } from 'querystring';
 import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
 import { Command } from "./command";

@@ -8,8 +8,8 @@
  * https://code.visualstudio.com/api/extension-guides/webview
  */
 import path = require('path');
-import { off } from 'process';
 import * as vscode from 'vscode';
+import { Utilities } from '../extensions/utilities';
 import { Command } from "./command";
 import { RegisterRhinoCommand } from './register-rhino';
 
@@ -57,44 +57,44 @@ export class RegisterModelsCommand extends Command {
         vscode.window.setStatusBarMessage('$(sync~spin) Registering model(s)...');
 
         // build
-        var createModel = this.getModelsFromFiles();
-
-        // register
-        this.registerModels(createModel, callback);
+        this.getModelsFromFiles((createModel: any) => {
+            this.registerModels(createModel, callback);
+        });
     }
 
-    private getModelsFromFiles(): any[] {
+    private getModelsFromFiles(callback: any) {
         // setup
         var workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
 
         var modelsFolder = path.join(workspace, 'Models');
         modelsFolder = modelsFolder.startsWith('\\')
-            ? modelsFolder.substr(1, modelsFolder.length)
+            ? modelsFolder.substring(1, modelsFolder.length)
             : modelsFolder;
 
         // build
         const fs = require('fs');
-        var files = fs.readdirSync(modelsFolder);
-        var modelsData = [];
 
-        for (let index = 0; index < files.length; index++) {
-            try {
-                var modelFile = path.join(modelsFolder, files[index]);
-                var modelstr = fs.readFileSync(modelFile, 'utf8');
-                var isJson = this.isJson(modelstr);
-                var modelData = isJson ? JSON.parse(modelstr) : modelstr;
-                modelsData.push({
-                    type: isJson ? 'json' : 'md',
-                    data: modelData
-                });
-            } catch (e) {
-                console.log('Error:', e);
+        // iterate
+        Utilities.getFiles(modelsFolder, (files: string[]) => {
+            var modelsData = [];
+            for (let i = 0; i < files.length; i++) {
+                try {
+                    const modelFile = files[i];
+                    var modelStr = fs.readFileSync(modelFile, 'utf8');
+                    var isJson = this.isJson(modelStr);
+                    var modelData = isJson ? JSON.parse(modelStr) : modelStr;
+                    modelsData.push({
+                        type: isJson ? 'json' : 'md',
+                        data: modelData
+                    });
+                } catch (e) {
+                    console.log('Error:', e);
+                }
             }
-        }
 
-        // get
-        return modelsData;
+            callback(modelsData);
+        });
     }
 
     private registerModels(createModel: any[], callback: any) {
@@ -114,7 +114,7 @@ export class RegisterModelsCommand extends Command {
         let mdModels = markdownModels.map(i => i.data).join('\n>>>\n');
         let jsModels = createModel.filter(i => i.type === 'json').map(i => i.data);
         let isJson = jsModels.length > 0;
-        let isMdwn = markdownModels.length > 0;
+        let isMarkdown = markdownModels.length > 0;
 
         // local functions
         function _callback(context: vscode.ExtensionContext, callback: any) {
@@ -131,18 +131,18 @@ export class RegisterModelsCommand extends Command {
         }
 
         // factory
-        if (isJson && !isMdwn) {
-            client.createModels(createModel, () => {
+        if (isJson && !isMarkdown) {
+            client.createModels(jsModels, () => {
                 _callback(this.getContext(), callback);
             });
         }
-        if (isMdwn && !isJson) {
+        if (isMarkdown && !isJson) {
             client.createModelsMd(mdModels, () => {
                 _callback(this.getContext(), callback);
             });
         }
-        if (isMdwn && isJson) {
-            client.createModels(createModel, () => {
+        if (isMarkdown && isJson) {
+            client.createModels(jsModels, () => {
                 client.createModelsMd(mdModels, () => {
                     _callback(this.getContext(), callback);
                 });

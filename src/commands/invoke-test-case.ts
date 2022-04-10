@@ -13,7 +13,7 @@ import { ReportManager } from '../rhino/report-manager';
 import { Command } from "./command";
 import { FormatTestCaseCommand } from './format-document';
 
-export class InvokeTestCasesCommand extends Command {
+export class InvokeTestCaseCommand extends Command {
     // members
     private testCases: string[];
 
@@ -41,7 +41,7 @@ export class InvokeTestCasesCommand extends Command {
      * @param testCases One or more Rhino Test Case(s) to invoke.
      * @returns Self reference
      */
-    public addTestCases(...testCases: string[]): InvokeTestCasesCommand {
+    public addTestCases(...testCases: string[]): InvokeTestCaseCommand {
         // build
         this.testCases.push(...testCases);
 
@@ -54,7 +54,7 @@ export class InvokeTestCasesCommand extends Command {
      * 
      * @returns Self reference
      */
-    public addOpenTestCases(): InvokeTestCasesCommand {
+    public addOpenTestCases(): InvokeTestCaseCommand {
         // setup
         var editor = vscode.window.activeTextEditor;
 
@@ -128,53 +128,16 @@ export class InvokeTestCasesCommand extends Command {
     // creates default configuration with text connector
     private getConfiguration() {
         // setup
-        var projectManifest = this.getProjectManifest();
         var testsRepository = this.getCommandName() === 'Invoke-TestCase'
             ? this.getOpenTestCases()
             : this.testCases;
+        var configuration = Utilities.getConfigurationByManifest();
 
         // build
-        var engineConfiguration = !Utilities.isNullOrUndefined(projectManifest.engineConfiguration)
-            ? projectManifest.engineConfiguration
-            : {
-                maxParallel: 1,
-                elementSearchingTimeout: 15000,
-                pageLoadTimeout: 60000
-            };
-        var reportConfiguration = !Utilities.isNullOrUndefined(projectManifest.reportConfiguration)
-            ? projectManifest.reportConfiguration
-            : {
-                reporters: [
-                    "ReporterBasic"
-                ],
-                archive: false,
-                localReport: true,
-                addGravityData: true
-            }
-        var screenshotsConfiguration = !Utilities.isNullOrUndefined(projectManifest.screenshotsConfiguration)
-            ? projectManifest.screenshotsConfiguration
-            : {
-                keepOriginal: false,
-                returnScreenshots: false,
-                onExceptionOnly: false
-            }
-        var connectorConfiguration = !Utilities.isNullOrUndefined(projectManifest.connectorConfiguration)
-            ? projectManifest.connectorConfiguration
-            : {
-                connector: "ConnectorText"
-            }
+        configuration.testsRepository = testsRepository;
 
         // get
-        return {
-            name: "VS Code - Standalone Test Run",
-            testsRepository: testsRepository,
-            driverParameters: projectManifest.driverParameters,
-            authentication: projectManifest.authentication,
-            screenshotsConfiguration: screenshotsConfiguration,
-            reportConfiguration: reportConfiguration,
-            engineConfiguration: engineConfiguration,
-            connectorConfiguration: connectorConfiguration
-        };
+        return configuration;
     }
 
     // get test cases from the open document

@@ -3,7 +3,7 @@
 	"publisher": "RhinoAPI",
 	"displayName": "rhino-language-support",
 	"description": "",
-	"version": "2.0.0",
+	"version": "2.1.0",
 	"repository": {
 		"url": "https://github.com/savanna-projects/rhino-vscode-extension.git"
 	},
@@ -34,6 +34,10 @@
 			{
 				"command": "Invoke-TestCase",
 				"title": "Rhino: Runs the automation test(s) from the currently open document"
+			},
+			{
+				"command": "Invoke-TestCase -All",
+				"title": "Rhino: Runs all the automation test(s) under TestCases folder. This action is recursive."
 			},
 			{
 				"command": "Register-Models",

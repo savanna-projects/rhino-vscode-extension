@@ -39,6 +39,131 @@ export class Utilities {
      * @returns Project manifest.
      */
     public static getProjectManifest(): any {
+        return this.invokeGetProjectManifest();
+    }
+
+    /**
+     * Summary. Gets the default project manifest object.
+     * 
+     * @returns Default project manifest.
+     */
+    public static getDefaultProjectManifest(): any {
+        return Utilities.buildProjectManifest();
+    }
+
+    /**
+     * Summary. Updates the TM Language configuration on runtime.
+     * 
+     * @returns Default project manifest.
+     */
+    public static updateTmConfiguration(context: vscode.ExtensionContext, tmConfiguration: string) {
+        // setup
+        var tmFile = path.join(context.extensionPath, 'rhino-tmLanguage.json')
+
+        // build
+        const fs = require('fs');
+        try {
+            fs.writeFileSync(tmFile, tmConfiguration);
+        } catch (e: any) {
+            console.log('Error:', e.stack);
+        }
+    }
+
+    /**
+     * Summary. Get an indication if an object is null or undefined.
+     * 
+     * @returns true if null or undefined, otherwise false.
+     */
+    public static isNullOrUndefined(obj: any): boolean {
+        return this.invokeIsNullOrUndefined(obj);
+    }
+
+    /**
+     * Summary. Get a flat list of all files under a directory including all sub-directories.
+     */
+    public static getFiles(directory: string, callback: any) {
+        // setup
+        const fs = require('fs');
+        const path = require('path');
+        const list: string[] = [];
+
+        // iterate
+        const getFilesFromDirectory: any = (directoryPath: any) => {
+            const files = fs.readdirSync(directoryPath);
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const filePath = path.join(directoryPath, file);
+                const stats = fs.statSync(filePath);
+
+                if (stats.isDirectory()) {
+                    getFilesFromDirectory(filePath);
+                }
+                else {
+                    list.push(filePath);
+                }
+            }
+
+            callback(list);
+        };
+
+        // get
+        return getFilesFromDirectory(directory)
+    }
+
+    /**
+     * Summary. Get a default configuration based on the current Manifest.json file.
+     */
+    public static getConfigurationByManifest(): any {
+        // setup
+        var projectManifest = this.getProjectManifest();
+
+        // build
+        var engineConfiguration = !this.invokeIsNullOrUndefined(projectManifest.engineConfiguration)
+            ? projectManifest.engineConfiguration
+            : {
+                maxParallel: 1,
+                elementSearchingTimeout: 15000,
+                pageLoadTimeout: 60000
+            };
+        var reportConfiguration = !this.invokeIsNullOrUndefined(projectManifest.reportConfiguration)
+            ? projectManifest.reportConfiguration
+            : {
+                reporters: [
+                    "ReporterBasic"
+                ],
+                archive: false,
+                localReport: true,
+                addGravityData: true
+            }
+        var screenshotsConfiguration = !this.invokeIsNullOrUndefined(projectManifest.screenshotsConfiguration)
+            ? projectManifest.screenshotsConfiguration
+            : {
+                keepOriginal: false,
+                returnScreenshots: false,
+                onExceptionOnly: false
+            }
+        var connectorConfiguration = !this.invokeIsNullOrUndefined(projectManifest.connectorConfiguration)
+            ? projectManifest.connectorConfiguration
+            : {
+                connector: "ConnectorText"
+            }
+
+        // get
+        return {
+            name: "VS Code - Standalone Test Run",
+            testsRepository: [],
+            driverParameters: projectManifest.driverParameters,
+            authentication: projectManifest.authentication,
+            screenshotsConfiguration: screenshotsConfiguration,
+            reportConfiguration: reportConfiguration,
+            engineConfiguration: engineConfiguration,
+            connectorConfiguration: connectorConfiguration
+        };
+    }
+
+    // TODO: comments
+    private static invokeGetProjectManifest(): any {
         // setup
         var workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
@@ -55,15 +180,6 @@ export class Utilities {
         }
 
         // default
-        return Utilities.buildProjectManifest();
-    }
-
-    /**
-     * Summary. Gets the default project manifest object.
-     * 
-     * @returns Default project manifest.
-     */
-    public static getDefaultProjectManifest(): any {
         return Utilities.buildProjectManifest();
     }
 
@@ -96,67 +212,12 @@ export class Utilities {
         }
     }
 
-    /**
-     * Summary. Updates the TM Language configuration on runtime.
-     * 
-     * @returns Default project manifest.
-     */
-    public static updateTmConfiguration(context: vscode.ExtensionContext, tmConfiguration: string) {
-        // setup
-        var tmFile = path.join(context.extensionPath, 'rhino-tmLanguage.json')
-
-        // build
-        const fs = require('fs');
-        try {
-            fs.writeFileSync(tmFile, tmConfiguration);
-        } catch (e: any) {
-            console.log('Error:', e.stack);
-        }
-    }
-
-    /**
-     * Summary. Get an indication if an object is null or undefined.
-     * 
-     * @returns true if null or undefined, otherwise false.
-     */
-    public static isNullOrUndefined(obj: any) {
+    // TODO: comments
+    private static invokeIsNullOrUndefined(obj: any) {
         try {
             return obj === null || obj === undefined;
         } catch {
             return true;
         }
-    }
-
-    /**
-     * Summary. Get a flat list of all files under a directory including all sub-directories.
-     */
-    public static getFiles(directory: string, callback: any) {
-        // setup
-        const fs = require('fs');
-        const path = require('path');
-        const list: string[] = [];
-
-        // iterate
-        const getFilesFromDirectory: any = (directoryPath: any) => {
-            const files = fs.readdirSync(directoryPath);
-            
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const filePath = path.join(directoryPath, file);
-                const stats = fs.statSync(filePath);
-
-                if(stats.isDirectory()) {
-                    getFilesFromDirectory(filePath);
-                }
-                else{
-                    list.push(filePath);
-                }
-            }
-
-            callback(list);
-        };
-
-        // get
-        return getFilesFromDirectory(directory)
     }
 }

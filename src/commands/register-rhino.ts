@@ -7,12 +7,13 @@ import * as vscode from 'vscode';
 import { Command } from "./command";
 import { ConnectServerCommand } from './connect-server';
 import { CreateProjectCommand } from './create-project';
-import { InvokeTestCasesCommand } from './invoke-test-case';
+import { InvokeTestCaseCommand } from './invoke-test-case';
 import { RegisterPluginsCommand } from './register-plugins';
 import { RegisterTestCaseCommand } from './register-test-case';
 import { FormatTestCaseCommand } from './format-document';
 import { RegisterModelsCommand } from './register-models';
 import { GetTestCaseCommand } from './get-test-case';
+import { InvokeAllTestCasesCommand } from './invoke-all-test-cases';
 
 export class RegisterRhinoCommand extends Command {
     /**
@@ -70,7 +71,8 @@ export class RegisterRhinoCommand extends Command {
         new ConnectServerCommand(context).invokeCommand();
         new RegisterTestCaseCommand(context).register();
         new CreateProjectCommand(context).register();
-        new InvokeTestCasesCommand(context).register();
+        new InvokeTestCaseCommand(context).register();
+        new InvokeAllTestCasesCommand(context).register();
         new RegisterPluginsCommand(context).register();
         new FormatTestCaseCommand(context).register();
         new RegisterModelsCommand(context).register();
