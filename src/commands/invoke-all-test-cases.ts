@@ -99,17 +99,32 @@ export class InvokeAllTestCasesCommand extends Command {
 
     // get test cases from the open document
     private getAllTestCases(callback: any) {
+        // build
+        const fs = require('fs');
+
         // setup
         var workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
 
-        var testsFolder = path.join(workspace, 'TestCases');
+        var testCasesPath = path.join(workspace, 'TestCases');
+        var testsPath = path.join(workspace, 'Tests');
+
+        // normalize
+        testsPath = testsPath.startsWith('\\')
+            ? testsPath.substring(1, testsPath.length)
+            : testsPath;
+
+        // setup
+        var isTestsPath = fs.existsSync(testsPath);
+        var testsFolder = testCasesPath;
+        
+        if (isTestsPath) {
+            testsFolder = testsPath;
+        }
+        
         testsFolder = testsFolder.startsWith('\\')
             ? testsFolder.substring(1, testsFolder.length)
             : testsFolder;
-
-        // build
-        const fs = require('fs');
 
         // iterate
         Utilities.getFiles(testsFolder, (files: string[]) => {

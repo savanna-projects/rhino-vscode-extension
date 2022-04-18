@@ -37,7 +37,7 @@
 			},
 			{
 				"command": "Invoke-TestCase -All",
-				"title": "Rhino: Runs all the automation test(s) under TestCases folder"
+				"title": "Rhino: Runs all the automation test(s) under this projects"
 			},
 			{
 				"command": "Register-Models",
