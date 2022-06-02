@@ -14,6 +14,7 @@ import { FormatTestCaseCommand } from './format-document';
 import { RegisterModelsCommand } from './register-models';
 import { GetTestCaseCommand } from './get-test-case';
 import { InvokeAllTestCasesCommand } from './invoke-all-test-cases';
+import { RegisterEnvironmentCommand } from './register-environment';
 
 export class RegisterRhinoCommand extends Command {
     /**
@@ -77,5 +78,6 @@ export class RegisterRhinoCommand extends Command {
         new FormatTestCaseCommand(context).register();
         new RegisterModelsCommand(context).register();
         new GetTestCaseCommand(context).register();
+        new RegisterEnvironmentCommand(context).register();
     }
 }

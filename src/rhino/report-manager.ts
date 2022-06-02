@@ -257,6 +257,18 @@ export class ReportManager {
             '<br/>Run Time    : <span style="color: #3498db">' + testCase.runTime.substr(0, 11) + '</span>' +
             '<br/>On Attempt  : ' + testCase.passedOnAttempt + '</pre>';
 
+            var environment = '';
+            try {
+                environment =
+                    '<h4>Environment</h4>' +
+                    '<pre>\n' +
+                    JSON.stringify(testCase.environment, null, 4) +
+                    '</pre>' +
+                    '</div>'
+            } catch (error) {
+                console.warn(error);
+            }
+
         // build
         var steps = [];
         for (let i = 0; i < testCase.steps.length; i++) {
@@ -288,7 +300,7 @@ export class ReportManager {
         <div class="panel">
         <div style="padding: 0.25rem;">
             <span class="label">${testCase.key}-${testCase.iteration}</span>
-            ${metaData}<br/>
+            ${metaData}${environment}<br/>
             <div style="padding: 0.25rem;">
                 <table cellpadding="1" cellspacing="0" class="steps-table">${steps.join('')}</table>
             </div>

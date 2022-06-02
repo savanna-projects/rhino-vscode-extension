@@ -18,6 +18,18 @@ export class RhinoClient {
         this.httpClient = new HttpClient(baseUrl);
     }
 
+    public addEnvironment(environment: any, callback: any) {
+        // setup
+        var httpCommand = new HttpCommand()
+            .setMethod('POST')
+            .setBody(environment)
+            .setCommand('/api/v3/environment')
+            .addHeader('Content-Type', 'application/json');
+
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
+
     /**
      * Summary. Returns a list of available Action Plugins (both Rhino and Code).
      * 

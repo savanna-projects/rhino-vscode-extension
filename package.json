@@ -40,6 +40,10 @@
 				"title": "Rhino: Runs all the automation test(s) under this projects"
 			},
 			{
+				"command": "Register-Environment",
+				"title": "Rhino: Register an environment file under 'Environments' folder"
+			},
+			{
 				"command": "Register-Models",
 				"title": "Rhino: Register all the models under 'Models' folder"
 			},
