@@ -78,9 +78,9 @@ export class ParametersAutoCompleteProvider extends Provider {
             .filter(i => i !== '');
 
         // build
-        var seperator = section.findIndex(i => i.match('(\\|-+\\|?)+\\|') !== null);
-        var index = seperator - 1;
-        if (seperator < 0) {
+        var separator = section.findIndex(i => i.match('(\\|-+\\|?)+\\|') !== null);
+        var index = separator - 1;
+        if (separator < 0) {
             return [];
         }
 
@@ -112,8 +112,8 @@ export class ParametersAutoCompleteProvider extends Provider {
             .filter(i => i !== '');
 
         // build
-        var seperator = section.findIndex(i => i.match('(\\|-+\\|?)+\\|') !== null);
-        var index = seperator + 1;
+        var separator = section.findIndex(i => i.match('(\\|-+\\|?)+\\|') !== null);
+        var index = separator + 1;
         if (index > section.length - 1) {
             return [];
         }
@@ -122,12 +122,14 @@ export class ParametersAutoCompleteProvider extends Provider {
         var items: vscode.CompletionItem[] = [];
         for (let i = index; i < section.length; i++) {
             var parameter = section[i].split('|').map(i => i.trim()).filter(i => i !== '');
-            if (parameter.length !== 2) {
+            if (parameter.length < 2) {
                 continue;
             }
             var item = new vscode.CompletionItem(parameter[0], vscode.CompletionItemKind.Property);
             item.detail = 'plugin parameter';
-            item.documentation = parameter[1];
+            item.documentation = parameter.length > 2
+                ?  new vscode.MarkdownString(parameter[1] + "  \n\n" + "**Default Value:** `" + parameter[2] + "`")
+                : parameter[1];
             item.insertText = parameter[0];
             items.push(item);
         }
