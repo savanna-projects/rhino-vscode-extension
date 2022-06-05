@@ -137,6 +137,7 @@ export class InvokeTestCaseCommand extends Command {
         configuration.testsRepository = testsRepository;
 
         // get
+        var s= JSON.stringify(configuration);
         return configuration;
     }
 
