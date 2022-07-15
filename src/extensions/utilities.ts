@@ -148,6 +148,9 @@ export class Utilities {
             : {
                 connector: "ConnectorText"
             }
+        var externalRepositories = !this.invokeIsNullOrUndefined(projectManifest.externalRepositories)
+            ? projectManifest.externalRepositories
+            : [];
 
         // get
         return {
@@ -158,7 +161,8 @@ export class Utilities {
             screenshotsConfiguration: screenshotsConfiguration,
             reportConfiguration: reportConfiguration,
             engineConfiguration: engineConfiguration,
-            connectorConfiguration: connectorConfiguration
+            connectorConfiguration: connectorConfiguration,
+            externalRepositories: externalRepositories
         };
     }
 

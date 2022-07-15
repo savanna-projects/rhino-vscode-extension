@@ -7,10 +7,12 @@
 import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
 import { Command } from "./command";
+import { FormatTestCaseCommand } from './format-document';
 
 export class RegisterTestCaseCommand extends Command {
     // members
     private testSuites: string[] | undefined;
+    private formatCommand: FormatTestCaseCommand;
 
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
@@ -22,6 +24,7 @@ export class RegisterTestCaseCommand extends Command {
 
         // build
         this.testSuites = [];
+        this.formatCommand = new FormatTestCaseCommand(this.getContext());
         this.setCommandName('Register-TestCase');
     }
 
@@ -61,7 +64,7 @@ export class RegisterTestCaseCommand extends Command {
 
     private invoke() {
         // notification
-        vscode.window.setStatusBarMessage('$(sync~spin) Creating an integraed test case...');
+        vscode.window.setStatusBarMessage('$(sync~spin) Creating an integraed test case(s)...');
 
         // setup
         var manifest = Utilities.getProjectManifest();
@@ -74,8 +77,27 @@ export class RegisterTestCaseCommand extends Command {
         };
 
         // build
-        this.getRhinoClient().createTestCase(configuration, () => {
+        this.getRhinoClient().createTestCase(configuration, (response: any) => {
             vscode.window.setStatusBarMessage('$(testing-passed-icon) Integrated test cases created');
+
+            // get by id
+            var testCasesResponse = JSON.parse(response);
+            vscode.window.setStatusBarMessage('$(sync~spin) Getting an integraed test case(s)...');
+            var model = {
+                connector: manifest.connectorConfiguration,
+                entity: testCasesResponse
+            };
+            var s = JSON.stringify(model);
+            this.getRhinoClient().getTestCases(model, (testCase: any) => {
+                var document = JSON.parse(testCase).join('\n\n>>>\n\n');
+                var range = this.getDocumentRange();
+                vscode.window.activeTextEditor?.edit((i) => {
+                    i.replace(range, document);
+                    this.formatCommand.invokeCommand(() => {
+                        vscode.window.setStatusBarMessage('$(testing-passed-icon) Integraed Test case(s) retrieved');
+                    });
+                });
+            });
         });
     }
 
@@ -91,5 +113,23 @@ export class RegisterTestCaseCommand extends Command {
 
         // get
         return editor.document.getText();
+    }
+
+    private getDocumentRange() {
+        // setup
+        var document = vscode.window.activeTextEditor?.document;
+
+        // not found
+        if (!document) {
+            var position = new vscode.Position(0, 0);
+            return new vscode.Range(position, position);
+        }
+
+        // build
+        var firstLine = document.lineAt(0);
+        var lastLine = document.lineAt(document.lineCount - 1);
+
+        // get
+        return new vscode.Range(firstLine.range.start, lastLine.range.end);
     }
 }

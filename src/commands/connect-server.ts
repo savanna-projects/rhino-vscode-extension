@@ -88,37 +88,49 @@ export class ConnectServerCommand extends Command {
         // user interface
         vscode.window.setStatusBarMessage('$(sync~spin) Loading action(s)...');
 
+        // setup
+        var configuration = Utilities.getConfigurationByManifest();
+
         // build
-        client.getPlugins((plugins: any) => {
-            client.getLocators((locators: any) => {
-                client.getAttributes((attributes: any) => {
-                    client.getAnnotations((annotations: any) => {
-                        var actionsManifests = JSON.parse(plugins);
-                        var _locators = JSON.parse(locators);
-                        var _attributes = JSON.parse(attributes);
-                        var _annotations = JSON.parse(annotations);
-                        var pluginsPattern = Utilities.getPluginsPattern(actionsManifests);
+        client.createConfiguration(configuration, (data: any) => {
+            var response = JSON.parse(data);
+            var configurationId = Utilities.isNullOrUndefined(response) || Utilities.isNullOrUndefined(response.id)
+                ? ''
+                : response.id;
+            client.getPluginsByConfiguration(configurationId, (plugins: any) => {
+                client.getLocators((locators: any) => {
+                    client.getAttributes((attributes: any) => {
+                        client.getAnnotations((annotations: any) => {
+                            var actionsManifests = JSON.parse(plugins);
+                            var _locators = JSON.parse(locators);
+                            var _attributes = JSON.parse(attributes);
+                            var _annotations = JSON.parse(annotations);
+                            var pluginsPattern = Utilities.getPluginsPattern(actionsManifests);
 
-                        new ActionsAutoCompleteProvider()
-                            .setPattern(pluginsPattern)
-                            .setAttributes(_attributes)
-                            .setManifests(actionsManifests)
-                            .setLocators(_locators)
-                            .setAnnotations(_annotations)
-                            .register(context);
+                            new ActionsAutoCompleteProvider()
+                                .setPattern(pluginsPattern)
+                                .setAttributes(_attributes)
+                                .setManifests(actionsManifests)
+                                .setLocators(_locators)
+                                .setAnnotations(_annotations)
+                                .register(context);
 
-                        console.info('Get-Plugins -Type Actions = (OK, ' + actionsManifests.length + ')');
-                        let message = '$(testing-passed-icon) Total of ' + actionsManifests.length + ' action(s) loaded';
-                        vscode.window.setStatusBarMessage(message);
+                            console.info('Get-Plugins -Type Actions = (OK, ' + actionsManifests.length + ')');
+                            let message = '$(testing-passed-icon) Total of ' + actionsManifests.length + ' action(s) loaded';
+                            vscode.window.setStatusBarMessage(message);
 
-                        if (callback === null) {
-                            return;
-                        }
-                        callback(client, context);
+                            if (callback === null) {
+                                return;
+                            }
+
+                            client.deleteConfiguration(configurationId, () => {
+                                callback(client, context);
+                            })
+                        });
                     });
                 });
             });
-        });
+        })
     }
 
     private registerAnnotations(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {

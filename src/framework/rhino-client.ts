@@ -45,6 +45,20 @@ export class RhinoClient {
     }
 
     /**
+     * Summary. Returns a list of available Action Plugins (both Rhino and Code).
+     * 
+     * @param callback An argument, which is then invoked inside the outer function to complete some kind of routine or action.
+     */
+    public getPluginsByConfiguration(configuration: string, callback: any) {
+        // setup
+        var httpCommand = new HttpCommand();
+        httpCommand.command = `/api/v3/meta/plugins/configurations/${configuration}`;
+
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
+
+    /**
      * Summary. Returns a list of available Macro Plugins.
      * 
      * @param callback An argument, which is then invoked inside the outer function to complete some kind of routine or action.
@@ -241,8 +255,8 @@ export class RhinoClient {
     /**
      * Summary. Creates a new Test Case entity on the integrated application.
      * 
-     * @param createModel Integrated Test Case create model.
-     * @param callback    An argument, which is then invoked inside the outer function to complete some kind of routine or action. 
+     * @param integrationModel Integrated Test Case get model.
+     * @param callback         An argument, which is then invoked inside the outer function to complete some kind of routine or action. 
      */
     public getTestCase(integrationModel: any, callback: any) {
         // setup
@@ -250,6 +264,24 @@ export class RhinoClient {
             .setMethod('POST')
             .setBody(integrationModel)
             .setCommand('/api/v3/integration/test/spec')
+            .addHeader('Content-Type', 'application/json');
+
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
+
+    /**
+     * Summary. Creates a new Test Case entity on the integrated application.
+     * 
+     * @param integrationModel Integrated Test Case get model.
+     * @param callback         An argument, which is then invoked inside the outer function to complete some kind of routine or action. 
+     */
+    public getTestCases(integrationModel: any, callback: any) {
+        // setup
+        var httpCommand = new HttpCommand()
+            .setMethod('POST')
+            .setBody(integrationModel)
+            .setCommand('/api/v3/integration/test/specs')
             .addHeader('Content-Type', 'application/json');
 
         // get
@@ -340,6 +372,28 @@ export class RhinoClient {
         // setup
         var httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/verbs';
+
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
+
+    public createConfiguration(configuration: any, callback: any) {
+        // setup
+        var httpCommand = new HttpCommand()
+            .setMethod('POST')
+            .setBody(configuration)
+            .setCommand('/api/v3/configurations')
+            .addHeader('Content-Type', 'application/json');
+
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
+
+    public deleteConfiguration(configuration: any, callback: any) {
+        // setup
+        var httpCommand = new HttpCommand()
+            .setMethod('DELETE')
+            .setCommand(`/api/v3/configurations/${configuration}`);
 
         // get
         this.httpClient.invokeWebRequest(httpCommand, callback);

@@ -7,7 +7,6 @@ import * as vscode from 'vscode';
 import path = require('path');
 import { Utilities } from '../extensions/utilities';
 import { Command } from "./command";
-import { FormatTestCaseCommand } from "./format-document"
 
 
 export class RegisterEnvironmentCommand extends Command {
