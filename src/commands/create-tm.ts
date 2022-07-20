@@ -3,10 +3,14 @@
  * 
  * RESOURCES
  * https://code.visualstudio.com/api/references/commands
+ * 
+ * WORK ITEMS
+ * TODO: implement different style for code, external & infra plugins
  */
 import { Command } from "./command";
 import * as vscode from 'vscode';
 import { Utilities } from "../extensions/utilities";
+import { RhinoClient } from "../framework/rhino-client";
 
 export class CreateTm extends Command {
     /**
@@ -54,37 +58,62 @@ export class CreateTm extends Command {
         // setup
         var client = this.getRhinoClient();
 
-        // build
-        client.getPlugins((plugins: any) => {
-            client.getOperators((operators: any) => {
-                client.getVerbs((verbs: any) => {
-                    client.getAssertions((assertions: any) => {
-                        client.getLocators((locators: any) => {
-                            client.getAnnotations((annotations: any) => {
-                                const _plugins = JSON.parse(plugins);
-                                const _operators = JSON.parse(operators);
-                                const _verbs = JSON.parse(verbs);
-                                const _assertions = JSON.parse(assertions);
-                                const _locators = JSON.parse(locators);
-                                const _annotations = JSON.parse(annotations).map((i: any) => i.key.trim());
-            
-                                // build
-                                var nameClass = _plugins.map((i: any) => i.literal);
-                                
-                                var keywordControl = [];
-                                keywordControl.push(..._operators.map((i: any) => '\\s+' + i.literal + '\\s+'));
-                                keywordControl.push(..._verbs.map((i: any) => '\\s+' + i.literal + '\\s+'));
-    
-                                var functions = [];
-                                functions.push(..._assertions.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'));
-                                functions.push(..._locators.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'))
+        // setup
+        var configuration = Utilities.getConfigurationByManifest();
 
-                                // create
-                                var tmLanguage = this.getTmConfiguration(nameClass, keywordControl, functions, _annotations);
-                                Utilities.updateTmConfiguration(this.getContext(), JSON.stringify(tmLanguage));
-            
-                                vscode.window.setStatusBarMessage('$(testing-passed-icon) TM Language loaded');
-                            });
+        // build
+        client.createConfiguration(configuration, (data: any) => {
+            var response = JSON.parse(data);
+            var configurationId = Utilities.isNullOrUndefined(response) || Utilities.isNullOrUndefined(response.id)
+                ? ''
+                : response.id;
+            client.getPluginsByConfiguration(configurationId, (plugins: any) => {
+                var hasNoPlugins = Utilities.isNullOrUndefined(plugins) || plugins === '';
+                if (hasNoPlugins) {
+                    client.getPlugins((plugins: any) => {
+                        this.getMetadata(client, plugins, '');
+                    });
+                }
+                else {
+                    this.getMetadata(client, plugins, configurationId);
+                }
+            });
+        });
+    }
+
+    private getMetadata(client: RhinoClient, plugins: any, configurationId: string) {
+        client.getOperators((operators: any) => {
+            client.getVerbs((verbs: any) => {
+                client.getAssertions((assertions: any) => {
+                    client.getLocators((locators: any) => {
+                        client.getAnnotations((annotations: any) => {
+                            const _plugins = JSON.parse(plugins);
+                            const _operators = JSON.parse(operators);
+                            const _verbs = JSON.parse(verbs);
+                            const _assertions = JSON.parse(assertions);
+                            const _locators = JSON.parse(locators);
+                            const _annotations = JSON.parse(annotations).map((i: any) => i.key.trim());
+
+                            // build
+                            var nameClass = _plugins.map((i: any) => i.literal);
+
+                            var keywordControl = [];
+                            keywordControl.push(..._operators.map((i: any) => '\\s+' + i.literal + '\\s+'));
+                            keywordControl.push(..._verbs.map((i: any) => '\\s+' + i.literal + '\\s+'));
+
+                            var functions = [];
+                            functions.push(..._assertions.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'));
+                            functions.push(..._locators.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'))
+
+                            // create
+                            var tmLanguage = this.getTmConfiguration(nameClass, keywordControl, functions, _annotations);
+                            Utilities.updateTmConfiguration(this.getContext(), JSON.stringify(tmLanguage));
+                            vscode.window.setStatusBarMessage('$(testing-passed-icon) TM Language loaded');
+
+                            // cleanup
+                            if (configurationId !== null && configurationId !== '') {
+                                client.deleteConfiguration(configurationId, null);
+                            }
                         });
                     });
                 });
@@ -97,9 +126,9 @@ export class CreateTm extends Command {
         var _nameClass = "\\b(" + nameClass.filter(i => i !== '').sort((a, b) => b.length - a.length).join('|') + ")\\b";
         var _keywordControl = "(" + keywordControl.sort((a, b) => b.length - a.length).join('|') + ")";
         var _functions = "(" + functions.sort((a, b) => b.length - a.length).join('|') + ")";;
-        
+
         // TODO: find style for metadata
-        var _annotations = '(?<=\\[(' + annotations.join('|')  + ')]\\s+)[^\\s].*$';
+        var _annotations = '(?<=\\[(' + annotations.join('|') + ')]\\s+)[^\\s].*$';
 
         // get
         return {

@@ -98,39 +98,55 @@ export class ConnectServerCommand extends Command {
                 ? ''
                 : response.id;
             client.getPluginsByConfiguration(configurationId, (plugins: any) => {
-                client.getLocators((locators: any) => {
-                    client.getAttributes((attributes: any) => {
-                        client.getAnnotations((annotations: any) => {
-                            var actionsManifests = JSON.parse(plugins);
-                            var _locators = JSON.parse(locators);
-                            var _attributes = JSON.parse(attributes);
-                            var _annotations = JSON.parse(annotations);
-                            var pluginsPattern = Utilities.getPluginsPattern(actionsManifests);
-
-                            new ActionsAutoCompleteProvider()
-                                .setPattern(pluginsPattern)
-                                .setAttributes(_attributes)
-                                .setManifests(actionsManifests)
-                                .setLocators(_locators)
-                                .setAnnotations(_annotations)
-                                .register(context);
-
-                            console.info('Get-Plugins -Type Actions = (OK, ' + actionsManifests.length + ')');
-                            let message = '$(testing-passed-icon) Total of ' + actionsManifests.length + ' action(s) loaded';
-                            vscode.window.setStatusBarMessage(message);
-
-                            if (callback === null) {
-                                return;
-                            }
-
-                            client.deleteConfiguration(configurationId, () => {
-                                callback(client, context);
-                            })
-                        });
+                var hasNoPlugins = Utilities.isNullOrUndefined(plugins) || plugins === '';
+                if (hasNoPlugins) {
+                    client.getPlugins((plugins: any) => {
+                        this.getMetadata(client, context, plugins, '', callback);
                     });
+                }
+                else {
+                    this.getMetadata(client, context, plugins, configurationId, callback);
+                }
+            });
+        });
+    }
+
+    private getMetadata(client: RhinoClient, context: vscode.ExtensionContext, plugins: any, configurationId: string, callback: any) {
+        client.getLocators((locators: any) => {
+            client.getAttributes((attributes: any) => {
+                client.getAnnotations((annotations: any) => {
+                    var actionsManifests = JSON.parse(plugins);
+                    var _locators = JSON.parse(locators);
+                    var _attributes = JSON.parse(attributes);
+                    var _annotations = JSON.parse(annotations);
+                    var pluginsPattern = Utilities.getPluginsPattern(actionsManifests);
+
+                    new ActionsAutoCompleteProvider()
+                        .setPattern(pluginsPattern)
+                        .setAttributes(_attributes)
+                        .setManifests(actionsManifests)
+                        .setLocators(_locators)
+                        .setAnnotations(_annotations)
+                        .register(context);
+
+                    console.info('Get-Plugins -Type Actions = (OK, ' + actionsManifests.length + ')');
+                    let message = '$(testing-passed-icon) Total of ' + actionsManifests.length + ' action(s) loaded';
+                    vscode.window.setStatusBarMessage(message);
+
+                    if (callback === null) {
+                        return;
+                    }
+                    if (configurationId === null || configurationId === '') {
+                        callback(client, context);
+                    }
+                    else {
+                        client.deleteConfiguration(configurationId, () => {
+                            callback(client, context);
+                        });
+                    }
                 });
             });
-        })
+        });
     }
 
     private registerAnnotations(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
