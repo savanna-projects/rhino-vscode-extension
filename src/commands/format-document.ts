@@ -409,6 +409,7 @@ export class FormatTestCaseCommand extends Command {
         // setup
         var information = this.getMarkdownInformation(markdown);
         var maxLength = Math.max(...information.map((i: any) => i.markdown.length));
+        var header = [];
         var table = [];
 
         // build
@@ -418,9 +419,17 @@ export class FormatTestCaseCommand extends Command {
                 const _row = information[j].markdown[i];
                 row += _row;
             }
-            table.push(row);
+            if (i < 2) {
+                header.push(row);
+            }
+            else {
+                table.push(row);
+            }
         };
 
+        // sort
+        table = table.sort();
+        
         // get
         if (table.length > 0) {
             table.push('');
@@ -428,6 +437,7 @@ export class FormatTestCaseCommand extends Command {
 
         // build
         var formattedSection = [sectionAnnotation];
+        formattedSection.push(...header);
         formattedSection.push(...table);
 
         // get

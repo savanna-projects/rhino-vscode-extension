@@ -3,7 +3,7 @@
 	"publisher": "RhinoAPI",
 	"displayName": "rhino-language-support",
 	"description": "",
-	"version": "2.2.1",
+	"version": "2.2.2",
 	"repository": {
 		"url": "https://github.com/savanna-projects/rhino-vscode-extension.git"
 	},
