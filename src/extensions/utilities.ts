@@ -199,7 +199,7 @@ export class Utilities {
                 "connector": "ConnectorText"
             },
             "authentication": {
-                "userName": "<rhino username>",
+                "username": "<rhino username>",
                 "password": "<rhino password>"
             },
             "driverParameters": [

@@ -82,7 +82,7 @@ export class RegisterTestCaseCommand extends Command {
 
             // get by id
             var testCasesResponse = JSON.parse(response);
-            vscode.window.setStatusBarMessage('$(sync~spin) Getting an integraed test case(s)...');
+            vscode.window.setStatusBarMessage('$(sync~spin) Getting an integrated test case(s)...');
             var model = {
                 connector: manifest.connectorConfiguration,
                 entity: testCasesResponse
@@ -94,7 +94,7 @@ export class RegisterTestCaseCommand extends Command {
                 vscode.window.activeTextEditor?.edit((i) => {
                     i.replace(range, document);
                     this.formatCommand.invokeCommand(() => {
-                        vscode.window.setStatusBarMessage('$(testing-passed-icon) Integraed Test case(s) retrieved');
+                        vscode.window.setStatusBarMessage('$(testing-passed-icon) Integrated Test case(s) retrieved');
                     });
                 });
             });
