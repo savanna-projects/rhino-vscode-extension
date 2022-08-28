@@ -429,7 +429,7 @@ export class FormatTestCaseCommand extends Command {
 
         // sort
         table = table.sort();
-        
+
         // get
         if (table.length > 0) {
             table.push('');
@@ -440,8 +440,12 @@ export class FormatTestCaseCommand extends Command {
         formattedSection.push(...header);
         formattedSection.push(...table);
 
+        // TODO: distinct by parameters name
+        // distinct
+        var distinctSection = new Set(formattedSection);
+
         // get
-        return formattedSection;
+        return [...distinctSection];
     }
 
     private getMarkdownInformation(markdown: string[]): any[] {
