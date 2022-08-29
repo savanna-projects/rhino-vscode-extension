@@ -37,7 +37,7 @@ export class RegisterModelsCommand extends Command {
      */
     public register(): any {
         // setup
-        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             this.invoke(undefined);
         });
 
@@ -64,10 +64,10 @@ export class RegisterModelsCommand extends Command {
 
     private getModelsFromFiles(callback: any) {
         // setup
-        var workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
+        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
 
-        var modelsFolder = path.join(workspace, 'Models');
+        let modelsFolder = path.join(workspace, 'Models');
         modelsFolder = modelsFolder.startsWith('\\')
             ? modelsFolder.substring(1, modelsFolder.length)
             : modelsFolder;
@@ -77,13 +77,13 @@ export class RegisterModelsCommand extends Command {
 
         // iterate
         Utilities.getFiles(modelsFolder, (files: string[]) => {
-            var modelsData = [];
+            let modelsData = [];
             for (let i = 0; i < files.length; i++) {
                 try {
                     const modelFile = files[i];
-                    var modelStr = fs.readFileSync(modelFile, 'utf8');
-                    var isJson = this.isJson(modelStr);
-                    var modelData = isJson ? JSON.parse(modelStr) : modelStr;
+                    let modelStr = fs.readFileSync(modelFile, 'utf8');
+                    let isJson = this.isJson(modelStr);
+                    let modelData = isJson ? JSON.parse(modelStr) : modelStr;
                     modelsData.push({
                         type: isJson ? 'json' : 'md',
                         data: modelData

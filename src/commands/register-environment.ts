@@ -32,7 +32,7 @@ export class RegisterEnvironmentCommand extends Command {
      */
     public register(): any {
         // build
-        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             this.invoke(undefined);
         });
 
@@ -49,14 +49,14 @@ export class RegisterEnvironmentCommand extends Command {
 
     private invoke(callback: any) {
         // setup
-        var client = this.getRhinoClient();
-        var options = {
-            placeHolder: 'Test ID to get (e.g., RP-1234)'
+        let client = this.getRhinoClient();
+        let options = {
+            placeHolder: 'Environment file name w/o extension (e.g., Production)'
         };
-        
+
         vscode.window.showInputBox(options).then((value) => {
             // setup
-            var request = RegisterEnvironmentCommand.GetEnvironment(value)
+            let request = RegisterEnvironmentCommand.GetEnvironment(value)
 
             // bad request
             if (Utilities.isNullOrUndefined(request)) {
@@ -68,23 +68,26 @@ export class RegisterEnvironmentCommand extends Command {
             vscode.window.setStatusBarMessage('$(sync~spin) Registering environment...');
 
             // get
-            client.addEnvironment(request, (response: any) => {
-                vscode.window.setStatusBarMessage('$(testing-passed-icon) Environment registered')
+            client.addEnvironment(request, () => {
+                client.syncEnvironment((response: any) => {
+                    vscode.window.setStatusBarMessage('$(testing-passed-icon) Environment registered');
+                    callback(response);
+                });
             });
         });
     }
 
     private static GetEnvironment(environment: string | undefined): any {
         // setup
-        var workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
+        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
-        var environmentFile = path.join(workspace, "Environments", environment + '.json');
+        let environmentFile = path.join(workspace, "Environments", environment + '.json');
         environmentFile = environmentFile.startsWith('\\')
             ? environmentFile.substring(1, environmentFile.length)
             : environmentFile;
 
         // build
-        var data = "{}";
+        let data = "{}";
         const fs = require('fs');
         try {
             data = fs.readFileSync(environmentFile, 'utf8');

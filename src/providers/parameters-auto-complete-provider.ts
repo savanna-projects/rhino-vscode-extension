@@ -31,14 +31,14 @@ export class ParametersAutoCompleteProvider extends Provider {
      */
     public register(context: vscode.ExtensionContext): any {
         // setup
-        var instance = new ParametersAutoCompleteProvider().setManifests(this.manifests);
+        let instance = new ParametersAutoCompleteProvider().setManifests(this.manifests);
 
         // register: models
-        var parameters = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let parameters = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument) {
-                var fromData = instance.getDataParametersCompletionItems(document);
-                var fromPlugin = instance.getPluginParametersCompletionItems(document);
-                var items = [];
+                let fromData = instance.getDataParametersCompletionItems(document);
+                let fromPlugin = instance.getPluginParametersCompletionItems(document);
+                let items = [];
                 items.push(...fromData);
                 items.push(...fromPlugin);
                 return items;
@@ -46,7 +46,7 @@ export class ParametersAutoCompleteProvider extends Provider {
         }, '@');
 
         // register
-        var items = [parameters];
+        let items = [parameters];
         context.subscriptions.push(...items);
     }
 
@@ -72,30 +72,30 @@ export class ParametersAutoCompleteProvider extends Provider {
     private getDataParametersCompletionItems(document: vscode.TextDocument)
         : vscode.CompletionItem[] {
         // build
-        var section = this
+        let section = this
             .getSection(document, 'test-data-provider', this.manifests)
             .map(i => i.trim())
             .filter(i => i !== '');
 
         // build
-        var separator = section.findIndex(i => i.match('(\\|-+\\|?)+\\|') !== null);
-        var index = separator - 1;
+        let separator = section.findIndex(i => i.match('(\\|-+\\|?)+\\|') !== null);
+        let index = separator - 1;
         if (separator < 0) {
             return [];
         }
 
         // parse
-        var parameters = section[index].split('|').map(i => i.trim()).filter(i => i !== '');
+        let parameters = section[index].split('|').map(i => i.trim()).filter(i => i !== '');
         if (parameters.length === 0) {
             return [];
         }
 
         // build
-        var items: vscode.CompletionItem[] = [];
-        for (let i = 0; i < parameters.length; i++) {
-            var item = new vscode.CompletionItem(parameters[i], vscode.CompletionItemKind.Property);
+        let items: vscode.CompletionItem[] = [];
+        for (const parameter of parameters) {
+            let item = new vscode.CompletionItem(parameter, vscode.CompletionItemKind.Property);
             item.detail = 'dynamic parameter';
-            item.insertText = parameters[i];
+            item.insertText = parameter;
             items.push(item);
         }
 
@@ -106,26 +106,26 @@ export class ParametersAutoCompleteProvider extends Provider {
     private getPluginParametersCompletionItems(document: vscode.TextDocument)
         : vscode.CompletionItem[] {
         // build
-        var section = this
+        let section = this
             .getSection(document, 'test-parameters', this.manifests)
             .map(i => i.trim())
             .filter(i => i !== '');
 
         // build
-        var separator = section.findIndex(i => i.match('(\\|-+\\|?)+\\|') !== null);
-        var index = separator + 1;
+        let separator = section.findIndex(i => i.match('(\\|-+\\|?)+\\|') !== null);
+        let index = separator + 1;
         if (index > section.length - 1) {
             return [];
         }
 
         // parse
-        var items: vscode.CompletionItem[] = [];
+        let items: vscode.CompletionItem[] = [];
         for (let i = index; i < section.length; i++) {
-            var parameter = section[i].split('|').map(i => i.trim()).filter(i => i !== '');
+            let parameter = section[i].split('|').map(i => i.trim()).filter(i => i !== '');
             if (parameter.length < 2) {
                 continue;
             }
-            var item = new vscode.CompletionItem(parameter[0], vscode.CompletionItemKind.Property);
+            let item = new vscode.CompletionItem(parameter[0], vscode.CompletionItemKind.Property);
             item.detail = 'plugin parameter';
             item.documentation = parameter.length > 2
                 ?  new vscode.MarkdownString(parameter[1] + "  \n\n" + "**Default Value:** `" + parameter[2] + "`")

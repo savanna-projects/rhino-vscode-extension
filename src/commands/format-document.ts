@@ -48,7 +48,7 @@ export class FormatTestCaseCommand extends Command {
      */
     public register(): any {
         // build
-        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             this.invoke(undefined);
         });
 
@@ -65,24 +65,24 @@ export class FormatTestCaseCommand extends Command {
 
     private invoke(callback: any) {
         // setup
-        var documentEntities = this.getOpenDocument();
-        var client = this.getRhinoClient();
+        let documentEntities = this.getOpenDocument();
+        let client = this.getRhinoClient();
 
         // build
         client.getAnnotations((annotations: any) => {
             // setup
-            var _annotations: any[] = JSON.parse(annotations);
+            let _annotations: any[] = JSON.parse(annotations);
 
             // PER TEST (POC on single test)
             // setup
-            var documentFormatted = [];
+            let documentFormatted = [];
 
             // iterate
             for (let i = 0; i < documentEntities.length; i++) {
-                var documentEntity = documentEntities[i].split('\r\n').map(i => i.trim());
-                var metadataFormatted = this.formatMetadata(documentEntity, _annotations);
-                var actionsAndExpected = this.getInvocationSection(documentEntity, _annotations);
-                var dataSection = this.getDataSection(documentEntity, _annotations);
+                let documentEntity = documentEntities[i].split('\r\n').map(i => i.trim());
+                let metadataFormatted = this.formatMetadata(documentEntity, _annotations);
+                let actionsAndExpected = this.getInvocationSection(documentEntity, _annotations);
+                let dataSection = this.getDataSection(documentEntity, _annotations);
 
                 // normalize
                 if (dataSection.examples.length > 0) {
@@ -100,7 +100,7 @@ export class FormatTestCaseCommand extends Command {
                 documentFormatted.push(...dataSection.models);
 
                 // clean
-                var index = documentFormatted.length - 1;
+                let index = documentFormatted.length - 1;
                 while (documentFormatted[index] === '' && index > 0) {
                     documentFormatted.splice(index, 1);
                     index--;
@@ -117,8 +117,8 @@ export class FormatTestCaseCommand extends Command {
                 documentFormatted.push('')
             }
 
-            var t = documentFormatted.join("\n").trim();
-            var range = this.getDocumentRange();
+            let t = documentFormatted.join("\n").trim();
+            let range = this.getDocumentRange();
 
             vscode.window.activeTextEditor?.edit((i) => {
                 i.replace(range, t);
@@ -133,7 +133,7 @@ export class FormatTestCaseCommand extends Command {
 
     private getOpenDocument(): string[] {
         // setup
-        var editor = vscode.window.activeTextEditor;
+        let editor = vscode.window.activeTextEditor;
 
         // bad request
         if (!editor) {
@@ -151,21 +151,20 @@ export class FormatTestCaseCommand extends Command {
     private formatMetadata(testCase: string[], annotations: string[]): string[] {
         try {
             // setup
-            var formatMap = this.getMetadataFormatMap(annotations);
-            var metadataMap = formatMap
+            let formatMap = this.getMetadataFormatMap(annotations);
+            let metadataMap = formatMap
                 .filter(i => !this.excluded.some(j => j === i.key))
                 .sort((a, b) => (a.order < b.order ? -1 : 1));
 
             // get
-            var metadataSection = [];
-            for (let i = 0; i < metadataMap.length; i++) {
-                const item = metadataMap[i];
-                var lines = this.getSection(testCase, item.key, annotations).lines;
+            let metadataSection = [];
+            for (const item of metadataMap) {
+                let lines = this.getSection(testCase, item.key, annotations).lines;
                 if (lines.length === 0) {
                     continue;
                 }
-                var literal = metadataMap[i].literal;
-                var indentation = ' '.repeat(metadataMap[i].indentation);
+                let literal = item.literal;
+                let indentation = ' '.repeat(item.indentation);
                 metadataSection.push(literal + indentation + lines[0].replace(literal, '').trim());
             }
             metadataSection.push('');
@@ -178,20 +177,20 @@ export class FormatTestCaseCommand extends Command {
 
     private getMetadataFormatMap(annotations: any[]): any[] {
         // setup
-        var metadataMap = annotations
+        let metadataMap = annotations
             .filter(i => !this.excluded.some(j => j === i.key))
             .map(i => i.literal.length);
-        var maxLength = Math.max(...metadataMap) + 1;
-        var map = [];
+        let maxLength = Math.max(...metadataMap) + 1;
+        let map = [];
 
         // build
-        for (let i = 0; i < annotations.length; i++) {
-            var item = {
-                key: annotations[i].key,
-                literal: annotations[i].literal,
-                match: '^\\[' + annotations[i].key + '\\]',
-                order: annotations[i].entity.priority,
-                indentation: maxLength - annotations[i].literal.length
+        for (const element of annotations) {
+            let item = {
+                key: element.key,
+                literal: element.literal,
+                match: '^\\[' + element.key + '\\]',
+                order: element.entity.priority,
+                indentation: maxLength - element.literal.length
             };
             map.push(item);
         }
@@ -208,12 +207,12 @@ export class FormatTestCaseCommand extends Command {
     private getInvocationSection(testCase: string[], annotations: string[]): string[] {
         try {
             // setup
-            var actions = this.getActions(testCase, annotations);
-            var expected = this.getAssertions(testCase, annotations, actions.total);
+            let actions = this.getActions(testCase, annotations);
+            let expected = this.getAssertions(testCase, annotations, actions.total);
 
             // build
-            var actionsSection = actions.section.map((i: any) => i.action);
-            var assertionsSection = this.buildExpectedSection(expected);
+            let actionsSection = actions.section.map((i: any) => i.action);
+            let assertionsSection = this.buildExpectedSection(expected);
 
             // get
             return [...actionsSection, ...assertionsSection];
@@ -227,22 +226,22 @@ export class FormatTestCaseCommand extends Command {
         // setup
         const commentRegex = /^((\W+)?\d+\.?)?(\s+)?\/\*{2}/g;
         const indexRegex = /^((\s+)?(\d+(\.+)?))+(\s+)?/g;
-        var map: any[] = [];
+        let map: any[] = [];
 
         // build
-        var actions = this
+        let actions = this
             .getSection(testCase, 'test-actions', annotations)
             .lines
             .map((i: string) => i.trim());
-        var totalActions = actions.filter((i: string) => i !== '' && i.match(commentRegex) === null).length - 1;
+        let totalActions = actions.filter((i: string) => i !== '' && i.match(commentRegex) === null).length - 1;
         map.push({ type: "annotation", action: actions[0], index: -1 });
 
         // iterate
-        var index = 1;
+        let index = 1;
         for (let i = 1; i < actions.length; i++) {
             const action = actions[i];
-            var isComment = action.match(commentRegex) !== null;
-            var isEmpty = action === '';
+            let isComment = action.match(commentRegex) !== null;
+            let isEmpty = action === '';
 
             if (isEmpty) {
                 continue;
@@ -252,9 +251,9 @@ export class FormatTestCaseCommand extends Command {
                 continue;
             }
 
-            var _index = index.toString();
-            var _action = action.replace(indexRegex, '');
-            var indent = totalActions.toString().length - _index.length;
+            let _index = index.toString();
+            let _action = action.replace(indexRegex, '');
+            let indent = totalActions.toString().length - _index.length;
             _action = _index + '. ' + ' '.repeat(indent) + _action;
 
             map.push({ type: "action", action: _action, index: index++ });
@@ -262,7 +261,7 @@ export class FormatTestCaseCommand extends Command {
 
         // get
         return {
-            section: map.sort((a, b) => (a.index < b.index ? -1 : 1)),
+            section: [...map].sort((a, b) => (a.index < b.index ? -1 : 1)),
             total: totalActions
         };
     }
@@ -275,24 +274,24 @@ export class FormatTestCaseCommand extends Command {
         const ignoreRegex = /^(\/\*{2})(\s+)?(commented|out of bound|broken)/igm;
         const indexRegex = /^\[\d+\]/g;
         const indexNumberRegex = /(?<=^\[)\d+(?=\])/g;
-        var map: any[] = [];
+        let map: any[] = [];
 
         // build
-        var expectedResults = this
+        let expectedResults = this
             .getSection(testCase, 'test-expected-results', annotations)
             .lines
             .map((i: string) => i.trim())
             .filter((i: string) => i !== '');
         map.push({ type: "annotation", action: expectedResults[0], index: -1, expected: [] });
-        var lastIndex = 1;
+        let lastIndex = 1;
 
         // iterate
         for (let i = 1; i < expectedResults.length; i++) {
             const assertion = expectedResults[i].trim();
-            var isCommentedOut = assertion.match(assertCommentRegex) !== null;
-            var isComment = !isCommentedOut && assertion.match(commentRegex) !== null;
-            var isBroken = !isCommentedOut && !isComment && (assertion.match(indexRegex) === null || assertion.match(brokenCommentRegex) !== null);
-            var ignore = assertion.match(ignoreRegex) !== null;
+            let isCommentedOut = assertion.match(assertCommentRegex) !== null;
+            let isComment = !isCommentedOut && assertion.match(commentRegex) !== null;
+            let isBroken = !isCommentedOut && !isComment && (assertion.match(indexRegex) === null || assertion.match(brokenCommentRegex) !== null);
+            let ignore = assertion.match(ignoreRegex) !== null;
 
             if (ignore) {
                 continue;
@@ -302,7 +301,7 @@ export class FormatTestCaseCommand extends Command {
                 continue;
             }
             if (isComment) {
-                var commentIndex = lastIndex > 1 ? lastIndex : i;
+                let commentIndex = lastIndex > 1 ? lastIndex : i;
                 map.push({ type: "comment", action: assertion, index: commentIndex, expected: [] });
                 continue;
             }
@@ -312,15 +311,15 @@ export class FormatTestCaseCommand extends Command {
             }
 
             lastIndex = parseInt(assertion.match(indexNumberRegex)[0]);
-            var isOutOfBound = totalActions < lastIndex || lastIndex < 1;
+            let isOutOfBound = totalActions < lastIndex || lastIndex < 1;
             if (isOutOfBound) {
                 map.push({ type: "outOfBound", action: assertion, index: -1, expected: [] });
                 continue;
             }
 
-            var _index = lastIndex.toString();
-            var _result = assertion.replace(indexRegex, '').trim();
-            var indent = totalActions.toString().length - _index.length;
+            let _index = lastIndex.toString();
+            let _result = assertion.replace(indexRegex, '').trim();
+            let indent = totalActions.toString().length - _index.length;
             _result = '[' + _index + '] ' + ' '.repeat(indent) + _result;
 
             map.push({ type: "assertion", action: _result, lastIndex });
@@ -328,37 +327,37 @@ export class FormatTestCaseCommand extends Command {
 
         // get
         return {
-            section: map.sort((a, b) => (a.index < b.index ? -1 : 1)),
+            section: [...map].sort((a, b) => (a.index < b.index ? -1 : 1)),
             total: map.filter(i => i === 'assertion').length
         };
     }
 
     private buildExpectedSection(expectedMap: any): string[] {
         // setup
-        var assertions = expectedMap.section.filter((i: any) => i.type === 'assertion' || i.type === 'comment');
-        var broken = expectedMap.section.filter((i: any) => i.type === 'broken');
-        var commentedOut = expectedMap.section.filter((i: any) => i.type === 'commentedOut');
-        var outOfBound = expectedMap.section.filter((i: any) => i.type === 'outOfBound');
+        let assertions = expectedMap.section.filter((i: any) => i.type === 'assertion' || i.type === 'comment');
+        let broken = expectedMap.section.filter((i: any) => i.type === 'broken');
+        let commentedOut = expectedMap.section.filter((i: any) => i.type === 'commentedOut');
+        let outOfBound = expectedMap.section.filter((i: any) => i.type === 'outOfBound');
 
         // build
-        var brokenSection = ['\n/** Broken'];
+        let brokenSection = ['\n/** Broken'];
         brokenSection.push(...broken.map((i: any) => i.action));
         brokenSection = brokenSection.length === 1 ? [] : brokenSection;
 
-        var outOfBoundSection = ['\n/** Out of Bound'];
+        let outOfBoundSection = ['\n/** Out of Bound'];
         outOfBoundSection.push(...outOfBound.map((i: any) => i.action));
         outOfBoundSection = outOfBoundSection.length === 1 ? [] : outOfBoundSection;
 
-        var commentedOutSection = ['\n/** Commented'];
+        let commentedOutSection = ['\n/** Commented'];
         commentedOutSection.push(...commentedOut.map((i: any) => i.action));
         commentedOutSection = commentedOutSection.length === 1 ? [] : commentedOutSection;
 
-        var assertionsSection = ['\n[test-expected-results]'];
+        let assertionsSection = ['\n[test-expected-results]'];
         assertionsSection.push(...assertions.sort((i: any) => i.index).map((i: any) => i.action));
         assertionsSection = assertionsSection.length === 1 ? [] : assertionsSection;
 
         // build
-        var section = [];
+        let section = [];
         section.push(...assertionsSection);
         section.push(...commentedOutSection);
         section.push(...outOfBoundSection);
@@ -375,10 +374,10 @@ export class FormatTestCaseCommand extends Command {
       └────────────────────────────────────────────────────────*/
     private getDataSection(document: string[], annotations: any[]) {
         // setup
-        var dataProvider: string[] = [];
-        var parameters: string[] = [];
-        var examples: string[] = [];
-        var models: string[] = [];
+        let dataProvider: string[] = [];
+        let parameters: string[] = [];
+        let examples: string[] = [];
+        let models: string[] = [];
 
         // build: data provider
         dataProvider.push(...this.formatTable('test-data-provider', document, annotations));
@@ -397,9 +396,9 @@ export class FormatTestCaseCommand extends Command {
 
     private formatTable(section: string, document: string[], annotations: any[]): string[] {
         // setup
-        var _section = this.getSection(document, section, annotations);
-        var sectionAnnotation = _section.lines.length > 0 ? _section.lines[0] : '';
-        var markdown = _section.lines.slice(1, _section.lines.length).map((i: string) => i.trim()).filter((i: string) => i !== '');
+        let _section = this.getSection(document, section, annotations);
+        let sectionAnnotation = _section.lines.length > 0 ? _section.lines[0] : '';
+        let markdown = _section.lines.slice(1, _section.lines.length).map((i: string) => i.trim()).filter((i: string) => i !== '');
 
         // bad request
         if (markdown.length === 0) {
@@ -407,16 +406,16 @@ export class FormatTestCaseCommand extends Command {
         }
 
         // setup
-        var information = this.getMarkdownInformation(markdown);
-        var maxLength = Math.max(...information.map((i: any) => i.markdown.length));
-        var header = [];
-        var table = [];
+        let information = this.getMarkdownInformation(markdown);
+        let maxLength = Math.max(...information.map((i: any) => i.markdown.length));
+        let header = [];
+        let table = [];
 
         // build
         for (let i = 0; i < maxLength; i++) {
-            var row = '';
-            for (let j = 0; j < information.length; j++) {
-                const _row = information[j].markdown[i];
+            let row = '';
+            for (const element of information) {
+                const _row = element.markdown[i];
                 row += _row;
             }
             if (i < 2) {
@@ -425,7 +424,7 @@ export class FormatTestCaseCommand extends Command {
             else {
                 table.push(row);
             }
-        };
+        }
 
         // sort
         table = table.sort();
@@ -436,13 +435,13 @@ export class FormatTestCaseCommand extends Command {
         }
 
         // build
-        var formattedSection = [sectionAnnotation];
+        let formattedSection = [sectionAnnotation];
         formattedSection.push(...header);
         formattedSection.push(...table);
 
         // TODO: distinct by parameters name
         // distinct
-        var distinctSection = new Set(formattedSection);
+        let distinctSection = new Set(formattedSection);
 
         // get
         return [...distinctSection];
@@ -450,29 +449,29 @@ export class FormatTestCaseCommand extends Command {
 
     private getMarkdownInformation(markdown: string[]): any[] {
         // setup
-        var columns = this.getComposedTable(markdown);
-        var markdownInformation: any[] = [];
+        let columns = this.getComposedTable(markdown);
+        let markdownInformation: any[] = [];
 
         // iterate
         for (let i = 0; i < columns.length; i++) {
             // setup
-            var isLast = i === columns.length - 1;
-            var column = columns[i];
-            var maxLength = Math.max(...column.rows.map((i: string) => i.length));
+            let isLast = i === columns.length - 1;
+            let column = columns[i];
+            let maxLength = Math.max(...column.rows.map((i: string) => i.length));
             maxLength = maxLength < column.column.length ? column.column.length : maxLength;
 
             // build
-            var header = '|' + column.column + ' '.repeat(maxLength - column.column.length);
-            var separator = '|' + '-'.repeat(maxLength);
+            let header = '|' + column.column + ' '.repeat(maxLength - column.column.length);
+            let separator = '|' + '-'.repeat(maxLength);
 
             // normalize
             header = isLast ? header + '|' : header;
             separator = isLast ? separator + '|' : separator;
 
             // build
-            var columnMarkdown: string[] = [header, separator];
-            for (let j = 0; j < column.rows.length; j++) {
-                let row = column.rows[j];
+            let columnMarkdown: string[] = [header, separator];
+            for (const element of column.rows) {
+                let row = element;
 
                 row = '|' + row + ' '.repeat(maxLength - row.length);
                 row = isLast ? row + '|' : row;
@@ -495,11 +494,11 @@ export class FormatTestCaseCommand extends Command {
         const SEPARATOR_INDEX = 1;
 
         // setup
-        var columns = markdown[HEADER_INDEX].split('|').map(i => i.trim()).filter(i => i !== '');
-        var dataPointer = markdown[SEPARATOR_INDEX].match(/^\|(-+\|?)+\|$/g) !== null ? 2 : 1;
+        let columns = markdown[HEADER_INDEX].split('|').map(i => i.trim()).filter(i => i !== '');
+        let dataPointer = markdown[SEPARATOR_INDEX].match(/^\|(-+\|?)+\|$/g) !== null ? 2 : 1;
 
         // build
-        var table: any[] = [];
+        let table: any[] = [];
         for (let i = 0; i < columns.length; i++) {
             const column = columns[i];
             const rows = [];
@@ -532,21 +531,21 @@ export class FormatTestCaseCommand extends Command {
             }
 
             // setup
-            var map = annotations.map((i) => i.key).filter((i) => i !== annotation);
-            var pattern = map.map((i) => '^\\[' + i + ']').join('|');
-            var testPattern = '^\\[' + annotation + ']';
+            let map = annotations.map((i) => i.key).filter((i) => i !== annotation);
+            let pattern = map.map((i) => '^\\[' + i + ']').join('|');
+            let testPattern = '^\\[' + annotation + ']';
 
             // get line number
-            var onLine = 0;
+            let onLine = 0;
             for (onLine; onLine < document.length; onLine++) {
                 if (document[onLine].match(testPattern) !== null) {
                     break;
                 }
             }
-            var start = new vscode.Position(onLine, 0);
+            let start = new vscode.Position(onLine, 0);
 
             // iterate
-            var lines: string[] = [];
+            let lines: string[] = [];
             while (onLine < document.length) {
                 if (document[onLine].match(pattern)) {
                     break;
@@ -554,7 +553,7 @@ export class FormatTestCaseCommand extends Command {
                 lines.push(document[onLine]);
                 onLine += 1;
             }
-            var end = new vscode.Position(onLine - 1, 0);
+            let end = new vscode.Position(onLine - 1, 0);
 
             // default
             return {
@@ -569,17 +568,17 @@ export class FormatTestCaseCommand extends Command {
 
     private getDocumentRange() {
         // setup
-        var document = vscode.window.activeTextEditor?.document;
+        let document = vscode.window.activeTextEditor?.document;
 
         // not found
         if (!document) {
-            var position = new vscode.Position(0, 0);
+            let position = new vscode.Position(0, 0);
             return new vscode.Range(position, position);
         }
 
         // build
-        var firstLine = document.lineAt(0);
-        var lastLine = document.lineAt(document.lineCount - 1);
+        let firstLine = document.lineAt(0);
+        let lastLine = document.lineAt(document.lineCount - 1);
 
         // get
         return new vscode.Range(firstLine.range.start, lastLine.range.end);

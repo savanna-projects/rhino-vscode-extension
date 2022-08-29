@@ -30,24 +30,24 @@ export class MacrosAutoCompleteProvider extends Provider {
      */
     public register(context: vscode.ExtensionContext) {
         // setup
-        var instance = new MacrosAutoCompleteProvider().setManifests(this.manifests);
+        let instance = new MacrosAutoCompleteProvider().setManifests(this.manifests);
 
         // register: assertions
-        var macros = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let macros = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getMacrosCompletionItems(document, position);
             }
         }, '$');
 
         // register: methods
-        var parameters = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let parameters = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getMacrosParameters(document, position);
             }
         }, '-');
 
         // register
-        var items = [macros, parameters];
+        let items = [macros, parameters];
         context.subscriptions.push(...items);
 
         // save references
@@ -78,7 +78,7 @@ export class MacrosAutoCompleteProvider extends Provider {
     private getMacrosCompletionItems(document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
         // setup
-        var matches = document.lineAt(position).text.match('(?<=.*){{\\$');
+        let matches = document.lineAt(position).text.match('(?<=.*){{\\$');
 
         // not found
         if (matches === null) {
@@ -86,12 +86,11 @@ export class MacrosAutoCompleteProvider extends Provider {
         }
 
         // build
-        var items: vscode.CompletionItem[] = [];
-        for (let i = 0; i < this.manifests.length; i++) {
-            var item = new vscode.CompletionItem(this.manifests[i].key, vscode.CompletionItemKind.Method);
-            item.detail = 'code',
-                item.documentation = this.manifests[i].entity.description;
-
+        let items: vscode.CompletionItem[] = [];
+        for (const manifest of this.manifests) {
+            let item = new vscode.CompletionItem(manifest.key, vscode.CompletionItemKind.Method);
+            item.detail = 'code';
+            item.documentation = manifest.entity.description;
             items.push(item);
         }
 
@@ -102,13 +101,13 @@ export class MacrosAutoCompleteProvider extends Provider {
     private getMacrosParameters(document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
         // setup
-        var line = document.lineAt(position.line).text;
-        var end = position.character;
-        var start = this.getMacroPosition(line, position.character);
+        let line = document.lineAt(position.line).text;
+        let end = position.character;
+        let start = this.getMacroPosition(line, position.character);
 
         // setup conditions
-        var isLength = line.length > 4;
-        var isParameter = isLength && line[position.character - 1] === '-' && line[position.character - 2] === '-';
+        let isLength = line.length > 4;
+        let isParameter = isLength && line[position.character - 1] === '-' && line[position.character - 2] === '-';
 
         // not valid
         if (!isParameter || start === -1) {
@@ -116,8 +115,8 @@ export class MacrosAutoCompleteProvider extends Provider {
         }
 
         // build
-        var macro = line.substring(start, end);
-        var matches = macro.match('(?<={{\\$)[^\\s]*');
+        let macro = line.substring(start, end);
+        let matches = macro.match('(?<={{\\$)[^\\s]*');
 
         // not found
         if (matches === null) {
@@ -125,8 +124,8 @@ export class MacrosAutoCompleteProvider extends Provider {
         }
 
         // build
-        var key = matches[0].toLowerCase();
-        var manifest = this.manifests.find(i => i.key === key);
+        let key = matches[0].toLowerCase();
+        let manifest = this.manifests.find(i => i.key === key);
 
         // not found
         if (manifest === undefined) {
@@ -139,12 +138,12 @@ export class MacrosAutoCompleteProvider extends Provider {
 
     private getParametersBehaviors(manifest: any): vscode.CompletionItem[] {
         // setup
-        var items: vscode.CompletionItem[] = [];
-        var keys = Object.keys(manifest.entity.cliArguments);
+        let items: vscode.CompletionItem[] = [];
+        let keys = Object.keys(manifest.entity.cliArguments);
 
         // build: list
-        for (var i = 0; i < keys.length; i++) {
-            var item = this.getParametersBehavior(manifest, keys[i]);
+        for (const key of keys) {
+            let item = this.getParametersBehavior(manifest, key);
 
             if (item.label !== '-1') {
                 items.push(item);
@@ -157,7 +156,7 @@ export class MacrosAutoCompleteProvider extends Provider {
 
     private getParametersBehavior(manifest: any, key: string): vscode.CompletionItem {
         // build
-        var item = new vscode.CompletionItem(key, vscode.CompletionItemKind.Variable);
+        let item = new vscode.CompletionItem(key, vscode.CompletionItemKind.Variable);
         item.documentation = manifest.entity.cliArguments[key];
 
         // get
@@ -178,7 +177,7 @@ export class MacrosAutoCompleteProvider extends Provider {
                 return -1;
             }
 
-            var _isCli = line.substr(index - 1, 3) === '{{$';
+            let _isCli = line.substring(index - 1, 3) === '{{$';
             if (_isCli) {
                 return index === 0 ? 0 : index - 1;
             }

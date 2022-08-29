@@ -37,7 +37,7 @@ export class RegisterPluginsCommand extends Command {
      */
     public register(): any {
         // setup
-        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             this.invoke(undefined);
         });
 
@@ -57,24 +57,24 @@ export class RegisterPluginsCommand extends Command {
         vscode.window.setStatusBarMessage('$(sync~spin) Registering plugin(s)...');
         
         // setup
-        var workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
+        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
-        var pluginsFolder = path.join(workspace, 'Plugins');
+        let pluginsFolder = path.join(workspace, 'Plugins');
         pluginsFolder = pluginsFolder.startsWith('\\')
             ? pluginsFolder.substring(1, pluginsFolder.length)
             : pluginsFolder;
 
         Utilities.getFiles(pluginsFolder, (files: string[]) => {
-            var plugins: string[] = [];
+            let plugins: string[] = [];
 
             for (let i = 0; i < files.length; i++) {
-                var file = files[i];
-                var plugin = this.getPluginsFromFile(file);
+                let file = files[i];
+                let plugin = this.getPluginsFromFile(file);
                 plugins.push(plugin);
             }
 
-            var distinctPlugins = [...new Set(plugins)];
-            var createModel = distinctPlugins
+            let distinctPlugins = [...new Set(plugins)];
+            let createModel = distinctPlugins
                 .join("\n>>>\n")
                 .split('\n')
                 .map(i => i.replace(/^\d+\.\s+/, ''))
@@ -102,7 +102,7 @@ export class RegisterPluginsCommand extends Command {
     private registerPlugins(createModel: string, callback: any) {
         this.getRhinoClient().createPlugins(createModel, (response: any) => {
             // setup
-            var total = response.toString().split('>>>').length;
+            let total = response.toString().split('>>>').length;
 
             // notification
             vscode.window.setStatusBarMessage('$(testing-passed-icon) Total of ' + total + ' plugin(s) registered');

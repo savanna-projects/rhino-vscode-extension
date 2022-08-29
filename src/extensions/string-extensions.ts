@@ -2,9 +2,9 @@
  * Returns a new string in which all occurrences of a specified Unicode character
  * or String in the current string are replaced with another specified Unicode character or String.
  */
-String.prototype.replaceAll = function (oldValue: string, newValue: string): String {
+String.prototype.replaceAll = function (oldValue: string, newValue: string): string {
     // setup
-    var str = this;
+    let str = this;
 
     // iterate
     while (str.includes(oldValue)) {
@@ -12,5 +12,5 @@ String.prototype.replaceAll = function (oldValue: string, newValue: string): Str
     }
 
     // get
-    return str;
+    return str.toString();
 };

@@ -36,19 +36,19 @@ export class HttpClient {
         const http = require('http');
 
         // setup
-        var options = this.getOptions(httpCommand);
+        let options = this.getOptions(httpCommand);
 
         // build
         const request = http.request(options, (response: any) => {
-            var data = '';
+            let data = '';
             response.on('data', (d: any) => data += this.onData(d));
             response.on('end', () => callback(data));
         });
         request.on('error', (error: any) => this.onError(error));
 
         // send
-        var isBody = httpCommand.body !== null && httpCommand.body !== undefined;
-        var isJson = 'Content-Type' in httpCommand.headers && httpCommand.headers['Content-Type'] === 'application/json';
+        let isBody = httpCommand.body !== null && httpCommand.body !== undefined;
+        let isJson = 'Content-Type' in httpCommand.headers && httpCommand.headers['Content-Type'] === 'application/json';
         if (isBody && isJson) {
             request.write(JSON.stringify(httpCommand.body));
         }
@@ -61,20 +61,20 @@ export class HttpClient {
     // Utilities
     private getOptions(httpCommand: HttpCommand) {
         // setup
-        var url = new URL(this.baseUrl);
-        var uriSegments = url.host.split(':');
-        var host = uriSegments[0];
-        var port = uriSegments.length === 2 ? Number.parseInt(uriSegments[1].toString()) : -1;
+        let url = new URL(this.baseUrl);
+        let uriSegments = url.host.split(':');
+        let host = uriSegments[0];
+        let port = uriSegments.length === 2 ? Number.parseInt(uriSegments[1].toString()) : -1;
 
         // build
-        var options: any = {
+        let options: any = {
             host: host,
             path: httpCommand.command,
             method: httpCommand.method
         };
         if (port !== -1) {
             options['port'] = port;
-        };
+        }
         if (httpCommand.headers) {
             options.headers = httpCommand.headers;
         }

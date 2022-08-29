@@ -32,17 +32,17 @@ export class ModelsAutoCompleteProvider extends Provider {
      */
     public register(context: vscode.ExtensionContext): any {
         // setup
-        var instance = new ModelsAutoCompleteProvider().setManifests(this.manifests);
+        let instance = new ModelsAutoCompleteProvider().setManifests(this.manifests);
 
         // register: models
-        var models = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let models = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getModelsCompletionItems(document, position);
             }
         }, ':');
 
         // register
-        var items = [models];
+        let items = [models];
         context.subscriptions.push(...items);
     }
 
@@ -67,8 +67,8 @@ export class ModelsAutoCompleteProvider extends Provider {
     private getModelsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
         // setup
-        var text = document.lineAt(position).text.substr(0, position.character);
-        var isModelToke = text.substr(position.character - 2, text.length) === 'm:';
+        let text = document.lineAt(position).text.substring(0, position.character);
+        let isModelToke = text.substring(position.character - 2, text.length) === 'm:';
 
         // not found
         if (!isModelToke) {
@@ -76,13 +76,13 @@ export class ModelsAutoCompleteProvider extends Provider {
         }
 
         // setup
-        var startPosition = new vscode.Position(position.line, position.character - 2);
-        var range = new vscode.Range(startPosition, position);
-        var items: vscode.CompletionItem[] = [];
+        let startPosition = new vscode.Position(position.line, position.character - 2);
+        let range = new vscode.Range(startPosition, position);
+        let items: vscode.CompletionItem[] = [];
 
         // delete before sending auto-complete
-        for (let i = 0; i < this.manifests.length; i++) {
-            items.push(...this.getModelsCompletionItem(this.manifests[i], range));
+        for (const manifest of this.manifests) {
+            items.push(...this.getModelsCompletionItem(manifest, range));
         }
 
         // get
@@ -91,16 +91,16 @@ export class ModelsAutoCompleteProvider extends Provider {
 
     private getModelsCompletionItem(manifest: any, range: vscode.Range): vscode.CompletionItem[] {
         // setup
-        var items: vscode.CompletionItem[] = [];
-        var models: [any] = manifest.models;
+        let items: vscode.CompletionItem[] = [];
+        let models: [any] = manifest.models;
 
         // build
         models.forEach(m => {
-            for (let i = 0; i < m.entries.length; i++) {
-                var entry = m.entries[i];
-                var displayName = m.name + ': ' + entry.name;
+            for (const manifest of m.entries) {
+                let entry = manifest;
+                let displayName = m.name + ': ' + entry.name;
 
-                var item = new vscode.CompletionItem(displayName, vscode.CompletionItemKind.Reference);
+                let item = new vscode.CompletionItem(displayName, vscode.CompletionItemKind.Reference);
                 item.documentation = entry.comment === undefined || entry.comment === null ? 'Coming soon' : entry.comment;
                 item.detail = entry.type + ': ' + entry.value;
                 item.insertText = entry.name;

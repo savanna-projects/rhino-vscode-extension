@@ -38,15 +38,15 @@ export class RegisterTestCaseCommand extends Command {
      */
     public register(): any {
         // build
-        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             // setup
-            var options = {
+            let options = {
                 placeHolder: 'A comma seprated test suite ids (e.g. 1908, RH-1908, etc.)'
             };
 
             vscode.window.showInputBox(options).then((value) => {
                 this.testSuites = value?.split(',');
-                this.testSuites === undefined ? [] : this.testSuites;
+                this.testSuites = (this.testSuites === undefined) ? [] : this.testSuites;
                 this.invoke();
             });
         });
@@ -67,8 +67,8 @@ export class RegisterTestCaseCommand extends Command {
         vscode.window.setStatusBarMessage('$(sync~spin) Creating an integraed test case(s)...');
 
         // setup
-        var manifest = Utilities.getProjectManifest();
-        var configuration = {
+        let manifest = Utilities.getProjectManifest();
+        let configuration = {
             connector: manifest.connectorConfiguration,
             entity: {
                 spec: this.getOpenTestCases(),
@@ -81,16 +81,15 @@ export class RegisterTestCaseCommand extends Command {
             vscode.window.setStatusBarMessage('$(testing-passed-icon) Integrated test cases created');
 
             // get by id
-            var testCasesResponse = JSON.parse(response);
+            let testCasesResponse = JSON.parse(response);
             vscode.window.setStatusBarMessage('$(sync~spin) Getting an integrated test case(s)...');
-            var model = {
+            let model = {
                 connector: manifest.connectorConfiguration,
                 entity: testCasesResponse
             };
-            var s = JSON.stringify(model);
             this.getRhinoClient().getTestCases(model, (testCase: any) => {
-                var document = JSON.parse(testCase).join('\n\n>>>\n\n');
-                var range = this.getDocumentRange();
+                let document = JSON.parse(testCase).join('\n\n>>>\n\n');
+                let range = this.getDocumentRange();
                 vscode.window.activeTextEditor?.edit((i) => {
                     i.replace(range, document);
                     this.formatCommand.invokeCommand(() => {
@@ -104,7 +103,7 @@ export class RegisterTestCaseCommand extends Command {
     // get test cases from the open document
     private getOpenTestCases(): string {
         // setup
-        var editor = vscode.window.activeTextEditor;
+        let editor = vscode.window.activeTextEditor;
 
         // bad request
         if (!editor) {
@@ -117,17 +116,17 @@ export class RegisterTestCaseCommand extends Command {
 
     private getDocumentRange() {
         // setup
-        var document = vscode.window.activeTextEditor?.document;
+        let document = vscode.window.activeTextEditor?.document;
 
         // not found
         if (!document) {
-            var position = new vscode.Position(0, 0);
+            let position = new vscode.Position(0, 0);
             return new vscode.Range(position, position);
         }
 
         // build
-        var firstLine = document.lineAt(0);
-        var lastLine = document.lineAt(document.lineCount - 1);
+        let firstLine = document.lineAt(0);
+        let lastLine = document.lineAt(document.lineCount - 1);
 
         // get
         return new vscode.Range(firstLine.range.start, lastLine.range.end);

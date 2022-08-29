@@ -30,7 +30,7 @@ export class GetTestCaseCommand extends Command {
      */
     public register(): any {
         // build
-        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             this.invoke(undefined);
         });
 
@@ -47,12 +47,12 @@ export class GetTestCaseCommand extends Command {
 
     private invoke(callback: any) {
         // setup
-        var client = this.getRhinoClient();
-        var configuration = this.getConfiguration();
-        var options = {
+        let client = this.getRhinoClient();
+        let configuration = this.getConfiguration();
+        let options = {
             placeHolder: 'Test ID to get (e.g., RP-1234)'
         };
-        var request = {
+        let request = {
             connector: configuration.connector,
             entity: ''
         };
@@ -66,8 +66,8 @@ export class GetTestCaseCommand extends Command {
 
             // get
             client.getTestCase(request, (response: any) => {
-                var formatter = new FormatTestCaseCommand(this.getContext())
-                var range = this.getDocumentRange();
+                let formatter = new FormatTestCaseCommand(this.getContext())
+                let range = this.getDocumentRange();
 
                 vscode.window.activeTextEditor?.edit((i) => {
                     i.replace(range, response);
@@ -89,7 +89,7 @@ export class GetTestCaseCommand extends Command {
     // creates default configuration with text connector
     private getConfiguration() {
         // setup
-        var projectManifest = this.getProjectManifest();
+        let projectManifest = this.getProjectManifest();
 
         // build
         return {
@@ -99,17 +99,17 @@ export class GetTestCaseCommand extends Command {
 
     private getDocumentRange() {
         // setup
-        var document = vscode.window.activeTextEditor?.document;
+        let document = vscode.window.activeTextEditor?.document;
 
         // not found
         if (!document) {
-            var position = new vscode.Position(0, 0);
+            let position = new vscode.Position(0, 0);
             return new vscode.Range(position, position);
         }
 
         // build
-        var firstLine = document.lineAt(0);
-        var lastLine = document.lineAt(document.lineCount - 1);
+        let firstLine = document.lineAt(0);
+        let lastLine = document.lineAt(document.lineCount - 1);
 
         // get
         return new vscode.Range(firstLine.range.start, lastLine.range.end);

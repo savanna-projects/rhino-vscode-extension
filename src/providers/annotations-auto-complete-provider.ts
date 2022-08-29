@@ -33,17 +33,17 @@ export class AnnotationsAutoCompleteProvider extends Provider {
      */
     public register(context: vscode.ExtensionContext) {
         // setup
-        var instance = new AnnotationsAutoCompleteProvider().setManifests(this.manifests);
+        let instance = new AnnotationsAutoCompleteProvider().setManifests(this.manifests);
 
         // register: actions
-        var annotations = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let annotations = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getAnnotationsCompletionItems(document, position);
             }
         }, '[');
 
         // register
-        var items = [annotations];
+        let items = [annotations];
         context.subscriptions.push(...items);
 
         // save references
@@ -67,7 +67,7 @@ export class AnnotationsAutoCompleteProvider extends Provider {
     public getAnnotationsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
         // setup conditions
-        var isProperty = position.character === 1 && document.lineAt(position.line).text[position.character - 1] === '[';
+        let isProperty = position.character === 1 && document.lineAt(position.line).text[position.character - 1] === '[';
 
         // not found
         if (!isProperty) {
@@ -75,10 +75,10 @@ export class AnnotationsAutoCompleteProvider extends Provider {
         }
 
         // build
-        var annotations: vscode.CompletionItem[] = [];
-        for (let i = 0; i < this.manifests.length; i++) {
-            var property = new vscode.CompletionItem(this.manifests[i].key, vscode.CompletionItemKind.Property);
-            property.documentation = this.manifests[i].entity.description;
+        let annotations: vscode.CompletionItem[] = [];
+        for (const manifest of this.manifests) {
+            let property = new vscode.CompletionItem(manifest.key, vscode.CompletionItemKind.Property);
+            property.documentation = manifest.entity.description;
             annotations.push(property);
         }
 

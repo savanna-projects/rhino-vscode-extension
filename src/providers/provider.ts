@@ -22,21 +22,21 @@ export abstract class Provider {
     /**
      * Summary. Gets a locators auto-complete enum snippet.
      * 
-     * @param manifests A collection of locators references as returns by Rhino Server.
+     * @param locators A collection of locators references as returns by Rhino Server.
      * @returns Self reference.
      */
     public getLocatorsEnums(locators: any): string {
         // setup
         locators = locators === null || locators === undefined ? [] : locators;
-        var _locators = [];
+        let _locators = [];
 
         // build
-        for (let i = 0; i < locators.length; i++) {
-            if (locators[i].literal === 'x path') {
+        for (const locator of locators) {
+            if (locator.literal === 'x path') {
                 _locators.push('xpath');
                 continue;
             }
-            _locators.push(locators[i].literal);
+            _locators.push(locator.literal);
         }
 
         // get
@@ -52,11 +52,11 @@ export abstract class Provider {
     public isUnderAnnotation(document: vscode.TextDocument, position: vscode.Position, annotation: string, annotations: any[])
         : boolean {
         // setup
-        var pattern = annotations.map((i) => '^\\[' + i.key + ']').join('|');
-        var testPattern = '^\\[' + annotation + ']';
+        let pattern = annotations.map((i) => '^\\[' + i.key + ']').join('|');
+        let testPattern = '^\\[' + annotation + ']';
 
         // iterate
-        var line = position.line;
+        let line = position.line;
         while (line !== 0) {
             if (!document.lineAt(line).text.match(pattern)) {
                 line = line - 1;
@@ -84,12 +84,12 @@ export abstract class Provider {
             }
 
             // setup
-            var map = annotations.map((i) => i.key).filter((i) => i !== annotation);
-            var pattern = map.map((i) => '^\\[' + i + ']').join('|');
-            var testPattern = '^\\[' + annotation + ']';
+            let map = annotations.map((i) => i.key).filter((i) => i !== annotation);
+            let pattern = map.map((i) => '^\\[' + i + ']').join('|');
+            let testPattern = '^\\[' + annotation + ']';
 
             // get line number
-            var onLine = 0;
+            let onLine = 0;
             for (onLine; onLine < document.lineCount; onLine++) {
                 if (document.lineAt(onLine).text.match(testPattern) !== null) {
                     break;
@@ -97,7 +97,7 @@ export abstract class Provider {
             }
 
             // iterate
-            var lines: string[] = [];
+            let lines: string[] = [];
             while (onLine < document.lineCount) {
                 if (document.lineAt(onLine).text.match(pattern)) {
                     break;
@@ -128,7 +128,7 @@ export abstract class Provider {
                 return false;
             }
 
-            var _isCli = line.substr(index - 1, 3) === '{{$';
+            let _isCli = line.substring(index - 1, 3) === '{{$';
             if (_isCli) {
                 return true;
             }

@@ -14,18 +14,18 @@ export class Utilities {
      */
     public static getPluginsPattern(manifests: any): string {
         // setup
-        var patterns: string[] = [];
+        let patterns: string[] = [];
 
         // build
-        for (var i = 0; i < manifests.length; i++) {
-            patterns.push("(?<!['])" + manifests[i].literal);
+        for (const manifest of manifests) {
+            patterns.push("(?<!['])" + manifest.literal);
 
-            if (!manifests[i].hasOwnProperty('aliases')) {
+            if (!manifest.hasOwnProperty('aliases')) {
                 continue;
             }
 
-            for (var j = 0; j < manifests[i].aliases.length; j++) {
-                patterns.push(manifests[i].aliases[j]);
+            for (const alias of manifest.aliases) {
+                patterns.push(alias);
             }
         }
 
@@ -58,7 +58,7 @@ export class Utilities {
      */
     public static updateTmConfiguration(context: vscode.ExtensionContext, tmConfiguration: string) {
         // setup
-        var tmFile = path.join(context.extensionPath, 'rhino-tmLanguage.json')
+        let tmFile = path.join(context.extensionPath, 'rhino-tmLanguage.json')
 
         // build
         const fs = require('fs');
@@ -91,8 +91,7 @@ export class Utilities {
         const getFilesFromDirectory: any = (directoryPath: any) => {
             const files = fs.readdirSync(directoryPath);
 
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
+            for (const file of files) {
                 const filePath = path.join(directoryPath, file);
                 const stats = fs.statSync(filePath);
 
@@ -116,17 +115,17 @@ export class Utilities {
      */
     public static getConfigurationByManifest(): any {
         // setup
-        var projectManifest = this.getProjectManifest();
+        let projectManifest = this.getProjectManifest();
 
         // build
-        var engineConfiguration = !this.invokeIsNullOrUndefined(projectManifest.engineConfiguration)
+        let engineConfiguration = !this.invokeIsNullOrUndefined(projectManifest.engineConfiguration)
             ? projectManifest.engineConfiguration
             : {
                 maxParallel: 1,
                 elementSearchingTimeout: 15000,
                 pageLoadTimeout: 60000
             };
-        var reportConfiguration = !this.invokeIsNullOrUndefined(projectManifest.reportConfiguration)
+        let reportConfiguration = !this.invokeIsNullOrUndefined(projectManifest.reportConfiguration)
             ? projectManifest.reportConfiguration
             : {
                 reporters: [
@@ -136,19 +135,19 @@ export class Utilities {
                 localReport: true,
                 addGravityData: true
             }
-        var screenshotsConfiguration = !this.invokeIsNullOrUndefined(projectManifest.screenshotsConfiguration)
+        let screenshotsConfiguration = !this.invokeIsNullOrUndefined(projectManifest.screenshotsConfiguration)
             ? projectManifest.screenshotsConfiguration
             : {
                 keepOriginal: false,
                 returnScreenshots: false,
                 onExceptionOnly: false
             }
-        var connectorConfiguration = !this.invokeIsNullOrUndefined(projectManifest.connectorConfiguration)
+        let connectorConfiguration = !this.invokeIsNullOrUndefined(projectManifest.connectorConfiguration)
             ? projectManifest.connectorConfiguration
             : {
                 connector: "ConnectorText"
             }
-        var externalRepositories = !this.invokeIsNullOrUndefined(projectManifest.externalRepositories)
+        let externalRepositories = !this.invokeIsNullOrUndefined(projectManifest.externalRepositories)
             ? projectManifest.externalRepositories
             : [];
 
@@ -166,18 +165,17 @@ export class Utilities {
         };
     }
 
-    // TODO: comments
     private static invokeGetProjectManifest(): any {
         // setup
-        var workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
+        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
-        var manifest = path.join(workspace, 'manifest.json');
+        let manifest = path.join(workspace, 'manifest.json');
         manifest = manifest.startsWith('\\') ? manifest.substr(1, manifest.length) : manifest;
 
         // build
         const fs = require('fs');
         try {
-            var data = fs.readFileSync(manifest, 'utf8');
+            let data = fs.readFileSync(manifest, 'utf8');
             return JSON.parse(data);
         } catch (e: any) {
             console.log('Error:', e.stack);
@@ -216,7 +214,6 @@ export class Utilities {
         }
     }
 
-    // TODO: comments
     private static invokeIsNullOrUndefined(obj: any) {
         try {
             return obj === null || obj === undefined;

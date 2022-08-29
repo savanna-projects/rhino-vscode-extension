@@ -71,28 +71,28 @@ export class AssertionsAutoCompleteProvider extends Provider {
      */
     public register(context: vscode.ExtensionContext) {
         // setup
-        var instance = new AssertionsAutoCompleteProvider()
+        let instance = new AssertionsAutoCompleteProvider()
             .setManifests(this.manifests)
             .setAnnotations(this.annotations)
             .setOperators(this.operators)
             .setLocators(this.locators);
 
         // register: assertions
-        var assertions = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let assertions = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getAssertionsCompletionItems(document, position);
             }
         });
 
         // register: methods
-        var assertionMethods = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let assertionMethods = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getAssertionMethodsCompletionItems(document, position);
             }
         }, '{');
 
         // register
-        var items = [assertions, assertionMethods];
+        let items = [assertions, assertionMethods];
         context.subscriptions.push(...items);
 
         // save references
@@ -121,23 +121,20 @@ export class AssertionsAutoCompleteProvider extends Provider {
         }
 
         // build
-        var assertions = this.manifests.map(function (i) {
+        return this.manifests.map(function (i) {
             let assertion = new vscode.CompletionItem(i.literal, vscode.CompletionItemKind.Variable);
             assertion.detail = 'code';
             assertion.documentation = i.entity.description;
 
             return assertion;
         });
-
-        // get
-        return assertions;
     }
 
     private getAssertionsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
 
         // setup
-        var isUnderSection = this.isUnderAnnotation(document, position, 'test-expected-results', this.annotations);
+        let isUnderSection = this.isUnderAnnotation(document, position, 'test-expected-results', this.annotations);
 
         // bad request
         if (!isUnderSection || this.isAssert(document, position)) {
@@ -145,9 +142,9 @@ export class AssertionsAutoCompleteProvider extends Provider {
         }
 
         // build
-        var locators = 'of {${3:locator value}} by ' + '{${4|' + this.getLocatorsEnums(this.locators) + '|}} ';
-        var operators = '${5|' + this.operators.map((i) => i.literal.toLowerCase()).sort() + '|} ';
-        var attributes = '{${6|' + this.attributes.sort().map(i => i.key).join(',') + '|}} ';
+        let locators = 'of {${3:locator value}} by ' + '{${4|' + this.getLocatorsEnums(this.locators) + '|}} ';
+        let operators = '${5|' + this.operators.map((i) => i.literal.toLowerCase()).sort() + '|} ';
+        let attributes = '{${6|' + [...this.attributes].sort().map(i => i.key).join(',') + '|}} ';
 
         // get
         return [
@@ -160,12 +157,12 @@ export class AssertionsAutoCompleteProvider extends Provider {
 
     private getWithElement(locators: string, operators: string): vscode.CompletionItem {
         // build
-        var snippet =
+        let snippet =
             '[${1:step number}] verify that ' +
             '{${2:text}} ' +
             locators +
             operators + '{${6:expected result}}';
-        var item = new vscode.CompletionItem('assert w/ element');
+        let item = new vscode.CompletionItem('assert w/ element');
         item.insertText = new vscode.SnippetString(snippet);
         item.documentation = new vscode.MarkdownString('Coming soon.');
         item.kind = vscode.CompletionItemKind.Method;
@@ -178,13 +175,13 @@ export class AssertionsAutoCompleteProvider extends Provider {
     private getWithElementWithAttribute(locators: string, operators: string, attributes: string)
         : vscode.CompletionItem {
         // build
-        var snippet =
+        let snippet =
             '[${1:step number}] verify that ' +
             '{${2:method}} ' +
             locators +
             attributes +
             operators + '{${7:expected result}}';
-        var item = new vscode.CompletionItem('assert w/ element w/ attribute');
+        let item = new vscode.CompletionItem('assert w/ element w/ attribute');
         item.insertText = new vscode.SnippetString(snippet);
         item.documentation = new vscode.MarkdownString('Coming soon.');
         item.kind = vscode.CompletionItemKind.Method;
@@ -196,13 +193,13 @@ export class AssertionsAutoCompleteProvider extends Provider {
 
     private getWithElementWithRegex(locators: string, operators: string): vscode.CompletionItem {
         // build
-        var snippet =
+        let snippet =
             '[${1:step number}] verify that ' +
             '{${2:method}} ' +
             locators +
             'with regex {${6:.*}} ' +
             operators + '{${7:expected result}}';
-        var item = new vscode.CompletionItem('assert w/ element w/ regex');
+        let item = new vscode.CompletionItem('assert w/ element w/ regex');
         item.insertText = new vscode.SnippetString(snippet);
         item.documentation = new vscode.MarkdownString('Coming soon.');
         item.kind = vscode.CompletionItemKind.Method;
@@ -215,14 +212,14 @@ export class AssertionsAutoCompleteProvider extends Provider {
     private getWithElementWithAttributeWithRegex(locators: string, operators: string, attributes: string)
         : vscode.CompletionItem {
         // build
-        var snippet =
+        let snippet =
             '[${1:step number}] verify that ' +
             '{${2:method}} ' +
             locators +
             attributes +
             'with regex {${7:.*}} ' +
             operators + '{${8:expected result}}';
-        var item = new vscode.CompletionItem('assert w/ element w/ attribute w/ regex');
+        let item = new vscode.CompletionItem('assert w/ element w/ attribute w/ regex');
         item.insertText = new vscode.SnippetString(snippet);
         item.documentation = new vscode.MarkdownString('Coming soon.');
         item.kind = vscode.CompletionItemKind.Method;
@@ -238,17 +235,17 @@ export class AssertionsAutoCompleteProvider extends Provider {
       └────────────────────────────────────────────────────────*/
     private isAssert(document: vscode.TextDocument, position: vscode.Position): boolean {
         // setup
-        var text = document.lineAt(position.line).text;
-        var subPre = text.substr(0, position.character);
+        let text = document.lineAt(position.line).text;
+        let subPre = text.substring(0, position.character);
 
-        var length = (text.length - position.character) < 0
+        let length = (text.length - position.character) < 0
             ? 0
             : (text.length - position.character);
-        var subSuf = text.substr(position.character, length);
+        let subSuf = text.substring(position.character, length);
 
         // setup
-        var isAssertPre = subPre.match('^\\[\\d+]\\s+(verify that|assert)\\s+\\{') !== null;
-        var isAssertSuf = subSuf.match('.*}') !== null;
+        let isAssertPre = subPre.match('^\\[\\d+]\\s+(verify that|assert)\\s+\\{') !== null;
+        let isAssertSuf = subSuf.match('.*}') !== null;
 
         // get
         return isAssertPre && isAssertSuf;

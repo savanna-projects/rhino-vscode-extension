@@ -36,7 +36,7 @@ export class CreateTm extends Command {
      */
     public register(): any {
         // setup
-        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             this.invoke();
         });
 
@@ -56,19 +56,19 @@ export class CreateTm extends Command {
         vscode.window.setStatusBarMessage('$(sync~spin) Creating TM Language...');
 
         // setup
-        var client = this.getRhinoClient();
+        let client = this.getRhinoClient();
 
         // setup
-        var configuration = Utilities.getConfigurationByManifest();
+        let configuration = Utilities.getConfigurationByManifest();
 
         // build
         client.createConfiguration(configuration, (data: any) => {
-            var response = JSON.parse(data);
-            var configurationId = Utilities.isNullOrUndefined(response) || Utilities.isNullOrUndefined(response.id)
+            let response = JSON.parse(data);
+            let configurationId = Utilities.isNullOrUndefined(response) || Utilities.isNullOrUndefined(response.id)
                 ? ''
                 : response.id;
             client.getPluginsByConfiguration(configurationId, (plugins: any) => {
-                var hasNoPlugins = Utilities.isNullOrUndefined(plugins) || plugins === '';
+                let hasNoPlugins = Utilities.isNullOrUndefined(plugins) || plugins === '';
                 if (hasNoPlugins) {
                     client.getPlugins((plugins: any) => {
                         this.getMetadata(client, plugins, '');
@@ -95,18 +95,18 @@ export class CreateTm extends Command {
                             const _annotations = JSON.parse(annotations).map((i: any) => i.key.trim());
 
                             // build
-                            var nameClass = _plugins.map((i: any) => i.literal);
+                            let nameClass = _plugins.map((i: any) => i.literal);
 
-                            var keywordControl = [];
+                            let keywordControl = [];
                             keywordControl.push(..._operators.map((i: any) => '\\s+' + i.literal + '\\s+'));
                             keywordControl.push(..._verbs.map((i: any) => '\\s+' + i.literal + '\\s+'));
 
-                            var functions = [];
+                            let functions = [];
                             functions.push(..._assertions.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'));
                             functions.push(..._locators.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'))
 
                             // create
-                            var tmLanguage = this.getTmConfiguration(nameClass, keywordControl, functions, _annotations);
+                            let tmLanguage = this.getTmConfiguration(nameClass, keywordControl, functions, _annotations);
                             Utilities.updateTmConfiguration(this.getContext(), JSON.stringify(tmLanguage));
                             vscode.window.setStatusBarMessage('$(testing-passed-icon) TM Language loaded');
 
@@ -123,12 +123,12 @@ export class CreateTm extends Command {
 
     private getTmConfiguration(nameClass: string[], keywordControl: string[], functions: string[], annotations: string[]) {
         // build
-        var _nameClass = "\\b(" + nameClass.filter(i => i !== '').sort((a, b) => b.length - a.length).join('|') + ")\\b";
-        var _keywordControl = "(" + keywordControl.sort((a, b) => b.length - a.length).join('|') + ")";
-        var _functions = "(" + functions.sort((a, b) => b.length - a.length).join('|') + ")";;
+        let _nameClass = "\\b(" + nameClass.filter(i => i !== '').sort((a, b) => b.length - a.length).join('|') + ")\\b";
+        let _keywordControl = "(" + [...keywordControl].sort((a, b) => b.length - a.length).join('|') + ")";
+        let _functions = "(" + [...functions].sort((a, b) => b.length - a.length).join('|') + ")";
 
         // TODO: find style for metadata
-        var _annotations = '(?<=\\[(' + annotations.join('|') + ')]\\s+)[^\\s].*$';
+        let _annotations = '(?<=\\[(' + annotations.join('|') + ')]\\s+)[^\\s].*$';
 
         // get
         return {

@@ -38,7 +38,7 @@ export class InvokeAllTestCasesCommand extends Command {
      */
     public register(): any {
         // setup
-        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             this.invoke();
         });
 
@@ -55,7 +55,7 @@ export class InvokeAllTestCasesCommand extends Command {
 
     private invoke() {
         // setup
-        var context = this.getContext();
+        let context = this.getContext();
 
         // notification
         vscode.window.setStatusBarMessage('$(sync~spin) Invoking test case(s)...');
@@ -65,7 +65,7 @@ export class InvokeAllTestCasesCommand extends Command {
             // invoke
             this.getConfiguration((configuration: any) => {
                 this.getRhinoClient().invokeConfiguration(configuration, (testRun: any) => {
-                    var _testRun = JSON.parse(testRun);
+                    let _testRun = JSON.parse(testRun);
                     _testRun.actual === true
                         ? vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke completed w/o test(s) failures")
                         : vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke completed, w/ test(s) failures");
@@ -87,7 +87,7 @@ export class InvokeAllTestCasesCommand extends Command {
     private getConfiguration(callback: any) {
         this.getAllTestCases((testCases: string[]) => {
             // get configuration
-            var configuration = Utilities.getConfigurationByManifest();
+            let configuration = Utilities.getConfigurationByManifest();
 
             // build
             configuration.testsRepository = testCases;
@@ -103,11 +103,11 @@ export class InvokeAllTestCasesCommand extends Command {
         const fs = require('fs');
 
         // setup
-        var workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
+        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
 
-        var testCasesPath = path.join(workspace, 'TestCases');
-        var testsPath = path.join(workspace, 'Tests');
+        let testCasesPath = path.join(workspace, 'TestCases');
+        let testsPath = path.join(workspace, 'Tests');
 
         // normalize
         testsPath = testsPath.startsWith('\\')
@@ -115,8 +115,8 @@ export class InvokeAllTestCasesCommand extends Command {
             : testsPath;
 
         // setup
-        var isTestsPath = fs.existsSync(testsPath);
-        var testsFolder = testCasesPath;
+        let isTestsPath = fs.existsSync(testsPath);
+        let testsFolder = testCasesPath;
         
         if (isTestsPath) {
             testsFolder = testsPath;
@@ -128,17 +128,16 @@ export class InvokeAllTestCasesCommand extends Command {
 
         // iterate
         Utilities.getFiles(testsFolder, (files: string[]) => {
-            var testCases: string[] = [];
-            for (let i = 0; i < files.length; i++) {
+            let testCases: string[] = [];
+            for (const testCaseFile of files) {
                 try {
-                    const testCaseFile = files[i];
-                    var testCase = fs.readFileSync(testCaseFile, 'utf8');
+                    let testCase = fs.readFileSync(testCaseFile, 'utf8');
 
                     if (Utilities.isNullOrUndefined(testCase) || testCase === '') {
                         continue;
                     }
 
-                    var spec = testCase.split('\n').map((i: string) => i.replace(/^\d+\.\s+/, '')).join('\n');
+                    let spec = testCase.split('\n').map((i: string) => i.replace(/^\d+\.\s+/, '')).join('\n');
                     testCases.push(spec);
                 } catch (e) {
                     console.log('Error:', e);

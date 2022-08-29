@@ -28,8 +28,8 @@ export abstract class Command {
 
         // build
         this.projectManifest = Utilities.getProjectManifest();
-        var server = this.projectManifest.rhinoServer;
-        var rhinoEndpoint = this.setEndpoint(server.schema + '://' + server.host + ':' + server.port).getEndpoint();
+        let server = this.projectManifest.rhinoServer;
+        let rhinoEndpoint = this.setEndpoint(server.schema + '://' + server.host + ':' + server.port).getEndpoint();
         this.client = new RhinoClient(rhinoEndpoint);
     }
 

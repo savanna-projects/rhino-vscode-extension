@@ -40,7 +40,7 @@ export class RegisterRhinoCommand extends Command {
      */
     public register(): any {
         // build
-        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             this.invoke();
         });
 
@@ -58,8 +58,8 @@ export class RegisterRhinoCommand extends Command {
     // invocation routine
     private invoke() {
         // setup
-        var context = this.getContext();
-        var subscriptions = context.subscriptions;
+        let context = this.getContext();
+        let subscriptions = context.subscriptions;
 
         // clear
         for (let i = 1; i < subscriptions.length; i++) {

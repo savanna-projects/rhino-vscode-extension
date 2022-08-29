@@ -40,19 +40,19 @@ export class DataAutoCompleteProvider extends Provider {
      */
     public register(context: vscode.ExtensionContext) {
         // setup
-        var instance = new DataAutoCompleteProvider()
+        let instance = new DataAutoCompleteProvider()
             .setAnnotations(this.annotations)
             .setManifests(this.manifests);
 
         // register: assertions
-        var snippet = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let snippet = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getDataCompletionItems(document, position);
             }
         });
 
         // register
-        var items = [snippet];
+        let items = [snippet];
         context.subscriptions.push(...items);
 
         // save references
@@ -91,7 +91,7 @@ export class DataAutoCompleteProvider extends Provider {
         }
 
         // get
-        var mdTable = new vscode.CompletionItem('data input, markdown', vscode.CompletionItemKind.Snippet);
+        let mdTable = new vscode.CompletionItem('data input, markdown', vscode.CompletionItemKind.Snippet);
         mdTable.documentation = 'Basic MD (markdown) table snippet for data driven testing.';
         mdTable.detail = 'vscode';
         mdTable.insertText =

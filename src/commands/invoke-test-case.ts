@@ -56,7 +56,7 @@ export class InvokeTestCaseCommand extends Command {
      */
     public addOpenTestCases(): InvokeTestCaseCommand {
         // setup
-        var editor = vscode.window.activeTextEditor;
+        let editor = vscode.window.activeTextEditor;
 
         // bad request
         if (!editor) {
@@ -64,7 +64,7 @@ export class InvokeTestCaseCommand extends Command {
         }
 
         // build
-        var testCases = editor.document.getText().split('>>>');
+        let testCases = editor.document.getText().split('>>>');
         this.testCases.push(...testCases);
 
         // get
@@ -82,7 +82,7 @@ export class InvokeTestCaseCommand extends Command {
      */
     public register(): any {
         // setup
-        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             this.invoke();
         });
 
@@ -99,7 +99,7 @@ export class InvokeTestCaseCommand extends Command {
 
     private invoke() {
         // setup
-        var context = this.getContext();
+        let context = this.getContext();
 
         // notification
         vscode.window.setStatusBarMessage('$(sync~spin) Invoking test case(s)...');
@@ -108,7 +108,7 @@ export class InvokeTestCaseCommand extends Command {
         new FormatTestCaseCommand(context).invokeCommand(() => {
             // invoke
             this.getRhinoClient().invokeConfiguration(this.getConfiguration(), (testRun: any) => {
-                var _testRun = JSON.parse(testRun);
+                let _testRun = JSON.parse(testRun);
                 _testRun.actual === true
                     ? vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke completed w/o test(s) failures")
                     : vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke completed, w/ test(s) failures");
@@ -128,10 +128,10 @@ export class InvokeTestCaseCommand extends Command {
     // creates default configuration with text connector
     private getConfiguration() {
         // setup
-        var testsRepository = this.getCommandName() === 'Invoke-TestCase'
+        let testsRepository = this.getCommandName() === 'Invoke-TestCase'
             ? this.getOpenTestCases()
             : this.testCases;
-        var configuration = Utilities.getConfigurationByManifest();
+        let configuration = Utilities.getConfigurationByManifest();
 
         // build
         configuration.testsRepository = testsRepository;
@@ -143,7 +143,7 @@ export class InvokeTestCaseCommand extends Command {
     // get test cases from the open document
     private getOpenTestCases(): string[] {
         // setup
-        var editor = vscode.window.activeTextEditor;
+        let editor = vscode.window.activeTextEditor;
 
         // bad request
         if (!editor) {
@@ -151,7 +151,7 @@ export class InvokeTestCaseCommand extends Command {
         }
 
         // clean
-        var text = editor.document.getText().split('\n').map(i => i.replace(/^\d+\.\s+/, '')).join('\n');
+        let text = editor.document.getText().split('\n').map(i => i.replace(/^\d+\.\s+/, '')).join('\n');
 
         // get
         return text.split('>>>');

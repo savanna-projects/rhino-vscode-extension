@@ -1,4 +1,4 @@
 interface String {
     isJson(): boolean;
-    replaceAll(oldValue: string, newValue: string): String;
+    replaceAll(oldValue: string, newValue: string): string;
 }

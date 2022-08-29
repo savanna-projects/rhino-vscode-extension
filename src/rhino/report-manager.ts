@@ -25,23 +25,21 @@ export class ReportManager {
         // [ ] TODO: get failed test cases - by quality (lower to higher)
 
         // build
-        var testCases = [];
-        for (let i = 0; i < this.testRun.testCases.length; i++) {
-            testCases.push(this.getSummaryTestCase(this.testRun.testCases[i]));
+        let testCases = [];
+        for (const testCase of this.testRun.testCases) {
+            testCases.push(this.getSummaryTestCase(testCase));
         }
 
-        var html = this.getHtml()
+        return this.getHtml()
             .replace('$(title)', this.testRun.title)
             .replace('$(summaryOutcome)', this.getSummaryOutcome())
             .replace('$(summaryTestCase)', testCases.join(''));
-
-        return html;
     }
 
     // get the HTML report layout
     private getHtml(): string {
         // build
-        var metaData =
+        let metaData =
             '<div style="margin: 0.25rem;">' +
             '   <pre>Start   : ' + this.testRun.start +
             '   <br/>End     : ' + this.testRun.end +
@@ -201,8 +199,8 @@ export class ReportManager {
     // get tests summary HTML
     private getSummaryOutcome(): string {
         // build components
-        var qulityColor = this.testRun.qualityRank < 80 ? '#e74c3c' : '#1abb9c';
-        var totalPass = `
+        let qulityColor = this.testRun.qualityRank < 80 ? '#e74c3c' : '#1abb9c';
+        let totalPass = `
         <td>
         <div class="card">
             <div class="card-header" title="The amount of successful tests.">Total Pass</div>
@@ -210,7 +208,7 @@ export class ReportManager {
         </div>
         </td>`;
 
-        var totalFail = `
+        let totalFail = `
         <td>
         <div class="card">
             <div class="card-header" title="The amount of failed tests.">Total Fail</div>
@@ -218,7 +216,7 @@ export class ReportManager {
         </div>
         </td>`;
 
-        var totalInconclusive = `
+        let totalInconclusive = `
         <td>
         <div class="card">
             <div class="card-header" title="The amount of tests which Rhino did not verify or skipped due to, lack of assertions or tolerance configuration.">Total Inconclusive</div>
@@ -226,7 +224,7 @@ export class ReportManager {
         </div>
         </td>`;
 
-        var qualityRank = `
+        let qualityRank = `
         <td>
         <div class="card">
             <div class="card-header" title="The overall quality (the expected application behavior) of the test run.">Quality Rank</div>
@@ -249,15 +247,15 @@ export class ReportManager {
     // get a single test case HTML
     private getSummaryTestCase(testCase: any): string {
         // setup
-        var qualityColor = this.testRun.qualityRank < 80 ? '#e74c3c' : '#1abb9c';
-        var metaData =
+        let qualityColor = this.testRun.qualityRank < 80 ? '#e74c3c' : '#1abb9c';
+        let metaData =
             '<pre>Start       : ' + testCase.start +
             '<br/>End         : ' + testCase.end +
             '<br/>Quality Rank: <span style="color: ' + qualityColor + '">' + testCase.qualityRank + '</span>' +
             '<br/>Run Time    : <span style="color: #3498db">' + testCase.runTime.substr(0, 11) + '</span>' +
             '<br/>On Attempt  : ' + testCase.passedOnAttempt + '</pre>';
 
-            var environment = '';
+            let environment = '';
             try {
                 environment =
                     '<h4>Environment</h4>' +
@@ -270,7 +268,7 @@ export class ReportManager {
             }
 
         // build
-        var steps = [];
+        let steps = [];
         for (let i = 0; i < testCase.steps.length; i++) {
             steps.push(this.getTestStepsHtml(testCase.steps[i], (i + 1).toString()));
         }
@@ -308,17 +306,17 @@ export class ReportManager {
     }
 
     private getTestStepsHtml(testStep: any, index: string): string {
-        var isNull = testStep.steps === null || testStep.steps === undefined;
-        var isRoot = isNull || testStep.steps.length === 0;
+        let isNull = testStep.steps === null || testStep.steps === undefined;
+        let isRoot = isNull || testStep.steps.length === 0;
 
         if (isRoot) {
             return this.getTestStepHtml(testStep, index);
         }
 
-        var stepsHtml: string[] = [];
+        let stepsHtml: string[] = [];
         stepsHtml.push(this.getMetaStepHtml(testStep, index));
-        for (var i = 0; i < testStep.steps.length; i++) {
-            var html = this.getTestStepsHtml(testStep.steps[i], index + "." + (i + 1).toString());
+        for (let i = 0; i < testStep.steps.length; i++) {
+            let html = this.getTestStepsHtml(testStep.steps[i], index + "." + (i + 1).toString());
             stepsHtml.push(html);
         }
         return stepsHtml.join('');
@@ -328,35 +326,34 @@ export class ReportManager {
         // build
         const pattern = '(?<=\\{).*(?=\\})';
         const match = testStep.action.match(pattern);
-        var action = match === null || match === undefined ? testStep.action : match[0]
-        var html = `
+        let action = match === null || match === undefined ? testStep.action : match[0]
+        
+        // get
+        return `
         <tr>
             <td style="width: 5%; vertical-align: top;"><pre>${index}</pre></td>
             <td style="width: 3%; vertical-align: top;"><pre style="font-weight: 900; color: #3498db">M</pre></td>
             <td colspan="2" style="font-weight: 900; width: 41%; vertical-align: top;"><pre>${action}</pre></td>
             <td style="width: 10%; vertical-align: top;"><pre style="color: #3498db">${testStep.runTime.substr(0, 11)}</pre></td>
         </tr>`;
-
-        // get
-        return html;
     }
 
     private getTestStepHtml(testStep: any, index: string): string {
         // setup
-        var actionColor = testStep.actual === true ? '#1abb9c' : '#e74c3c';
-        var actionSign = testStep.actual === true ? 'P' : 'F';
+        let actionColor = testStep.actual === true ? '#1abb9c' : '#e74c3c';
+        let actionSign = testStep.actual === true ? 'P' : 'F';
 
         // get expected results
-        var assertions = [];
-        for (var i = 0; i < testStep.expectedResults.length; i++) {
-            var assertion = testStep.expectedResults[i];
-            var assertionColor = assertion.actual === true ? '#000000' : '#e74c3c';
-            var assertionHtml = `<pre style="color: ${assertionColor}">${assertion.expectedResult}</pre>`;
+        let assertions = [];
+        for (const result of testStep.expectedResults) {
+            let assertion = result;
+            let assertionColor = assertion.actual === true ? '#000000' : '#e74c3c';
+            let assertionHtml = `<pre style="color: ${assertionColor}">${assertion.expectedResult}</pre>`;
             assertions.push(assertionHtml);
         }
-        var assertionsHtml = assertions.join('<br />');
+        let assertionsHtml = assertions.join('<br />');
 
-        var html = `
+        return `
         <tr>
             <td style="width: 5%; vertical-align: top;"><pre>${index}</pre></td>
             <td style="width: 3%; vertical-align: top;"><pre style="font-weight: 900; color: ${actionColor}">${actionSign}</pre></td>
@@ -364,8 +361,5 @@ export class ReportManager {
             <td style="width: 41%; vertical-align: top;">${assertionsHtml}</td>
             <td style="width: 10%; vertical-align: top;"><pre style="color: #3498db">${testStep.runTime.substr(0, 11)}</pre></td>
         </tr>`;
-
-        // get
-        return html;
     }
 }

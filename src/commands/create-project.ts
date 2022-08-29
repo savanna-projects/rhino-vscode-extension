@@ -37,7 +37,7 @@ export class CreateProjectCommand extends Command {
      */
     public register(): any {
         // build
-        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             this.invoke();
         });
 
@@ -54,7 +54,7 @@ export class CreateProjectCommand extends Command {
 
     private invoke() {
         // setup
-        var dialogOptions = {
+        let dialogOptions = {
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false
@@ -71,14 +71,14 @@ export class CreateProjectCommand extends Command {
     // take the input from openDialog
     private static createProjectFolder(userPath: any) {
         // setup path
-        var path = '';
+        let path = '';
         if (userPath && userPath[0]) {
             path = userPath[0].path;
         }
         path = os.platform() === 'win32' ? path.replaceAll('/', '\\').substr(1, path.length - 1) : path;
 
         // create folders
-        var folders = [
+        let folders = [
             ph.join(path, 'Configurations'),
             ph.join(path, 'Models'),
             ph.join(path, 'Plugins'),
@@ -93,18 +93,18 @@ export class CreateProjectCommand extends Command {
 
     // take the input from openDialog
     private static createProjectManifest(userPath: any) {
-        var manifastObjt = Utilities.getDefaultProjectManifest();
-        var manifastData = JSON.stringify(manifastObjt, null, '\t');
+        let manifastObjt = Utilities.getDefaultProjectManifest();
+        let manifastData = JSON.stringify(manifastObjt, null, '\t');
 
         // setup path
-        var path = '';
+        let path = '';
         if (userPath && userPath[0]) {
             path = userPath[0].path;
         }
         path = os.platform() === 'win32' ? path.replaceAll('/', '\\').substr(1, path.length - 1) : path;
 
         // create manifest
-        var manifestPath = ph.join(path, 'Manifest.json');
+        let manifestPath = ph.join(path, 'Manifest.json');
         fs.writeFile(manifestPath, manifastData, (err) => {
             if (err) {
                 vscode.window.showErrorMessage(err.message);
@@ -115,14 +115,14 @@ export class CreateProjectCommand extends Command {
     // open a folder in VS Code workspace
     private static openFolder(userPath: any) {
         // build
-        var path = '';
+        let path = '';
         if (userPath && userPath[0]) {
             path = userPath[0].path;
         }
         path = os.platform() === 'win32' ? path.replaceAll('/', '\\').substr(1, path.length - 1) : path;
 
         // setup
-        var uri = vscode.Uri.file(path);
+        let uri = vscode.Uri.file(path);
 
         // invoke
         vscode.commands.executeCommand('vscode.openFolder', uri);

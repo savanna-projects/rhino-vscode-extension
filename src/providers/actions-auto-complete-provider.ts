@@ -97,7 +97,7 @@ export class ActionsAutoCompleteProvider extends Provider {
      */
     public register(context: vscode.ExtensionContext): any {
         // setup
-        var instance = new ActionsAutoCompleteProvider()
+        let instance = new ActionsAutoCompleteProvider()
             .setPattern(this.pattern)
             .setManifests(this.manifests)
             .setAttributes(this.attributes)
@@ -105,21 +105,21 @@ export class ActionsAutoCompleteProvider extends Provider {
             .setAnnotations(this.annotations);
 
         // register: actions
-        var action = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let action = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getActionsCompletionItems(document, position);
             }
         });
 
         // register: parameters
-        var parameters = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let parameters = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getParametersCompletionItems(document, position);
             }
         }, '-');
 
         // register
-        var items = [action, parameters];
+        let items = [action, parameters];
         context.subscriptions.push(...items);
 
         // save references
@@ -148,16 +148,16 @@ export class ActionsAutoCompleteProvider extends Provider {
       └────────────────────────────────────────────────────────*/
     private getActionsCompletionItems(document: vscode.TextDocument, position: vscode.Position): vscode.CompletionItem[] {
         // bad request
-        var isCli = this.isCli(document.lineAt(position.line).text, position.character);
-        var isUnderSection = this.isUnderAnnotation(document, position, 'test-actions', this.annotations);
+        let isCli = this.isCli(document.lineAt(position.line).text, position.character);
+        let isUnderSection = this.isUnderAnnotation(document, position, 'test-actions', this.annotations);
 
         if (isCli || !isUnderSection) {
             return [];
         }
 
         // setup
-        var snippets = this.getSnippets();
-        var provieders: vscode.CompletionItem[] = [];
+        let snippets = this.getSnippets();
+        let provieders: vscode.CompletionItem[] = [];
 
         // build
         snippets.forEach(i => provieders.push(this.getActionsCompletionItem(i)));
@@ -168,7 +168,7 @@ export class ActionsAutoCompleteProvider extends Provider {
 
     private getActionsCompletionItem(snippet: RhinoSnippet): vscode.CompletionItem {
         // setup
-        var item = new vscode.CompletionItem(snippet.name);
+        let item = new vscode.CompletionItem(snippet.name);
 
         // build
         item.insertText = new vscode.SnippetString(snippet.snippet);
@@ -184,7 +184,7 @@ export class ActionsAutoCompleteProvider extends Provider {
 
     private getSnippets(): RhinoSnippet[] {
         // setup
-        var snippets: RhinoSnippet[] = [];
+        let snippets: RhinoSnippet[] = [];
 
         // build: argument
         this.manifests.forEach(i => snippets.push(...this.getSnippet(i)));
@@ -195,22 +195,22 @@ export class ActionsAutoCompleteProvider extends Provider {
 
     private getSnippet(manifest: any): RhinoSnippet[] {
         // setup
-        var token = this.getActionToken(manifest);
-        var literal = manifest.key.replace(/([A-Z])/g, " $1").trim().toLowerCase();
-        var snippets: RhinoSnippet[] = [];
+        let token = this.getActionToken(manifest);
+        let literal = manifest.key.replace(/([A-Z])/g, " $1").trim().toLowerCase();
+        let snippets: RhinoSnippet[] = [];
 
         // setup conditions
-        var isProperties = manifest.entity.hasOwnProperty('properties');
-        var isOnElement = isProperties && manifest.entity.properties.hasOwnProperty('elementToActOn');
-        var isOnAttribute = isProperties && manifest.entity.properties.hasOwnProperty('elementAttributeToActOn');
-        var isArgument = isProperties && manifest.entity.properties.hasOwnProperty('argument');
-        var isRegex = isProperties && manifest.entity.properties.hasOwnProperty('regularExpression');
-        var isCli = manifest.entity.hasOwnProperty('cliArguments');
+        let isProperties = manifest.entity.hasOwnProperty('properties');
+        let isOnElement = isProperties && manifest.entity.properties.hasOwnProperty('elementToActOn');
+        let isOnAttribute = isProperties && manifest.entity.properties.hasOwnProperty('elementAttributeToActOn');
+        let isArgument = isProperties && manifest.entity.properties.hasOwnProperty('argument');
+        let isRegex = isProperties && manifest.entity.properties.hasOwnProperty('regularExpression');
+        let isCli = manifest.entity.hasOwnProperty('cliArguments');
 
         // setup: aggregated data
-        var agName: string[] = [];
-        var agSnpt: string[] = [];
-        var iterations = isCli
+        let agName: string[] = [];
+        let agSnpt: string[] = [];
+        let iterations = isCli
             ? [{ token: '{${1:argument value}}', name: 'w/ argument' }, { token: '{{$ ${1:parameters values}}}', name: 'w/ arguments' }]
             : [{ token: '{${1:argument value}}', name: 'w/ argument' }];
 
@@ -220,15 +220,15 @@ export class ActionsAutoCompleteProvider extends Provider {
         snippets.push(this.getRhinoSnippet(manifest, literal, token));
 
         // build
-        for (let i = 0; i < iterations.length; i++) {
+        for (const iteration of iterations) {
             if (isArgument && !isCli) {
-                agName.push(iterations[i].name);
-                agSnpt.push(iterations[i].token);
+                agName.push(iteration.name);
+                agSnpt.push(iteration.token);
                 snippets.push(this.getRhinoSnippet(manifest, agName.join(' '), agSnpt.join(' ')));
             }
             if (isCli) {
-                agName.push(iterations[i].name);
-                agSnpt.push(iterations[i].token);
+                agName.push(iteration.name);
+                agSnpt.push(iteration.token);
                 snippets.push(this.getRhinoSnippet(manifest, agName.join(' '), agSnpt.join(' ')));
             }
             if (isOnElement) {
@@ -256,35 +256,27 @@ export class ActionsAutoCompleteProvider extends Provider {
 
     private getActionToken(manifest: any): string {
         // setup
-        var action = manifest.key.replace(/([A-Z])/g, " $1").trim().toLowerCase();
-        var aliases: string[] = [];
+        let action = manifest.key.replace(/([A-Z])/g, " $1").trim().toLowerCase();
+        let aliases: string[] = [];
 
         // build
         if (manifest.hasOwnProperty('aliases') && manifest.aliases !== null) {
-            for (var i = 0; i < manifest.aliases.length; i++) {
-                aliases.push(manifest.aliases[i].replace(/([A-Z])/g, " $1").trim().toLowerCase());
+            for (const alias of manifest.aliases) {
+                aliases.push(alias.replace(/([A-Z])/g, " $1").trim().toLowerCase());
             }
         }
 
         // get
-        return aliases.length < 1 ? action : '{${1|' + action + ',' + aliases.sort().join(',') + '|}}';
+        return aliases.length < 1 ? action : '{${1|' + action + ',' + [...aliases].sort().join(',') + '|}}';
     }
 
     private getElementToken(manifest: any) {
-        // setup
-        var locatorsVerbs: string[] = [];
-
-        // build
-        for (let i = 0; i < this.locators.length; i++) {
-            locatorsVerbs.push(this.locators[i].verb);
-        }
-
         // get
         return manifest.verb + ' {${5:locator value}} by ' + '{${6|' + this.getLocatorsEnums(this.locators) + '|}}';
     }
 
     private getAttributeToken() {
-        return 'from {${7|' + this.attributes.sort().map(i => i.key).join(',') + '|}}';
+        return 'from {${7|' + [...this.attributes].sort().map(i => i.key).join(',') + '|}}';
     }
 
     private getRegexToken() {
@@ -298,7 +290,7 @@ export class ActionsAutoCompleteProvider extends Provider {
     private getParametersCompletionItems(document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
         // setup
-        var matches = document.lineAt(position).text.match(this.pattern);
+        let matches = document.lineAt(position).text.match(this.pattern);
 
         // not found
         if (matches === null) {
@@ -306,7 +298,7 @@ export class ActionsAutoCompleteProvider extends Provider {
         }
 
         // build
-        var action = matches[0].toLowerCase().split(' ');
+        let action = matches[0].toLowerCase().split(' ');
 
         // build
         for (let i = 0; i < action.length; i++) {
@@ -314,8 +306,8 @@ export class ActionsAutoCompleteProvider extends Provider {
         }
 
         // get
-        var key = action.join('');
-        var manifest = this.manifests.find(i => i.key === key);
+        let key = action.join('');
+        let manifest = this.manifests.find(i => i.key === key);
 
         // not found
         if (manifest === undefined) {
@@ -329,12 +321,12 @@ export class ActionsAutoCompleteProvider extends Provider {
     private getParametersBehaviors(manifest: any, document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem[] {
         // setup
-        var items: vscode.CompletionItem[] = [];
-        var keys = Object.keys(manifest.entity.cliArguments);
+        let items: vscode.CompletionItem[] = [];
+        let keys = Object.keys(manifest.entity.cliArguments);
 
         // build: list
-        for (var i = 0; i < keys.length; i++) {
-            var item = this.getParametersBehavior(manifest, keys[i], document, position);
+        for (const key of keys) {
+            let item = this.getParametersBehavior(manifest, key, document, position);
 
             if (item.label !== '-1') {
                 items.push(item);
@@ -348,10 +340,10 @@ export class ActionsAutoCompleteProvider extends Provider {
     private getParametersBehavior(manifest: any, key: string, document: vscode.TextDocument, position: vscode.Position)
         : vscode.CompletionItem {
         // setup
-        var line = document.lineAt(position).text;
-        var isKey = line.match("(?<!['])" + manifest.literal);
-        var isParameters = line.substr(0, position.character).match('(?<={{\\$\\s+.*?)--');
-        var isParameter = line[position.character - 3] + line[position.character - 2] + line[position.character - 1] === ' --';
+        let line = document.lineAt(position).text;
+        let isKey = line.match("(?<!['])" + manifest.literal);
+        let isParameters = line.substring(0, position.character).match('(?<={{\\$\\s+.*?)--');
+        let isParameter = line[position.character - 3] + line[position.character - 2] + line[position.character - 1] === ' --';
 
         // not found
         if (!isKey || !isParameters || !isParameter) {
@@ -359,7 +351,7 @@ export class ActionsAutoCompleteProvider extends Provider {
         }
 
         // build
-        var item = new vscode.CompletionItem(key, vscode.CompletionItemKind.Variable);
+        let item = new vscode.CompletionItem(key, vscode.CompletionItemKind.Variable);
         item.documentation = manifest.entity.cliArguments[key];
 
         // get

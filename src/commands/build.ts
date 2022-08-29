@@ -31,7 +31,7 @@ export class BuildCommand extends Command {
      */
     public register(): any {
         // build
-        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             this.invoke(undefined);
         });
 
@@ -46,5 +46,7 @@ export class BuildCommand extends Command {
         this.invoke(callback);
     }
 
-    private invoke(callback: any) { }
+    private invoke(callback: any) { 
+        callback();
+    }
 }

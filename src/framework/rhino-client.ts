@@ -5,7 +5,6 @@
  */
 import { HttpCommand } from "./http-command";
 import { HttpClient } from "./http-client";
-import { DH_UNABLE_TO_CHECK_GENERATOR } from "constants";
 
 export class RhinoClient {
     // members
@@ -20,11 +19,21 @@ export class RhinoClient {
 
     public addEnvironment(environment: any, callback: any) {
         // setup
-        var httpCommand = new HttpCommand()
+        let httpCommand = new HttpCommand()
             .setMethod('POST')
             .setBody(environment)
             .setCommand('/api/v3/environment')
             .addHeader('Content-Type', 'application/json');
+
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
+
+    public syncEnvironment(callback: any) {
+        // setup
+        let httpCommand = new HttpCommand()
+            .setMethod('GET')
+            .setCommand('/api/v3/environment/sync');
 
         // get
         this.httpClient.invokeWebRequest(httpCommand, callback);
@@ -37,7 +46,7 @@ export class RhinoClient {
      */
     public getPlugins(callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/plugins';
 
         // get
@@ -51,7 +60,7 @@ export class RhinoClient {
      */
     public getPluginsByConfiguration(configuration: string, callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = `/api/v3/meta/plugins/configurations/${configuration}`;
 
         // get
@@ -65,7 +74,7 @@ export class RhinoClient {
      */
     public getMacros(callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/macros';
 
         // get
@@ -80,7 +89,7 @@ export class RhinoClient {
      */
     public getAnnotation(key: string, callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/annotations/' + key;
 
         // get
@@ -94,7 +103,7 @@ export class RhinoClient {
      */
     public getAnnotations(callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/annotations';
 
         // get
@@ -109,7 +118,7 @@ export class RhinoClient {
      */
     public getLocator(key: string, callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/locators/' + key;
 
         // get
@@ -123,7 +132,7 @@ export class RhinoClient {
      */
     public getLocators(callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/locators';
 
         // get
@@ -137,7 +146,7 @@ export class RhinoClient {
      */
     public getAssertions(callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/assertions';
 
         // get
@@ -151,7 +160,7 @@ export class RhinoClient {
      */
     public getOperators(callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/operators';
 
         // get
@@ -165,7 +174,7 @@ export class RhinoClient {
      */
     public getPluginsReferences(callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/plugins/references';
 
         // get
@@ -180,7 +189,7 @@ export class RhinoClient {
      */
     public getPlugin(key: string, callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/plugins/' + key;
 
         // get
@@ -194,7 +203,7 @@ export class RhinoClient {
      */
     public getAttributes(callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/attributes';
 
         // get
@@ -209,7 +218,7 @@ export class RhinoClient {
      */
     public getPluginReference(key: string, callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/plugins/references/' + key;
 
         // get
@@ -224,7 +233,7 @@ export class RhinoClient {
      */
     public invokeConfiguration(configuration: any, callback: any) {
         // setup
-        var httpCommand = new HttpCommand()
+        let httpCommand = new HttpCommand()
             .setMethod('POST')
             .setBody(configuration)
             .setCommand('/api/v3/rhino/configurations/invoke')
@@ -242,7 +251,7 @@ export class RhinoClient {
      */
     public createTestCase(createModel: any, callback: any) {
         // setup
-        var httpCommand = new HttpCommand()
+        let httpCommand = new HttpCommand()
             .setMethod('POST')
             .setBody(createModel)
             .setCommand('/api/v3/integration/test/create')
@@ -260,7 +269,7 @@ export class RhinoClient {
      */
     public getTestCase(integrationModel: any, callback: any) {
         // setup
-        var httpCommand = new HttpCommand()
+        let httpCommand = new HttpCommand()
             .setMethod('POST')
             .setBody(integrationModel)
             .setCommand('/api/v3/integration/test/spec')
@@ -278,7 +287,7 @@ export class RhinoClient {
      */
     public getTestCases(integrationModel: any, callback: any) {
         // setup
-        var httpCommand = new HttpCommand()
+        let httpCommand = new HttpCommand()
             .setMethod('POST')
             .setBody(integrationModel)
             .setCommand('/api/v3/integration/test/specs')
@@ -296,7 +305,7 @@ export class RhinoClient {
      */
     public createPlugins(createModel: string, callback: any) {
         // setup
-        var httpCommand = new HttpCommand()
+        let httpCommand = new HttpCommand()
             .setMethod('POST')
             .setBody(createModel)
             .setCommand('/api/v3/plugins')
@@ -314,7 +323,7 @@ export class RhinoClient {
      */
     public createModelsMd(createModel: string, callback: any) {
         // setup
-        var httpCommand = new HttpCommand()
+        let httpCommand = new HttpCommand()
             .setMethod('POST')
             .setBody(createModel)
             .setCommand('/api/v3/models/md')
@@ -326,7 +335,7 @@ export class RhinoClient {
 
     public createModels(createModel: any[], callback: any) {
         // setup
-        var httpCommand = new HttpCommand()
+        let httpCommand = new HttpCommand()
             .setMethod('POST')
             .setBody(createModel)
             .setCommand('/api/v3/models')
@@ -343,7 +352,7 @@ export class RhinoClient {
      */
     public getModels(callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/models';
 
         // get
@@ -357,7 +366,7 @@ export class RhinoClient {
      */
     public deleteModels(callback: any) {
         // setup
-        var httpCommand = new HttpCommand().setMethod('DELETE').setCommand('/api/v3/models');
+        let httpCommand = new HttpCommand().setMethod('DELETE').setCommand('/api/v3/models');
 
         // get
         this.httpClient.invokeWebRequest(httpCommand, callback);
@@ -370,7 +379,7 @@ export class RhinoClient {
      */
     public getVerbs(callback: any) {
         // setup
-        var httpCommand = new HttpCommand();
+        let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/meta/verbs';
 
         // get
@@ -379,7 +388,7 @@ export class RhinoClient {
 
     public createConfiguration(configuration: any, callback: any) {
         // setup
-        var httpCommand = new HttpCommand()
+        let httpCommand = new HttpCommand()
             .setMethod('POST')
             .setBody(configuration)
             .setCommand('/api/v3/configurations')
@@ -391,7 +400,7 @@ export class RhinoClient {
 
     public deleteConfiguration(configuration: any, callback: any) {
         // setup
-        var httpCommand = new HttpCommand()
+        let httpCommand = new HttpCommand()
             .setMethod('DELETE')
             .setCommand(`/api/v3/configurations/${configuration}`);
 

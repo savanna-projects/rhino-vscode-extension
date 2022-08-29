@@ -41,7 +41,7 @@ export class ConnectServerCommand extends Command {
      */
     public register(): any {
         // build
-        var command = vscode.commands.registerCommand(this.getCommandName(), () => {
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             this.invoke();
         });
 
@@ -59,8 +59,8 @@ export class ConnectServerCommand extends Command {
     // invocation routine
     private invoke() {
         // setup
-        var client = this.getRhinoClient();
-        var context = this.getContext();
+        let client = this.getRhinoClient();
+        let context = this.getContext();
 
         // build
         try {
@@ -89,16 +89,16 @@ export class ConnectServerCommand extends Command {
         vscode.window.setStatusBarMessage('$(sync~spin) Loading action(s)...');
 
         // setup
-        var configuration = Utilities.getConfigurationByManifest();
+        let configuration = Utilities.getConfigurationByManifest();
 
         // build
         client.createConfiguration(configuration, (data: any) => {
-            var response = JSON.parse(data);
-            var configurationId = Utilities.isNullOrUndefined(response) || Utilities.isNullOrUndefined(response.id)
+            let response = JSON.parse(data);
+            let configurationId = Utilities.isNullOrUndefined(response) || Utilities.isNullOrUndefined(response.id)
                 ? ''
                 : response.id;
             client.getPluginsByConfiguration(configurationId, (plugins: any) => {
-                var hasNoPlugins = Utilities.isNullOrUndefined(plugins) || plugins === '';
+                let hasNoPlugins = Utilities.isNullOrUndefined(plugins) || plugins === '';
                 if (hasNoPlugins) {
                     client.getPlugins((plugins: any) => {
                         this.getMetadata(client, context, plugins, '', callback);
@@ -115,11 +115,11 @@ export class ConnectServerCommand extends Command {
         client.getLocators((locators: any) => {
             client.getAttributes((attributes: any) => {
                 client.getAnnotations((annotations: any) => {
-                    var actionsManifests = JSON.parse(plugins);
-                    var _locators = JSON.parse(locators);
-                    var _attributes = JSON.parse(attributes);
-                    var _annotations = JSON.parse(annotations);
-                    var pluginsPattern = Utilities.getPluginsPattern(actionsManifests);
+                    let actionsManifests = JSON.parse(plugins);
+                    let _locators = JSON.parse(locators);
+                    let _attributes = JSON.parse(attributes);
+                    let _annotations = JSON.parse(annotations);
+                    let pluginsPattern = Utilities.getPluginsPattern(actionsManifests);
 
                     new ActionsAutoCompleteProvider()
                         .setPattern(pluginsPattern)
