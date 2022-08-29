@@ -211,8 +211,8 @@ export class ActionsAutoCompleteProvider extends Provider {
         var agName: string[] = [];
         var agSnpt: string[] = [];
         var iterations = isCli
-            ? [{ token: '{${1:argument value}}', name: 'w/ argumet' }, { token: '{{$ ${1:parameters values}}}', name: 'w/ argumets' }]
-            : [{ token: '{${1:argument value}}', name: 'w/ argumet' }];
+            ? [{ token: '{${1:argument value}}', name: 'w/ argument' }, { token: '{{$ ${1:parameters values}}}', name: 'w/ arguments' }]
+            : [{ token: '{${1:argument value}}', name: 'w/ argument' }];
 
         // default
         agName.push(literal);

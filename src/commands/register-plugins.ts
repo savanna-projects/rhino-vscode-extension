@@ -73,7 +73,8 @@ export class RegisterPluginsCommand extends Command {
                 plugins.push(plugin);
             }
 
-            var createModel = plugins
+            var distinctPlugins = [...new Set(plugins)];
+            var createModel = distinctPlugins
                 .join("\n>>>\n")
                 .split('\n')
                 .map(i => i.replace(/^\d+\.\s+/, ''))
