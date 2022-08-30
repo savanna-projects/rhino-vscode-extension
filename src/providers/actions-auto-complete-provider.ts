@@ -146,7 +146,8 @@ export class ActionsAutoCompleteProvider extends Provider {
       │
       │ A collection of functions to factor auto-complete items.
       └────────────────────────────────────────────────────────*/
-    private getActionsCompletionItems(document: vscode.TextDocument, position: vscode.Position): vscode.CompletionItem[] {
+    private getActionsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
+        : vscode.CompletionItem[] {
         // bad request
         let isCli = this.isCli(document.lineAt(position.line).text, position.character);
         let isUnderSection = this.isUnderAnnotation(document, position, 'test-actions', this.annotations);

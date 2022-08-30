@@ -67,8 +67,7 @@ export class RegisterPluginsCommand extends Command {
         Utilities.getFiles(pluginsFolder, (files: string[]) => {
             let plugins: string[] = [];
 
-            for (let i = 0; i < files.length; i++) {
-                let file = files[i];
+            for (const file of files) {
                 let plugin = this.getPluginsFromFile(file);
                 plugins.push(plugin);
             }

@@ -11,6 +11,7 @@ import { ActionsAutoCompleteProvider } from '../providers/actions-auto-complete-
 import { AnnotationsAutoCompleteProvider } from '../providers/annotations-auto-complete-provider';
 import { AssertionsAutoCompleteProvider } from '../providers/assertions-auto-complete-provider';
 import { DataAutoCompleteProvider } from '../providers/data-auto-complete-provider';
+import { DefinitionProvider } from '../providers/definition-provider';
 import { MacrosAutoCompleteProvider } from '../providers/macros-auto-complete-provider';
 import { ModelsAutoCompleteProvider } from '../providers/models-auto-complete-provider';
 import { ParametersAutoCompleteProvider } from '../providers/parameters-auto-complete-provider';
@@ -70,7 +71,9 @@ export class ConnectServerCommand extends Command {
                         this.registerMacros(client, context, (client: any, context: any) => {
                             this.registerDataDrivenSnippet(client, context, (client: any, context: any) => {
                                 this.registerModels(client, context, () => {
-                                    new CreateTm(context).invokeCommand();
+                                    this.registerDefinitions(client, context, ()=> {
+                                        new CreateTm(context).invokeCommand();
+                                    });
                                 });
                             });
                         });
@@ -258,5 +261,10 @@ export class ConnectServerCommand extends Command {
             }
             callback(client, context);
         });
+    }
+
+    private registerDefinitions(client: RhinoClient, context: vscode.ExtensionContext, callback: any){
+        new DefinitionProvider().register(context);
+        callback(client, context);
     }
 }

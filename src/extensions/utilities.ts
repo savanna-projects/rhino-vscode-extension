@@ -102,12 +102,13 @@ export class Utilities {
                     list.push(filePath);
                 }
             }
-
-            callback(list);
         };
 
-        // get
-        return getFilesFromDirectory(directory)
+        // build
+        getFilesFromDirectory(directory);
+
+        // callback
+        callback(list);
     }
 
     /**

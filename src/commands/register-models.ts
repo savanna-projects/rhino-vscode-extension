@@ -78,9 +78,8 @@ export class RegisterModelsCommand extends Command {
         // iterate
         Utilities.getFiles(modelsFolder, (files: string[]) => {
             let modelsData = [];
-            for (let i = 0; i < files.length; i++) {
+            for (const modelFile of files) {
                 try {
-                    const modelFile = files[i];
                     let modelStr = fs.readFileSync(modelFile, 'utf8');
                     let isJson = this.isJson(modelStr);
                     let modelData = isJson ? JSON.parse(modelStr) : modelStr;
