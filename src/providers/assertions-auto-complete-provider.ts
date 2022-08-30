@@ -121,13 +121,16 @@ export class AssertionsAutoCompleteProvider extends Provider {
         }
 
         // build
-        return this.manifests.map(function (i) {
+        let items = this.manifests.map(function (i) {
             let assertion = new vscode.CompletionItem(i.literal, vscode.CompletionItemKind.Variable);
             assertion.detail = 'code';
             assertion.documentation = i.entity.description;
 
             return assertion;
         });
+
+        // get
+        return [...new Map(items.map(item => [item.label, item])).values()];
     }
 
     private getAssertionsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
@@ -142,17 +145,18 @@ export class AssertionsAutoCompleteProvider extends Provider {
         }
 
         // build
-        let locators = 'of {${3:locator value}} by ' + '{${4|' + this.getLocatorsEnums(this.locators) + '|}} ';
-        let operators = '${5|' + this.operators.map((i) => i.literal.toLowerCase()).sort() + '|} ';
-        let attributes = '{${6|' + [...this.attributes].sort().map(i => i.key).join(',') + '|}} ';
+        let locators = 'of {${3:locator value}} by ' + '{${4|' + this.getLocatorsEnums([...new Set(this.locators)]) + '|}} ';
+        let operators = '${5|' + [...new Set(this.operators)].map((i) => i.literal.toLowerCase()).sort() + '|} ';
+        let attributes = '{${6|' + [...new Set(this.attributes)].sort().map(i => i.key).join(',') + '|}} ';
 
         // get
-        return [
+        let snippets = [
             this.getWithElement(locators, operators),
             this.getWithElementWithAttribute(locators, operators, attributes),
             this.getWithElementWithRegex(locators, operators),
             this.getWithElementWithAttributeWithRegex(locators, operators, attributes)
         ];
+        return [...new Map(snippets.map(item => [item.label, item])).values()];
     }
 
     private getWithElement(locators: string, operators: string): vscode.CompletionItem {

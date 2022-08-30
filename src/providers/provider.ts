@@ -46,7 +46,7 @@ export abstract class Provider {
     /**
      * Summary. Returns true if the current position in the current document is under a given annotation.
      * 
-     * @param manifests A collection of locators references as returns by Rhino Server.
+     * @param annotations A collection of locators references as returns by Rhino Server.
      * @returns Self reference.
      */
     public isUnderAnnotation(document: vscode.TextDocument, position: vscode.Position, annotation: string, annotations: any[])
@@ -72,7 +72,7 @@ export abstract class Provider {
     /**
      * Summary. Returns a complete text section placed under the given annotation.
      * 
-     * @param manifests A collection of annotations references as returns by Rhino Server.
+     * @param annotations A collection of annotations references as returns by Rhino Server.
      * @returns Self reference.
      */
     public getSection(document: vscode.TextDocument, annotation: string, annotations: any[])

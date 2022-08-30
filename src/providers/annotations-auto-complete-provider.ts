@@ -83,6 +83,6 @@ export class AnnotationsAutoCompleteProvider extends Provider {
         }
 
         // get
-        return annotations;
+        return [...new Map(annotations.map(item => [item.label, item])).values()];
     }
 }

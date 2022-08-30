@@ -95,7 +95,7 @@ export class MacrosAutoCompleteProvider extends Provider {
         }
 
         // get
-        return items.sort();
+        return [...new Map(items.map(item => [item.label, item])).values()].sort();
     }
 
     private getMacrosParameters(document: vscode.TextDocument, position: vscode.Position)
@@ -133,7 +133,8 @@ export class MacrosAutoCompleteProvider extends Provider {
         }
 
         // get
-        return this.getParametersBehaviors(manifest);
+        let items = this.getParametersBehaviors(manifest);
+        return [...new Map(items.map(item => [item.label, item])).values()];
     }
 
     private getParametersBehaviors(manifest: any): vscode.CompletionItem[] {
@@ -151,7 +152,7 @@ export class MacrosAutoCompleteProvider extends Provider {
         }
 
         // get
-        return items;
+        return [...new Map(items.map(item => [item.label, item])).values()];
     }
 
     private getParametersBehavior(manifest: any, key: string): vscode.CompletionItem {

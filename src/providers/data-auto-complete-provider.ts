@@ -99,6 +99,8 @@ export class DataAutoCompleteProvider extends Provider {
             '|---------------------|---------------------|\n' +
             '|value one iteration 1|value two iteration 1|\n' +
             '|value one iteration 2|value two iteration 2|';
-        return [mdTable];
+
+        // get
+        return [...new Map([mdTable].map(item => [item.label, item])).values()];
     }
 }

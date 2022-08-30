@@ -86,7 +86,7 @@ export class ModelsAutoCompleteProvider extends Provider {
         }
 
         // get
-        return items;
+        return [...new Map(items.map(item => [item.label, item])).values()];
     }
 
     private getModelsCompletionItem(manifest: any, range: vscode.Range): vscode.CompletionItem[] {
@@ -110,6 +110,6 @@ export class ModelsAutoCompleteProvider extends Provider {
         });
 
         // get
-        return items.sort((a, b) => (a.label < b.label ? -1 : 1));
+        return [...new Map(items.map(item => [item.label, item])).values()].sort((a, b) => (a.label < b.label ? -1 : 1));
     }
 }

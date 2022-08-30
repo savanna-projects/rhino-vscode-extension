@@ -162,8 +162,8 @@ export class ActionsAutoCompleteProvider extends Provider {
         // build
         snippets.forEach(i => provieders.push(this.getActionsCompletionItem(i)));
 
-        // TODO: distinct
-        return provieders;
+        // get
+        return [...new Map(provieders.map(item => [item.label, item])).values()];
     }
 
     private getActionsCompletionItem(snippet: RhinoSnippet): vscode.CompletionItem {
@@ -223,7 +223,7 @@ export class ActionsAutoCompleteProvider extends Provider {
         // build
         for (const iteration of iterations) {
             iteration.name = literal + ` ${iteration.name}`;
-            iteration.token = token + ` ${iteration.token}`; 
+            iteration.token = token + ` ${iteration.token}`;
             let onSnippets = this.getSnippetEntries(manifest, conditions, iteration);
             snippets.push(...onSnippets);
         }
@@ -331,7 +331,8 @@ export class ActionsAutoCompleteProvider extends Provider {
         }
 
         // get
-        return this.getParametersBehaviors(manifest, document, position);
+        let items = this.getParametersBehaviors(manifest, document, position);
+        return [...new Map(items.map(item => [item.label, item])).values()];
     }
 
     private getParametersBehaviors(manifest: any, document: vscode.TextDocument, position: vscode.Position)
@@ -350,7 +351,7 @@ export class ActionsAutoCompleteProvider extends Provider {
         }
 
         // get
-        return items;
+        return [...new Map(items.map(item => [item.label, item])).values()];
     }
 
     private getParametersBehavior(manifest: any, key: string, document: vscode.TextDocument, position: vscode.Position)

@@ -64,7 +64,6 @@ export class ParametersAutoCompleteProvider extends Provider {
         return this;
     }
 
-    // TODO: improve with some code reuse and code clean.
     /*┌─[ AUTO-COMPLETE ITEMS - PARAMETERS ]───────────────────
       │
       │ A collection of functions to factor auto-complete items.
@@ -100,7 +99,7 @@ export class ParametersAutoCompleteProvider extends Provider {
         }
 
         // get
-        return items;
+        return [...new Map(items.map(item => [item.label, item])).values()];
     }
 
     private getPluginParametersCompletionItems(document: vscode.TextDocument)
@@ -135,6 +134,6 @@ export class ParametersAutoCompleteProvider extends Provider {
         }
 
         // get
-        return items;
+        return [...new Map(items.map(item => [item.label, item])).values()];
     }
 }
