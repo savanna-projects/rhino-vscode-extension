@@ -268,10 +268,6 @@ export class FormatTestCaseCommand extends Command {
 
     private getAssertions(testCase: string[], annotations: string[], totalActions: number): any {
         // setup
-        const assertCommentRegex = /^(\W+)?\/\*{2}(\s+)?(\[\d+\])/g;
-        const brokenCommentRegex = /^((\W+)?(\[\d+\]))(\s+)?\/\*{2}/g;
-        const commentRegex = /^(\W+)?(\s+)?\/\*{2}/g;
-        const ignoreRegex = /^(\/\*{2})(\s+)?(commented|out of bound|broken)/igm;
         const indexRegex = /^\[\d+\]/g;
         const indexNumberRegex = /(?<=^\[)\d+(?=\])/g;
         let map: any[] = [];
@@ -288,25 +284,13 @@ export class FormatTestCaseCommand extends Command {
         // iterate
         for (let i = 1; i < expectedResults.length; i++) {
             const assertion = expectedResults[i].trim();
-            let isCommentedOut = assertion.match(assertCommentRegex) !== null;
-            let isComment = !isCommentedOut && assertion.match(commentRegex) !== null;
-            let isBroken = !isCommentedOut && !isComment && (assertion.match(indexRegex) === null || assertion.match(brokenCommentRegex) !== null);
-            let ignore = assertion.match(ignoreRegex) !== null;
+            let evaluation = this.getEvaluation(assertion, lastIndex, i);
 
-            if (ignore) {
+            if (evaluation == null) {
                 continue;
             }
-            if (isCommentedOut) {
-                map.push({ type: "commentedOut", action: assertion, index: -1, expected: [] });
-                continue;
-            }
-            if (isComment) {
-                let commentIndex = lastIndex > 1 ? lastIndex : i;
-                map.push({ type: "comment", action: assertion, index: commentIndex, expected: [] });
-                continue;
-            }
-            if (isBroken) {
-                map.push({ type: "broken", action: assertion, index: -1, expected: [] });
+            if (evaluation.type !== 'N/A') {
+                map.push(evaluation);
                 continue;
             }
 
@@ -330,6 +314,49 @@ export class FormatTestCaseCommand extends Command {
             section: [...map].sort((a, b) => (a.index < b.index ? -1 : 1)),
             total: map.filter(i => i === 'assertion').length
         };
+    }
+
+    private getEvaluation(assertion: any, lastIndex: number, index: number) {
+        let conditions = this.getConditions(assertion);
+
+        if (conditions.ignore) {
+            return null;
+        }
+        if (conditions.isCommentedOut) {
+            return { type: "commentedOut", action: assertion, index: -1, expected: [] }
+        }
+        if (conditions.isComment) {
+            let commentIndex = lastIndex > 1 ? lastIndex : index;
+            return { type: "comment", action: assertion, index: commentIndex, expected: [] }
+        }
+        if (conditions.isBroken) {
+            return { type: "broken", action: assertion, index: -1, expected: [] }
+        }
+
+        return { type: "N/A" };
+    }
+
+    private getConditions(assertion: any): any {
+        // constants
+        const assertCommentRegex = /^(\W+)?\/\*{2}(\s+)?(\[\d+\])/g;
+        const brokenCommentRegex = /^((\W+)?(\[\d+\]))(\s+)?\/\*{2}/g;
+        const commentRegex = /^(\W+)?(\s+)?\/\*{2}/g;
+        const ignoreRegex = /^(\/\*{2})(\s+)?(commented|out of bound|broken)/igm;
+        const indexRegex = /^\[\d+\]/g;
+
+        // build
+        let isCommentedOut = assertion.match(assertCommentRegex) !== null;
+        let isComment = !isCommentedOut && assertion.match(commentRegex) !== null;
+        let isBroken = !isCommentedOut && !isComment && (assertion.match(indexRegex) === null || assertion.match(brokenCommentRegex) !== null);
+        let ignore = assertion.match(ignoreRegex) !== null;
+
+        // get
+        return {
+            isCommentedOut: isCommentedOut,
+            isComment: isComment,
+            isBroken: isBroken,
+            ignore: ignore
+        }
     }
 
     private buildExpectedSection(expectedMap: any): string[] {

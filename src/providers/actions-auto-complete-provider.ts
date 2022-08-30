@@ -162,7 +162,7 @@ export class ActionsAutoCompleteProvider extends Provider {
         // build
         snippets.forEach(i => provieders.push(this.getActionsCompletionItem(i)));
 
-        // get
+        // TODO: distinct
         return provieders;
     }
 
@@ -175,7 +175,7 @@ export class ActionsAutoCompleteProvider extends Provider {
         item.documentation = new vscode.MarkdownString(snippet.documentation);
         item.kind = vscode.CompletionItemKind.Method;
         item.detail = snippet.detail;
-        
+
         // TODO: search rhino plugins and add link if found.
 
         // get
@@ -190,7 +190,8 @@ export class ActionsAutoCompleteProvider extends Provider {
         this.manifests.forEach(i => snippets.push(...this.getSnippet(i)));
 
         // get
-        return snippets;
+        const key = 'name';
+        return [...new Map(snippets.map(item => [item[key], item])).values()];
     }
 
     private getSnippet(manifest: any): RhinoSnippet[] {
@@ -206,52 +207,67 @@ export class ActionsAutoCompleteProvider extends Provider {
         let isArgument = isProperties && manifest.entity.properties.hasOwnProperty('argument');
         let isRegex = isProperties && manifest.entity.properties.hasOwnProperty('regularExpression');
         let isCli = manifest.entity.hasOwnProperty('cliArguments');
+        let conditions = {
+            isProperties: isProperties,
+            isOnElement: isOnElement,
+            isOnAttribute: isOnAttribute,
+            isArgument: isArgument,
+            isRegex: isRegex
+        };
 
         // setup: aggregated data
-        let agName: string[] = [];
-        let agSnpt: string[] = [];
         let iterations = isCli
             ? [{ token: '{${1:argument value}}', name: 'w/ argument' }, { token: '{{$ ${1:parameters values}}}', name: 'w/ arguments' }]
             : [{ token: '{${1:argument value}}', name: 'w/ argument' }];
 
-        // default
-        agName.push(literal);
-        agSnpt.push(token);
-        snippets.push(this.getRhinoSnippet(manifest, literal, token));
-
         // build
         for (const iteration of iterations) {
-            if (isArgument && !isCli) {
-                agName.push(iteration.name);
-                agSnpt.push(iteration.token);
-                snippets.push(this.getRhinoSnippet(manifest, agName.join(' '), agSnpt.join(' ')));
-            }
-            if (isCli) {
-                agName.push(iteration.name);
-                agSnpt.push(iteration.token);
-                snippets.push(this.getRhinoSnippet(manifest, agName.join(' '), agSnpt.join(' ')));
-            }
-            if (isOnElement) {
-                agName.push('w/ element');
-                agSnpt.push(this.getElementToken(manifest));
-                snippets.push(this.getRhinoSnippet(manifest, agName.join(' '), agSnpt.join(' ')));
-            }
-            if (isOnAttribute) {
-                agName.push('w/ attribute');
-                agSnpt.push(this.getAttributeToken());
-                snippets.push(this.getRhinoSnippet(manifest, agName.join(' '), agSnpt.join(' ')));
-            }
-            if (isRegex) {
-                agName.push('w/ regex');
-                agSnpt.push(this.getRegexToken());
-                snippets.push(this.getRhinoSnippet(manifest, agName.join(' '), agSnpt.join(' ')));
-            }
-            agName = [literal];
-            agSnpt = [token];
+            iteration.name = literal + ` ${iteration.name}`;
+            iteration.token = token + ` ${iteration.token}`; 
+            let onSnippets = this.getSnippetEntries(manifest, conditions, iteration);
+            snippets.push(...onSnippets);
         }
 
         // get
         return snippets;
+    }
+
+    private getSnippetEntries(manifest: any, conditions: any, iteration: any): RhinoSnippet[] {
+        // setup
+        let names: string[] = [];
+        let tokens: string[] = [];
+        let snippets: RhinoSnippet[] = [];
+
+        // default
+        if (conditions.isArgument && !conditions.isCli) {
+            names.push(iteration.name);
+            tokens.push(iteration.token);
+            snippets.push(this.getRhinoSnippet(manifest, names.join(' '), tokens.join(' ')));
+        }
+        if (conditions.isCli) {
+            names.push(iteration.name);
+            tokens.push(iteration.token);
+            snippets.push(this.getRhinoSnippet(manifest, names.join(' '), tokens.join(' ')));
+        }
+        if (conditions.isOnElement) {
+            names.push('w/ element');
+            tokens.push(this.getElementToken(manifest));
+            snippets.push(this.getRhinoSnippet(manifest, names.join(' '), tokens.join(' ')));
+        }
+        if (conditions.isOnAttribute) {
+            names.push('w/ attribute');
+            tokens.push(this.getAttributeToken());
+            snippets.push(this.getRhinoSnippet(manifest, names.join(' '), tokens.join(' ')));
+        }
+        if (conditions.isRegex) {
+            names.push('w/ regex');
+            tokens.push(this.getRegexToken());
+            snippets.push(this.getRhinoSnippet(manifest, names.join(' '), tokens.join(' ')));
+        }
+
+        // get
+        const key = 'name';
+        return [...new Map(snippets.map(item => [item[key], item])).values()];
     }
 
     private getActionToken(manifest: any): string {
