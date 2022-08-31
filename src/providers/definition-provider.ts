@@ -120,6 +120,11 @@ export class DefinitionProvider extends Provider {
     }
 
     private getPluginId(document: string[]): string {
+        // not found
+        if (document === undefined || document === null) {
+            return '';
+        }
+
         try {
             // setup
             let pattern = '^\\[test-id]';
@@ -130,6 +135,11 @@ export class DefinitionProvider extends Provider {
                 if (document[onLine].match(pattern) !== null) {
                     break;
                 }
+            }
+
+            // not found
+            if (document === undefined || document === null) {
+                return '';
             }
 
             // get
