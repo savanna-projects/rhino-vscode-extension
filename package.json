@@ -65,7 +65,7 @@
 			},
 			{
 				"command": "Get-Documentation",
-				"title": "Rhino: Markdown Documentation"
+				"title": "Rhino: Show Documentation"
 			}
 		],
 		"languages": [
@@ -103,7 +103,15 @@
 					"group": "navigation"
 				}
 			]
-		}
+		},
+		"keybindings": [
+			{
+				"command": "Get-Documentation",
+				"key": "ctrl+F1",
+				"mac": "cmd+F1",
+				"when": "resourceLangId == rhino"
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

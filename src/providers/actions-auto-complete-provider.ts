@@ -209,6 +209,7 @@ export class ActionsAutoCompleteProvider extends Provider {
         let isRegex = isProperties && manifest.entity.properties.hasOwnProperty('regularExpression');
         let isCli = manifest.entity.hasOwnProperty('cliArguments');
         let conditions = {
+            isCli: isCli,
             isProperties: isProperties,
             isOnElement: isOnElement,
             isOnAttribute: isOnAttribute,
@@ -240,12 +241,7 @@ export class ActionsAutoCompleteProvider extends Provider {
         let snippets: RhinoSnippet[] = [];
 
         // default
-        if (conditions.isArgument && !conditions.isCli) {
-            names.push(iteration.name);
-            tokens.push(iteration.token);
-            snippets.push(this.getRhinoSnippet(manifest, names.join(' '), tokens.join(' ')));
-        }
-        if (conditions.isCli) {
+        if (conditions.isCli || conditions.isArgument) {
             names.push(iteration.name);
             tokens.push(iteration.token);
             snippets.push(this.getRhinoSnippet(manifest, names.join(' '), tokens.join(' ')));

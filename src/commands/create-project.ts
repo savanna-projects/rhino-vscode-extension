@@ -75,7 +75,7 @@ export class CreateProjectCommand extends Command {
         if (userPath && userPath[0]) {
             path = userPath[0].path;
         }
-        path = os.platform() === 'win32' ? path.replaceAll('/', '\\').substr(1, path.length - 1) : path;
+        path = os.platform() === 'win32' ? path.replaceAll('/', '\\').substring(1, path.length - 1) : path;
 
         // create folders
         let folders = [
@@ -84,9 +84,9 @@ export class CreateProjectCommand extends Command {
             ph.join(path, 'Plugins'),
             ph.join(path, 'TestCases')
         ];
-        for (let i = 0; i < folders.length; i++) {
-            if (!fs.existsSync(folders[i])) {
-                fs.mkdirSync(folders[i], { recursive: true });
+        for (const folder of folders) {
+            if (!fs.existsSync(folder)) {
+                fs.mkdirSync(folder, { recursive: true });
             }
         }
     }
@@ -101,7 +101,7 @@ export class CreateProjectCommand extends Command {
         if (userPath && userPath[0]) {
             path = userPath[0].path;
         }
-        path = os.platform() === 'win32' ? path.replaceAll('/', '\\').substr(1, path.length - 1) : path;
+        path = os.platform() === 'win32' ? path.replaceAll('/', '\\').substring(1, path.length - 1) : path;
 
         // create manifest
         let manifestPath = ph.join(path, 'Manifest.json');
@@ -119,7 +119,7 @@ export class CreateProjectCommand extends Command {
         if (userPath && userPath[0]) {
             path = userPath[0].path;
         }
-        path = os.platform() === 'win32' ? path.replaceAll('/', '\\').substr(1, path.length - 1) : path;
+        path = os.platform() === 'win32' ? path.replaceAll('/', '\\').substring(1, path.length - 1) : path;
 
         // setup
         let uri = vscode.Uri.file(path);
