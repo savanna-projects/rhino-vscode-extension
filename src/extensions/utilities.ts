@@ -171,7 +171,7 @@ export class Utilities {
         let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
         let manifest = path.join(workspace, 'manifest.json');
-        manifest = manifest.startsWith('\\') ? manifest.substr(1, manifest.length) : manifest;
+        manifest = manifest.startsWith('\\') ? manifest.substring(1, manifest.length) : manifest;
 
         // build
         const fs = require('fs');
