@@ -15,6 +15,7 @@ import { RegisterModelsCommand } from './register-models';
 import { GetTestCaseCommand } from './get-test-case';
 import { InvokeAllTestCasesCommand } from './invoke-all-test-cases';
 import { RegisterEnvironmentCommand } from './register-environment';
+import { GetDocumentationCommand } from './get-documentation';
 
 export class RegisterRhinoCommand extends Command {
     /**
@@ -79,5 +80,6 @@ export class RegisterRhinoCommand extends Command {
         new RegisterModelsCommand(context).register();
         new GetTestCaseCommand(context).register();
         new RegisterEnvironmentCommand(context).register();
+        new GetDocumentationCommand(context).register();
     }
 }

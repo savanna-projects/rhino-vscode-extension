@@ -62,6 +62,10 @@
 			{
 				"command": "Get-TestCase",
 				"title": "Rhino: Gets a Test Case(s) specification(s) from the integrated application"
+			},
+			{
+				"command": "Get-Documentation",
+				"title": "Rhino: Markdown Documentation"
 			}
 		],
 		"languages": [
@@ -90,7 +94,16 @@
 				"language": "rhino",
 				"path": "./snippet-test-full.json"
 			}
-		]
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"when": "resourceLangId == rhino",
+					"command": "Get-Documentation",
+					"group": "navigation"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
