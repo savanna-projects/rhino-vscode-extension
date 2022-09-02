@@ -168,18 +168,19 @@ export class Utilities {
 
     private static invokeGetProjectManifest(): any {
         // setup
+        const fs = require('fs');
         let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
-        let manifest = path.join(workspace, 'manifest.json');
+        let manifest = path.join(workspace, 'src', 'manifest.json');
         manifest = manifest.startsWith('\\') ? manifest.substring(1, manifest.length) : manifest;
 
         // build
-        const fs = require('fs');
         try {
             let data = fs.readFileSync(manifest, 'utf8');
+            console.log(`Get-Manifest -Uri ${manifest} = OK`);
             return JSON.parse(data);
         } catch (e: any) {
-            console.log('Error:', e.stack);
+            console.log(`Get-Manifest -Uri ${manifest} = NotFound`);
         }
 
         // default
