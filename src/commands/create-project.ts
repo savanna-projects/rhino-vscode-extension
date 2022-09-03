@@ -69,6 +69,8 @@ export class CreateProjectCommand extends Command {
                 CreateProjectCommand.createSampleTest(folderUri);
                 CreateProjectCommand.createSamplePlugin(folderUri);
                 CreateProjectCommand.createSampleDocumentation(folderUri);
+                CreateProjectCommand.createSampleScripts(folderUri);
+                CreateProjectCommand.createSamplePipelines(folderUri);
             }
             CreateProjectCommand.openFolder(folderUri);
         });
@@ -298,9 +300,157 @@ export class CreateProjectCommand extends Command {
     }
 
     private static createSampleScripts(userPath: any) {
+        // setup
+        let body = [
+            "#┌[General Information ───────────────────────────────────────────────────",
+            "#│",
+            "#│ 1. To run with non-windows OS, please install Powershell Core.",
+            "#│ 2. The script can be used on CI/CD as script file or inline script.",
+            "#│ 3. User the Command Line parameters to control the invocation behavior.",
+            "#│",
+            "#└────────────────────────────────────────────────────────────────────────",
+            "#",
+            "# Setup: User Parameters",
+            "param(",
+            "    [string] $HttpProtocol    = $null,",
+            "    [string] $RhinoServer     = $null,",
+            "    [int]    $RhinoPort       = 0,",
+            "    [string] $TestsRepository = $null,",
+            "    [string] $RhinoUsername   = $null,",
+            "    [string] $RhinoPassword   = $null,",
+            "    [string] $DriverBinaries  = $null",
+            ")",
+            "#",
+            "# Setup: Rhino Endpoints Default",
+            "$_httpProtocol   = \"http\"",
+            "$_rhinoServer    = \"localhost\"",
+            "$_rhinoPort      = 9000",
+            "$_driverBinaries = \".\"",
+            "#",
+            "# Setup: Tests Location (absolute/relative file or folder path)",
+            "$projectRoot      = [System.IO.Directory]::GetParent($PSScriptRoot)",
+            "$_testsRepository = [System.IO.Path]::Combine($projectRoot, 'src', 'Tests', 'Examples', 'FindSomethingOnGoogle.rhino')",
+            "#",
+            "# Setup: Rhino Credentials",
+            "$rhinoUsername = \"<rhinoUsername>\"",
+            "$rhinoPassword = \"<rhinoPassword>\"",
+            "#",
+            "# Build: User Parameters Value",
+            "$HttpProtocol    = if (($null -eq $HttpProtocol)    -or ($HttpProtocol    -eq [string]::Empty)) { $_httpProtocol }    else { $HttpProtocol }",
+            "$RhinoServer     = if (($null -eq $RhinoServer)     -or ($RhinoServer     -eq [string]::Empty)) { $_rhinoServer }     else { $RhinoServer }",
+            "$RhinoPort       = if (($null -eq $RhinoPort)       -or ($RhinoPort       -eq 0))               { $_rhinoPort }       else { $RhinoPort }",
+            "$TestsRepository = if (($null -eq $TestsRepository) -or ($TestsRepository -eq [string]::Empty)) { $_testsRepository } else { $TestsRepository }",
+            "$RhinoUsername   = if (($null -eq $RhinoUsername)   -or ($RhinoUsername   -eq [string]::Empty)) { $_rhinoUsername }   else { $RhinoUsername }",
+            "$RhinoPassword   = if (($null -eq $RhinoPassword)   -or ($RhinoPassword   -eq [string]::Empty)) { $_rhinoPassword }   else { $RhinoPassword }",
+            "$DriverBinaries  = if (($null -eq $DriverBinaries)  -or ($DriverBinaries  -eq [string]::Empty)) { $_driverBinaries }  else { $DriverBinaries }",
+            "#",
+            "# Build: Invocation Values",
+            "$rhinoAction   = \"rhino/configurations/invoke\"",
+            "$rhinoEndpoint = \"$($HttpProtocol)://$($RhinoServer):$($RhinoPort)/api/v3/$($rhinoAction)\"",
+            "#",
+            "# Build: Rhino Configuration Basic (the request body) - must be camelCase convention",
+            "$configuration = @{",
+            "    connectorConfiguration = @{",
+            "        connector = \"ConnectorText\"",
+            "    }",
+            "    authentication = @{",
+            "        username = $RhinoUsername",
+            "        password = $RhinoPassword",
+            "    }",
+            "    driverParameters = @(",
+            "        @{",
+            "            driver         = \"ChromeDriver\"",
+            "            driverBinaries = $DriverBinaries",
+            "        }",
+            "    )",
+            "    engineConfiguration = @{",
+            "        maxParallel             = 1",
+            "        elementSearchingTimeout = 15000",
+            "        pageLoadTimeout         = 60000",
+            "    }",
+            "    testsRepository = @(",
+            "        $TestsRepository",
+            "    )",
+            "};",
+            "#",
+            "# Invoke Configuration",
+            "Write-Host \"Invoking configuration on $($rhinoEndpoint), please wait...\"",
+            "$body = ConvertTo-Json $configuration",
+            "$response = Invoke-WebRequest `",
+            "    -Method Post `",
+            "    -ContentType \"application/json\" `",
+            "    -Uri $rhinoEndpoint `",
+            "    -Body $body",
+            "#",
+            "# Error From the Server",
+            "if ($response.StatusCode -ge 400) {",
+            "    Write-Error $response",
+            "    exit 10",
+            "}",
+            "#",
+            "# Assert That All Tests Passed",
+            "$responseObj = ($response.Content | ConvertFrom-Json)",
+            "if ($responseObj.actual) {",
+            "    Write-Host \"All {$($responseObj.testCases.Length)} test(s) passed\"",
+            "    exit 0",
+            "}",
+            "exit 10"
+        ];
+
+        // set content
+        let contentHome = body.join('\n');
+        let path = ph.join(this.getPath(userPath), 'scripts');
+
+        // write
+        this.writeFile(path, 'RunExamplesStandalone.ps1', contentHome);
     }
 
-    private static createSamplePipeline(userPath: any) {
+    private static createSamplePipelines(userPath: any) {
+        // setup
+        let bodyGitHub = [
+            "# Basic GitHub action pipeline to invoke the automation using a script.",
+            "name: Invoke Automation Testing",
+            "on: push",
+            "jobs:",
+            "  build:",
+            "    runs-on: ubuntu-latest",
+            "    steps:",
+            "      - name: Checkout Automation Repository ",
+            "        uses: actions/checkout@v2",
+            "      - run: |",
+            "          ./scripts/RunExamplesStandalone.ps1",
+            "        shell: pwsh",
+        ];
+        let bodyAzure = [
+            "# Basic GitHub action pipeline to invoke the automation using a script.",
+            "trigger:",
+            "- master",
+            "",
+            "pool:",
+            "  vmImage: ubuntu-latest",
+            "",
+            "stages:",
+            "  - stage: InvokeAutomation",
+            "    jobs:",
+            "    - job: 'InvokeAutomationScript'",
+            "      displayName: 'Invoke Automation Script'",
+            "      steps:",
+            "      - task: PowerShell@2",
+            "        displayName: 'Invoke Powershell Script'",
+            "        inputs:",
+            "          filePath: './scripts/RunExamplesStandalone.ps1'",
+            "          failOnStderr: true",
+            "          pwsh: true"
+        ];
+
+        // set content
+        let contentGitHub = bodyGitHub.join('\n');
+        let contentAzure = bodyAzure.join('\n');
+        let path = ph.join(this.getPath(userPath), 'build');
+
+        // write
+        this.writeFile(path, 'GitActions.yaml', contentGitHub);
+        this.writeFile(path, 'AzurePipeline.yaml', contentAzure);
     }
 
     private static createSampleModel(userPath: any) {

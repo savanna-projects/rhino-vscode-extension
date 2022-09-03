@@ -177,10 +177,10 @@ export class Utilities {
         // build
         try {
             let data = fs.readFileSync(manifest, 'utf8');
-            console.log(`Get-Manifest -Uri ${manifest} = OK`);
+            console.log(`Get-Manifest -Uri '${manifest}' = OK`);
             return JSON.parse(data);
         } catch (e: any) {
-            console.log(`Get-Manifest -Uri ${manifest} = NotFound`);
+            console.log(`Get-Manifest -Uri '${manifest}' = NotFound`);
         }
 
         // default
