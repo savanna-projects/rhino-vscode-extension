@@ -305,8 +305,9 @@ export class CreateProjectCommand extends Command {
             "[1] verify that {attribute} of {//input[@name='q']} from {value} match {(?i)automation}",
             "[3] verify that {count} of {//div[@class='g']} is greater than {0}",
             "",
-            "/** You must provide at-least one example or you will not be able to register the plugin.",
             "[test-examples]",
+            "/**",
+            "/** You must provide at-least one example or you will not be able to register the plugin.",
             "| Example                    | Description                                            |",
             "|----------------------------|--------------------------------------------------------|",
             "| google search {Automation} | Finds results when searching for `Automation` keyword. |"

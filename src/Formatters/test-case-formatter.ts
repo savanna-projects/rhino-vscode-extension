@@ -4,7 +4,6 @@
  * RESOURCES
  */
 import * as vscode from 'vscode';
-import { RhinoClient } from '../framework/rhino-client';
 import { Formatter } from "./formatter";
 
 export class TestCaseFormatter extends Formatter {
@@ -376,12 +375,13 @@ export class TestCaseFormatter extends Formatter {
         let sectionAnnotation = _section.lines.length > 0 ? _section.lines[0] : '';
         let markdown = _section.lines.slice(1, _section.lines.length).map((i: string) => i.trim()).filter((i: string) => i !== '');
 
-        // bad request
+        // not found | bad request
         if (markdown.length === 0) {
             return [];
         }
 
         // setup
+        markdown = markdown.filter((i: string) => i.trim().startsWith('|'));
         let information = this.getMarkdownInformation(markdown);
         let maxLength = Math.max(...information.map((i: any) => i.markdown.length));
         let header = [];
@@ -433,11 +433,12 @@ export class TestCaseFormatter extends Formatter {
             // setup
             let isLast = i === columns.length - 1;
             let column = columns[i];
-            let maxLength = Math.max(...column.rows.map((i: string) => i.length));
-            maxLength = maxLength < column.column.length ? column.column.length : maxLength;
+            let maxLength = Math.max(...column.rows.map((i: string) => ` ${i} `.length));
+            let columnLength = ` ${column.column} `.length;
+            maxLength = maxLength < columnLength ? columnLength : maxLength;
 
             // build
-            let header = '|' + column.column + ' '.repeat(maxLength - column.column.length);
+            let header = '| ' + column.column + ' '.repeat(maxLength - columnLength) + ' ';
             let separator = '|' + '-'.repeat(maxLength);
 
             // normalize
@@ -447,7 +448,7 @@ export class TestCaseFormatter extends Formatter {
             // build
             let columnMarkdown: string[] = [header, separator];
             for (const element of column.rows) {
-                let row = element;
+                let row = ` ${element} `;
 
                 row = '|' + row + ' '.repeat(maxLength - row.length);
                 row = isLast ? row + '|' : row;
