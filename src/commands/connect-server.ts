@@ -71,7 +71,7 @@ export class ConnectServerCommand extends Command {
                         this.registerMacros(client, context, (client: any, context: any) => {
                             this.registerDataDrivenSnippet(client, context, (client: any, context: any) => {
                                 this.registerModels(client, context, () => {
-                                    this.registerDefinitions(client, context, ()=> {
+                                    this.registerDefinitions(client, context, () => {
                                         new CreateTm(context).invokeCommand();
                                     });
                                 });
@@ -263,7 +263,7 @@ export class ConnectServerCommand extends Command {
         });
     }
 
-    private registerDefinitions(client: RhinoClient, context: vscode.ExtensionContext, callback: any){
+    private registerDefinitions(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
         new DefinitionProvider().register(context);
         callback(client, context);
     }

@@ -65,13 +65,13 @@ export class CreateProjectCommand extends Command {
             CreateProjectCommand.createProjectFolder(folderUri);
             CreateProjectCommand.createProjectManifest(folderUri);
             // TODO: implement switch from user
-            if (true) {
-                CreateProjectCommand.createSampleTest(folderUri);
-                CreateProjectCommand.createSamplePlugin(folderUri);
-                CreateProjectCommand.createSampleDocumentation(folderUri);
-                CreateProjectCommand.createSampleScripts(folderUri);
-                CreateProjectCommand.createSamplePipelines(folderUri);
-            }
+            CreateProjectCommand.createSampleTests(folderUri);
+            CreateProjectCommand.createSamplePlugins(folderUri);
+            CreateProjectCommand.createSampleDocumentation(folderUri);
+            CreateProjectCommand.createSampleScripts(folderUri);
+            CreateProjectCommand.createSamplePipelines(folderUri);
+            CreateProjectCommand.createSampleModels(folderUri);
+            // user switch ends
             CreateProjectCommand.openFolder(folderUri);
         });
     }
@@ -90,6 +90,8 @@ export class CreateProjectCommand extends Command {
             ph.join(path, 'src/Configurations'),
             ph.join(path, 'src/Environments'),
             ph.join(path, 'src/Models'),
+            ph.join(path, 'src/Models/Json'),
+            ph.join(path, 'src/Models/Markdown'),
             ph.join(path, 'src/Plugins'),
             ph.join(path, 'src/Plugins/Examples'),
             ph.join(path, 'src/Tests'),
@@ -105,25 +107,25 @@ export class CreateProjectCommand extends Command {
     // take the input from openDialog
     private static createProjectManifest(userPath: any) {
         // setup
-        let manifastObjt = Utilities.getDefaultProjectManifest();
-        let content = JSON.stringify(manifastObjt, null, '\t');
+        let manifestObj = Utilities.getDefaultProjectManifest();
+        let content = JSON.stringify(manifestObj, null, '\t');
         let path = ph.join(this.getPath(userPath), 'src');
 
         // write
         this.writeFile(path, 'Manifest.json', content);
     }
 
-    private static createSampleTest(userPath: any) {
+    private static createSampleTests(userPath: any) {
         // setup
-        let body = [
+        let bodyBasic = [
             "/**┌─[ General Information ]──────────────────────────────────────────────────────────────────────",
             "/**│",
             "/**│ Connect & Invoke Test Case",
             "/**│ ==========================",
-            "/**│ 1. Use [Ctrl]+[Shift]+[P] to bring up the commands pallete.",
+            "/**│ 1. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
             "/**│ 2. Type 'Rhino' to filter out all 'Rhino' commands.",
             "/**│ 3. Click on the command 'Rhino: Connect to Rhino, fetch Metadata & activate commands'.",
-            "/**│ 4. Use [Ctrl]+[Shift]+[P] to bring up the commands pallete.",
+            "/**│ 4. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
             "/**│ 4. Type 'Rhino' to filter out all 'Rhino' commands.",
             "/**│ 5. Click on the command 'Rhino: Runs the automation test(s) from the currently open document'.",
             "/**│",
@@ -151,24 +153,62 @@ export class CreateProjectCommand extends Command {
             "[test-expected-results]",
             "[1] verify that {url} match {google}"
         ]
-        let content = body.join('\n');
+        let bodyWithModels = [
+            "/**┌─[ General Information ]──────────────────────────────────────────────────────────────────────",
+            "/**│",
+            "/**│ Connect & Invoke Test Case",
+            "/**│ ==========================",
+            "/**│ 1. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
+            "/**│ 2. Type 'Rhino' to filter out all 'Rhino' commands.",
+            "/**│ 3. Click on the command 'Rhino: Connect to Rhino, fetch Metadata & activate commands'.",
+            "/**│ 4. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
+            "/**│ 4. Type 'Rhino' to filter out all 'Rhino' commands.",
+            "/**│ 5. Click on the command 'Rhino: Runs the automation test(s) from the currently open document'.",
+            "/**│",
+            "/**│ View Documentation",
+            "/**│ ==================",
+            "/**│ 1. Right-Click to bring up the context menu.",
+            "/**│ 2. Click on 'Rhino: Show Documentation' command.",
+            "/**│",
+            "/**└──────────────────────────────────────────────────────────────────────────────────────────────",
+            "/**",
+            "[test-id]         EXAMPLE-02",
+            "[test-scenario]   verify that results can be retrieved when searching by any keyword",
+            "[test-categories] Sanity, Ui, Search",
+            "[test-priority]   1 - critical",
+            "[test-severity]   1 - critical",
+            "[test-tolerance]  0%",
+            "",
+            "[test-actions]",
+            "1. go to url {https://www.google.com}",
+            "2. send keys {automation is fun} into {search text-box}",
+            "3. click on the first {auto-complete item}",
+            "4. wait {1500}",
+            "5. close browser",
+            "",
+            "[test-expected-results]",
+            "[1] verify that {url} match {google}"
+        ]
+        let contentBasic = bodyBasic.join('\n');
+        let contentWithModels = bodyWithModels.join('\n');
         let path = ph.join(this.getPath(userPath), 'src', 'Tests', 'Examples');
 
         // write
-        this.writeFile(path, 'FindSomethingOnGoogle.rhino', content);
+        this.writeFile(path, 'FindSomethingOnGoogle.rhino', contentBasic);
+        this.writeFile(path, 'FindSomethingOnGoogleWithModels.rhino', contentWithModels);
     }
 
-    private static createSamplePlugin(userPath: any) {
+    private static createSamplePlugins(userPath: any) {
         // setup
         let body = [
             "/**┌─[ General Information ]───────────────────────────────────────────────────────────────",
             "/**│",
             "/**│ Connect & Register Plugins",
             "/**│ ==========================",
-            "/**│ 1. Use [Ctrl]+[Shift]+[P] to bring up the commands pallete.",
+            "/**│ 1. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
             "/**│ 2. Type 'Rhino' to filter out all 'Rhino' commands.",
             "/**│ 3. Click on the command 'Rhino: Connect to Rhino, fetch Metadata & activate commands'.",
-            "/**│ 4. Use [Ctrl]+[Shift]+[P] to bring up the commands pallete.",
+            "/**│ 4. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
             "/**│ 4. Type 'Rhino' to filter out all 'Rhino' commands.",
             "/**│ 5. Click on the command 'Rhino: Register all the plugins under 'Plugins' folder'.",
             "/**│",
@@ -191,7 +231,7 @@ export class CreateProjectCommand extends Command {
             "",
             "[test-expected-results]",
             "[1] verify that {attribute} of {//input[@name='q']} from {value} match {(?i)automation}",
-            "",
+            "[3] verify that {count} of {//div[@class='g']} is greater than {0}",
             "",
             "/** You must provide at-least one example or you will not be able to register the plugin.",
             "[test-examples]",
@@ -248,7 +288,7 @@ export class CreateProjectCommand extends Command {
             "",
             "Invokes the `GoogleSearch` routine.  ",
             "",
-            "1. Type a keywork into the `Google Search` text-box.",
+            "1. Type a keyword into the `Google Search` text-box.",
             "2. Click on the first `auto-complete` item.",
             "3. Wait for the results to be retrieved.",
             "",
@@ -453,18 +493,60 @@ export class CreateProjectCommand extends Command {
         this.writeFile(path, 'AzurePipeline.yaml', contentAzure);
     }
 
-    private static createSampleModel(userPath: any) {
+    private static createSampleModels(userPath: any) {
+        // setup
+        let bodyMarkdown = [
+            "[test-models] - Google Search Home Page (Markdown)",
+            "| name               | value                    | type  | comment                                      |",
+            "|--------------------|--------------------------|-------|----------------------------------------------|",
+            "| search text-box    | //input[@name='q']       | xpath | Finds the Google search text-box.            |",
+            "| auto-complete item | //ul[@role='listbox']/li | xpath | Finds the first auto-complete item.          |",
+            "| search results     | //div[@class='g']        | xpath | Finds all search results under results page. |",
+        ];
+        let bodyJson = {
+            "name": "Google Search Home Page (JSON)",
+            "entries": [
+                {
+                    "name": "search text-box",
+                    "value": "//input[@name='q']",
+                    "type": "xpath",
+                    "comment": "Finds the Google search text-box."
+                },
+                {
+                    "name": "auto-complete item",
+                    "value": "//ul[@role='listbox']/li",
+                    "type": "xpath",
+                    "comment": "Finds the first auto-complete item."
+                },
+                {
+                    "name": "search results",
+                    "value": "//div[@class='g']",
+                    "type": "xpath",
+                    "comment": "Finds all search results under results page."
+                }
+            ]
+        };
+
+        // set content
+        let contentMarkdown = bodyMarkdown.join('\n');
+        let contentJson = JSON.stringify(bodyJson, null, 4);
+        let pathMarkdown = ph.join(this.getPath(userPath), 'src', 'Models', 'Markdown');
+        let pathJson = ph.join(this.getPath(userPath), 'src', 'Models', 'Json');
+
+        // write
+        this.writeFile(pathMarkdown, 'GoogleSearchHomePage.rmodel', contentMarkdown);
+        this.writeFile(pathJson, 'GoogleSearchHomePage.json', contentJson);
     }
 
     // open a folder in VS Code workspace
     private static openFolder(userPath: any) {
         // build
         let path = this.getPath(userPath);
-        path = os.platform() === 'win32'
-            ? path.replaceAll('/', '\\').substring(0, path.length)
-            : path;
         path = os.platform() === 'win32' && path.startsWith('/')
             ? path.substring(1, path.length)
+            : path;
+        path = os.platform() === 'win32'
+            ? path.replaceAll('/', '\\').substring(0, path.length)
             : path;
 
         // setup

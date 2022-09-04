@@ -5,6 +5,7 @@
  */
 import * as vscode from 'vscode';
 import path = require('path');
+import fs = require('fs');
 
 export class Utilities {
     /**
@@ -83,8 +84,6 @@ export class Utilities {
      */
     public static getFiles(directory: string, callback: any) {
         // setup
-        const fs = require('fs');
-        const path = require('path');
         const list: string[] = [];
 
         // iterate
@@ -168,10 +167,11 @@ export class Utilities {
 
     private static invokeGetProjectManifest(): any {
         // setup
-        const fs = require('fs');
         let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
-        let manifest = path.join(workspace, 'src', 'manifest.json');
+        let manifest = workspace.endsWith('src')
+            ? path.join(workspace, 'Manifest.json')
+            : path.join(workspace, 'src', 'Manifest.json');
         manifest = manifest.startsWith('\\') ? manifest.substring(1, manifest.length) : manifest;
 
         // build

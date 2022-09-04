@@ -9,6 +9,9 @@
  * CREDITS
  * https://github.com/josa42/vscode-markdown-table-formatter
  * https://github.com/dbrockman/reformat-markdown-table
+ * 
+ * WORK ITEMS
+ * TODO: convert to format provider.
  */
 import * as vscode from 'vscode';
 import { Command } from "./command";
@@ -63,7 +66,7 @@ export class FormatTestCaseCommand extends Command {
         this.invoke(callback);
     }
 
-    private invoke(callback: any) {
+    public  invoke(callback: any) {
         // setup
         let documentEntities = this.getOpenDocument();
         let client = this.getRhinoClient();
@@ -79,12 +82,17 @@ export class FormatTestCaseCommand extends Command {
 
             // iterate
             for (let i = 0; i < documentEntities.length; i++) {
-                let documentEntity = documentEntities[i].split('\r\n').map(i => i.trim());
+                const documentEntity = documentEntities[i].split(/\r?\n|\n\r?/).map(i => i.trim());
                 let metadataFormatted = this.formatMetadata(documentEntity, _annotations);
                 let actionsAndExpected = this.getInvocationSection(documentEntity, _annotations);
                 let dataSection = this.getDataSection(documentEntity, _annotations);
 
                 // normalize
+                for (const line of documentEntity) {
+                    if (line.trim().startsWith('/**')) {
+                        documentFormatted.push(line.trim());
+                    }
+                }
                 if (dataSection.examples.length > 0) {
                     let examples = [''];
                     examples.push(...dataSection.examples);
@@ -558,6 +566,7 @@ export class FormatTestCaseCommand extends Command {
             }
 
             // setup
+            let lines: string[] = [];
             let map = annotations.map((i) => i.key).filter((i) => i !== annotation);
             let pattern = map.map((i) => '^\\[' + i + ']').join('|');
             let testPattern = '^\\[' + annotation + ']';
@@ -572,12 +581,11 @@ export class FormatTestCaseCommand extends Command {
             let start = new vscode.Position(onLine, 0);
 
             // iterate
-            let lines: string[] = [];
             while (onLine < document.length) {
                 if (document[onLine].match(pattern)) {
                     break;
                 }
-                lines.push(document[onLine]);
+                lines.push(document[onLine].trim());
                 onLine += 1;
             }
             let end = new vscode.Position(onLine - 1, 0);

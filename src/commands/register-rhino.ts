@@ -16,6 +16,7 @@ import { GetTestCaseCommand } from './get-test-case';
 import { InvokeAllTestCasesCommand } from './invoke-all-test-cases';
 import { RegisterEnvironmentCommand } from './register-environment';
 import { GetDocumentationCommand } from './get-documentation';
+import { TestCaseFormatter } from '../Formatters/test-case-formatter';
 
 export class RegisterRhinoCommand extends Command {
     /**
@@ -40,9 +41,17 @@ export class RegisterRhinoCommand extends Command {
      *          Rhino Language metadata.
      */
     public register(): any {
-        // build
+        // register command
         let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             this.invoke();
+        });
+
+        // register formatters
+        let testCaseFormatter = new TestCaseFormatter(this.getContext());
+        vscode.languages.registerDocumentFormattingEditProvider('rhino', {
+            provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.TextEdit[] {
+                return testCaseFormatter.format(document);
+            }
         });
 
         // set

@@ -14,7 +14,8 @@
 	"categories": [
 		"Other",
 		"Programming Languages",
-		"Snippets"
+		"Snippets",
+		"Formatters"
 	],
 	"activationEvents": [
 		"onCommand:Register-Rhino",
