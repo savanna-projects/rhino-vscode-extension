@@ -16,7 +16,7 @@ import { GetTestCaseCommand } from './get-test-case';
 import { InvokeAllTestCasesCommand } from './invoke-all-test-cases';
 import { RegisterEnvironmentCommand } from './register-environment';
 import { GetDocumentationCommand } from './get-documentation';
-import { TestCaseFormatter } from '../Formatters/test-case-formatter';
+import { TestCaseFormatter } from '../formatters/test-case-formatter';
 
 export class RegisterRhinoCommand extends Command {
     /**
