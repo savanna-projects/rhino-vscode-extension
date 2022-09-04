@@ -5,7 +5,6 @@
  */
 import * as vscode from 'vscode';
 import { Command } from "./command";
-import { FormatTestCaseCommand } from "./format-document"
 
 export class GetTestCaseCommand extends Command {
     /**
@@ -66,21 +65,18 @@ export class GetTestCaseCommand extends Command {
 
             // get
             client.getTestCase(request, (response: any) => {
-                let formatter = new FormatTestCaseCommand(this.getContext())
                 let range = this.getDocumentRange();
-
                 vscode.window.activeTextEditor?.edit((i) => {
                     i.replace(range, response);
-                    formatter.invokeCommand(() => {
-                        vscode.window.activeTextEditor?.document.save();
 
-                        let message = '$(testing-passed-icon) Test Case ' + request.entity + ' loaded';
-                        vscode.window.setStatusBarMessage(message)
+                    vscode.window.activeTextEditor?.document.save();
 
-                        if (callback !== undefined) {
-                            callback();
-                        }
-                    });
+                    let message = '$(testing-passed-icon) Test Case ' + request.entity + ' loaded';
+                    vscode.window.setStatusBarMessage(message)
+
+                    if (callback !== undefined) {
+                        callback();
+                    }
                 });
             });
         });

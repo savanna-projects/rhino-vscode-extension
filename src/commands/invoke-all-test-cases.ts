@@ -12,7 +12,6 @@ import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
 import { ReportManager } from '../rhino/report-manager';
 import { Command } from "./command";
-import { FormatTestCaseCommand } from './format-document';
 
 export class InvokeAllTestCasesCommand extends Command {
     /**
@@ -60,25 +59,22 @@ export class InvokeAllTestCasesCommand extends Command {
         // notification
         vscode.window.setStatusBarMessage('$(sync~spin) Invoking test case(s)...');
 
-        // format
-        new FormatTestCaseCommand(context).invokeCommand(() => {
-            // invoke
-            this.getConfiguration((configuration: any) => {
-                this.getRhinoClient().invokeConfiguration(configuration, (testRun: any) => {
-                    let _testRun = JSON.parse(testRun);
-                    _testRun.actual === true
-                        ? vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke completed w/o test(s) failures")
-                        : vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke completed, w/ test(s) failures");
+        // invoke
+        this.getConfiguration((configuration: any) => {
+            this.getRhinoClient().invokeConfiguration(configuration, (testRun: any) => {
+                let _testRun = JSON.parse(testRun);
+                _testRun.actual === true
+                    ? vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke completed w/o test(s) failures")
+                    : vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke completed, w/ test(s) failures");
 
-                    console.info(testRun);
-                    try {
-                        const panel = vscode.window.createWebviewPanel("RhinoReport", "Rhino Report", vscode.ViewColumn.One);
-                        panel.webview.html = new ReportManager(_testRun).getHtmlReport();
-                    } catch (error) {
-                        console.error(error);
-                        vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke was not completed");
-                    }
-                });
+                console.info(testRun);
+                try {
+                    const panel = vscode.window.createWebviewPanel("RhinoReport", "Rhino Report", vscode.ViewColumn.One);
+                    panel.webview.html = new ReportManager(_testRun).getHtmlReport();
+                } catch (error) {
+                    console.error(error);
+                    vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke was not completed");
+                }
             });
         });
     }
@@ -117,11 +113,11 @@ export class InvokeAllTestCasesCommand extends Command {
         // setup
         let isTestsPath = fs.existsSync(testsPath);
         let testsFolder = testCasesPath;
-        
+
         if (isTestsPath) {
             testsFolder = testsPath;
         }
-        
+
         testsFolder = testsFolder.startsWith('\\')
             ? testsFolder.substring(1, testsFolder.length)
             : testsFolder;

@@ -10,14 +10,12 @@ import { CreateProjectCommand } from './create-project';
 import { InvokeTestCaseCommand } from './invoke-test-case';
 import { RegisterPluginsCommand } from './register-plugins';
 import { RegisterTestCaseCommand } from './register-test-case';
-import { FormatTestCaseCommand } from './format-document';
 import { RegisterModelsCommand } from './register-models';
 import { GetTestCaseCommand } from './get-test-case';
 import { InvokeAllTestCasesCommand } from './invoke-all-test-cases';
 import { RegisterEnvironmentCommand } from './register-environment';
 import { GetDocumentationCommand } from './get-documentation';
 import { TestCaseFormatter } from '../formatters/test-case-formatter';
-import { Console } from 'console';
 
 export class RegisterRhinoCommand extends Command {
     /**
@@ -92,7 +90,6 @@ export class RegisterRhinoCommand extends Command {
         new InvokeTestCaseCommand(context).register();
         new InvokeAllTestCasesCommand(context).register();
         new RegisterPluginsCommand(context).register();
-        new FormatTestCaseCommand(context).register();
         new RegisterModelsCommand(context).register();
         new GetTestCaseCommand(context).register();
         new RegisterEnvironmentCommand(context).register();

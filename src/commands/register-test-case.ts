@@ -7,12 +7,10 @@
 import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
 import { Command } from "./command";
-import { FormatTestCaseCommand } from './format-document';
 
 export class RegisterTestCaseCommand extends Command {
     // members
     private testSuites: string[] | undefined;
-    private formatCommand: FormatTestCaseCommand;
 
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
@@ -24,7 +22,6 @@ export class RegisterTestCaseCommand extends Command {
 
         // build
         this.testSuites = [];
-        this.formatCommand = new FormatTestCaseCommand(this.getContext());
         this.setCommandName('Register-TestCase');
     }
 
@@ -41,7 +38,7 @@ export class RegisterTestCaseCommand extends Command {
         let command = vscode.commands.registerCommand(this.getCommandName(), () => {
             // setup
             let options = {
-                placeHolder: 'A comma seprated test suite ids (e.g. 1908, RH-1908, etc.)'
+                placeHolder: 'A comma separated test suite ids (e.g. 1908, RH-1908, etc.)'
             };
 
             vscode.window.showInputBox(options).then((value) => {
@@ -92,9 +89,7 @@ export class RegisterTestCaseCommand extends Command {
                 let range = this.getDocumentRange();
                 vscode.window.activeTextEditor?.edit((i) => {
                     i.replace(range, document);
-                    this.formatCommand.invokeCommand(() => {
-                        vscode.window.setStatusBarMessage('$(testing-passed-icon) Integrated Test case(s) retrieved');
-                    });
+                    vscode.window.setStatusBarMessage('$(testing-passed-icon) Integrated Test case(s) retrieved');
                 });
             });
         });

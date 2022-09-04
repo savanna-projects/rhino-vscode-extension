@@ -11,7 +11,6 @@ import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
 import { ReportManager } from '../rhino/report-manager';
 import { Command } from "./command";
-import { FormatTestCaseCommand } from './format-document';
 
 export class InvokeTestCaseCommand extends Command {
     // members

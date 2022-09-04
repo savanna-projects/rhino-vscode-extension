@@ -189,6 +189,18 @@ export class CreateTm extends Command {
                         {
                             "name": "comment.line",
                             "match": "(\\s+)?/\\*\\*.*"
+                        },
+                        {
+                            "name": "markup.heading",
+                            "match": "(?<=\\|\\s+)(Example|Description|Parameter|Default|Name|Value|Type|Comment)\\s+(?=\\|)"
+                        },
+                        {
+                            "name": "entity.name.class",
+                            "match": "\\|?(-+)\\|"
+                        },
+                        {
+                            "name": "entity.name.class",
+                            "match": "\\|"
                         }
                     ]
                 }
