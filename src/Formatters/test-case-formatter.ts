@@ -42,11 +42,12 @@ export class TestCaseFormatter extends Formatter {
             let actionsAndExpected = this.getInvocationSection(documentEntity, this.annotations);
             let dataSection = this.getDataSection(documentEntity, this.annotations);
 
-            // normalize
+            // test level documentation (not under a section)
             for (const line of documentEntity) {
-                if (line.trim().startsWith('/**')) {
-                    documentFormatted.push(line.trim());
+                if (!line.trim().startsWith('/**')) {
+                    break;
                 }
+                documentFormatted.push(line.trim());
             }
             if (dataSection.examples.length > 0) {
                 let examples = [''];
@@ -115,7 +116,9 @@ export class TestCaseFormatter extends Formatter {
                 let indentation = ' '.repeat(item.indentation);
                 metadataSection.push(literal + indentation + lines[0].replace(literal, '').trim());
             }
-            metadataSection.push('');
+            if (metadataSection.length > 0) {
+                metadataSection.push('');
+            }
             return metadataSection;
         }
         catch {
@@ -155,15 +158,31 @@ export class TestCaseFormatter extends Formatter {
     private getInvocationSection(testCase: string[], annotations: string[]): string[] {
         try {
             // setup
+            let sections: string[] = [];
             let actions = this.getActions(testCase, annotations);
             let expected = this.getAssertions(testCase, annotations, actions.total);
 
             // build
-            let actionsSection = actions.section.map((i: any) => i.action);
+            let actionsSection = actions
+                .section
+                .map((i: any) => i.action)
+                .filter((i: any) => i !== null && i !== undefined);
             let assertionsSection = this.buildExpectedSection(expected);
 
+            // setup
+            let isActions = actionsSection !== null && actionsSection !== undefined && actionsSection.length > 0;
+            let isAssertions = assertionsSection !== null && assertionsSection !== undefined && assertionsSection.length > 0;
+
+            // build
+            if (isActions) {
+                sections.push(...actionsSection);
+            }
+            if (isAssertions) {
+                sections.push(...assertionsSection);
+            }
+
             // get
-            return [...actionsSection, ...assertionsSection];
+            return sections;
         }
         catch {
             return [];
@@ -373,11 +392,24 @@ export class TestCaseFormatter extends Formatter {
         // setup
         let _section = this.getSection(document, section, annotations);
         let sectionAnnotation = _section.lines.length > 0 ? _section.lines[0] : '';
-        let markdown = _section.lines.slice(1, _section.lines.length).map((i: string) => i.trim()).filter((i: string) => i !== '');
+        let markdown = _section
+            .lines
+            .slice(1, _section.lines.length)
+            .map((i: string) => i.trim())
+            .filter((i: string) => i !== '');
 
         // not found | bad request
         if (markdown.length === 0) {
             return [];
+        }
+
+        // section comments
+        let comments: string[] = [];
+        for (let line of markdown) {
+            if (!line.startsWith('/**')) {
+                break;
+            }
+            comments.push(line);
         }
 
         // setup
@@ -411,16 +443,16 @@ export class TestCaseFormatter extends Formatter {
         }
 
         // build
-        let formattedSection = [sectionAnnotation];
+        let formattedSection = [];
         formattedSection.push(...header);
         formattedSection.push(...table);
 
         // TODO: distinct by parameters name
         // distinct
-        let distinctSection = new Set(formattedSection);
+        let distinctSection: Set<string> = new Set(formattedSection);
 
         // get
-        return [...distinctSection];
+        return [sectionAnnotation, ...comments, ...distinctSection];
     }
 
     private getMarkdownInformation(markdown: string[]): any[] {

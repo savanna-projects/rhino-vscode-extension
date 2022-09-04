@@ -569,7 +569,7 @@ export class CreateProjectCommand extends Command {
     private static createSampleModels(userPath: any) {
         // setup
         let bodyMarkdown = [
-            "[test-models] - Google Search Home Page (Markdown)",
+            "[test-models] Google Search Home Page (Markdown)",
             "| name               | value                    | type  | comment                                      |",
             "|--------------------|--------------------------|-------|----------------------------------------------|",
             "| search text-box    | //input[@name='q']       | xpath | Finds the Google search text-box.            |",
