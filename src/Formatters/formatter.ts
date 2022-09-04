@@ -4,10 +4,15 @@
  * RESOURCES
  */
 import * as vscode from 'vscode';
+import { Utilities } from '../extensions/utilities';
+import { RhinoClient } from '../framework/rhino-client';
 
 export abstract class Formatter {
     // members:
+    private endpoint: string;
     private context: vscode.ExtensionContext;
+    private projectManifest: any;
+    private client: RhinoClient;
 
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
@@ -15,7 +20,15 @@ export abstract class Formatter {
      * @param context The context under which to register the command.
      */
     constructor(context: vscode.ExtensionContext) {
+        // setup
+        this.endpoint = 'http://localhost:9000';
         this.context = context;
+
+        // build
+        this.projectManifest = Utilities.getProjectManifest();
+        let server = this.projectManifest.rhinoServer;
+        let rhinoEndpoint = this.setEndpoint(server.schema + '://' + server.host + ':' + server.port).getEndpoint();
+        this.client = new RhinoClient(rhinoEndpoint);
     }
 
     /**
@@ -33,5 +46,37 @@ export abstract class Formatter {
      * 
      * @returns A set of text edits or a thenable that resolves to such. 
      */
-    public abstract format(document: vscode.TextDocument): vscode.TextEdit[]
+    public abstract format(document: vscode.TextDocument, callback: any): vscode.TextEdit[]
+
+    /**
+     * Summary. Set the Rhino Server endpoint to use with the command.
+     * 
+     * @param endpoint The Rhino Server endpoint.
+     * @returns Self reference. 
+     */
+    public setEndpoint(endpoint: string) {
+        // setup
+        this.endpoint = endpoint;
+
+        // get
+        return this;
+    }
+
+    /**
+     * Summary. Gets the Rhino Server endpoint to use with the command.
+     * 
+     * @returns The Rhino Server endpoint. 
+     */
+    public getEndpoint(): string {
+        return this.endpoint;
+    }
+
+    /**
+     * Summary. Gets the Rhino API client to use with the command.
+     * 
+     * @returns The Rhino API client. 
+     */
+    public getRhinoClient(): RhinoClient {
+        return this.client;
+    }
 }

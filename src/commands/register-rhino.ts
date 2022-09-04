@@ -17,6 +17,7 @@ import { InvokeAllTestCasesCommand } from './invoke-all-test-cases';
 import { RegisterEnvironmentCommand } from './register-environment';
 import { GetDocumentationCommand } from './get-documentation';
 import { TestCaseFormatter } from '../formatters/test-case-formatter';
+import { Console } from 'console';
 
 export class RegisterRhinoCommand extends Command {
     /**
@@ -47,11 +48,17 @@ export class RegisterRhinoCommand extends Command {
         });
 
         // register formatters
-        let testCaseFormatter = new TestCaseFormatter(this.getContext());
-        vscode.languages.registerDocumentFormattingEditProvider('rhino', {
-            provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.TextEdit[] {
-                return testCaseFormatter.format(document);
-            }
+        this.getRhinoClient().getAnnotations((annotationsResponse: any) => {
+            let annotations = JSON.parse(annotationsResponse);
+            let testCaseFormatter = new TestCaseFormatter(this.getContext(), annotations);
+
+            vscode.languages.registerDocumentFormattingEditProvider('rhino', {
+                provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.TextEdit[] {
+                    return testCaseFormatter.format(document, () => {
+                        console.log('Format-Document = OK');
+                    });
+                }
+            });
         });
 
         // set
