@@ -103,7 +103,7 @@ export class CreateTm extends Command {
 
                             let functions = [];
                             functions.push(..._assertions.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'));
-                            functions.push(..._locators.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'))
+                            functions.push(..._locators.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'));
 
                             // create
                             let tmLanguage = this.getTmConfiguration(nameClass, keywordControl, functions, _annotations);

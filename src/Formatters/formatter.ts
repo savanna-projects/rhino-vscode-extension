@@ -46,7 +46,7 @@ export abstract class Formatter {
      * 
      * @returns A set of text edits or a thenable that resolves to such. 
      */
-    public abstract format(document: vscode.TextDocument, callback: any): vscode.TextEdit[]
+    public abstract format(document: vscode.TextDocument, callback: any): vscode.TextEdit[];
 
     /**
      * Summary. Set the Rhino Server endpoint to use with the command.
