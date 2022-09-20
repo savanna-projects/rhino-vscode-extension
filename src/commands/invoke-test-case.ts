@@ -112,8 +112,9 @@ export class InvokeTestCaseCommand extends Command {
 
             console.info(testRun);
             try {
+                let htmlReport = new ReportManager(_testRun).getHtmlReport();
                 const panel = vscode.window.createWebviewPanel("RhinoReport", "Rhino Report", vscode.ViewColumn.One);
-                panel.webview.html = new ReportManager(_testRun).getHtmlReport();
+                panel.webview.html = htmlReport;
             } catch (error) {
                 console.error(error);
                 vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke was not completed");

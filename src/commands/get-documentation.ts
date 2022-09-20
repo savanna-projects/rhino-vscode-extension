@@ -92,7 +92,7 @@ export class GetDocumentationCommand extends Command {
         let data: any[] = [];
 
         // bad request
-        const fs = require('fs')
+        const fs = require('fs');
         if (!fs.existsSync(pluginsFolder)) {
             return;
         }
@@ -101,7 +101,7 @@ export class GetDocumentationCommand extends Command {
         Utilities.getFiles(pluginsFolder, (files: string[]) => {
             for (const file of files) {
                 let name = path.parse(file).name;
-                data.push({ name: name, file: file })
+                data.push({ name: name, file: file });
             }
         });
 

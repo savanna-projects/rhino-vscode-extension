@@ -76,9 +76,9 @@ export class TestCaseFormatter extends Formatter {
             }
 
             // separator
-            documentFormatted.push('')
+            documentFormatted.push('');
             documentFormatted.push(">>>");
-            documentFormatted.push('')
+            documentFormatted.push('');
         }
 
         let range = this.getDocumentRange(document);
@@ -87,7 +87,7 @@ export class TestCaseFormatter extends Formatter {
         let insertEdit = vscode.TextEdit.insert(new vscode.Position(0, 0), newText);
 
         // callback
-        callback(newText)
+        callback(newText);
 
         // get
         return [clearEdit, insertEdit];
@@ -290,14 +290,14 @@ export class TestCaseFormatter extends Formatter {
             return null;
         }
         if (conditions.isCommentedOut) {
-            return { type: "commentedOut", action: assertion, index: -1, expected: [] }
+            return { type: "commentedOut", action: assertion, index: -1, expected: [] };
         }
         if (conditions.isComment) {
             let commentIndex = lastIndex > 1 ? lastIndex : index;
-            return { type: "comment", action: assertion, index: commentIndex, expected: [] }
+            return { type: "comment", action: assertion, index: commentIndex, expected: [] };
         }
         if (conditions.isBroken) {
-            return { type: "broken", action: assertion, index: -1, expected: [] }
+            return { type: "broken", action: assertion, index: -1, expected: [] };
         }
 
         return { type: "N/A" };
@@ -323,7 +323,7 @@ export class TestCaseFormatter extends Formatter {
             isComment: isComment,
             isBroken: isBroken,
             ignore: ignore
-        }
+        };
     }
 
     private buildExpectedSection(expectedMap: any): string[] {

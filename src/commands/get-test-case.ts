@@ -72,7 +72,7 @@ export class GetTestCaseCommand extends Command {
                     vscode.window.activeTextEditor?.document.save();
 
                     let message = '$(testing-passed-icon) Test Case ' + request.entity + ' loaded';
-                    vscode.window.setStatusBarMessage(message)
+                    vscode.window.setStatusBarMessage(message);
 
                     if (callback !== undefined) {
                         callback();

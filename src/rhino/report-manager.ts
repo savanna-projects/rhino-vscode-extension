@@ -244,6 +244,48 @@ export class ReportManager {
         </table>`;
     }
 
+    private buildCollapsibleElement(name: string, htmlContent: string): string{
+        let html =
+            '<pre>'  +
+                '<details>' +
+                    `<summary>${name}</summary>` +
+                    `${htmlContent}`+
+                '</details>'+
+            '</pre>';
+        return html;
+    }
+
+    buildEnvironmentElement(name: string, content: string) : string {
+        let htmlContentTag = this.getHtmlTag(content);
+
+        let collpasibleHtmlContent = 
+                            `${htmlContentTag}` +
+                                `${content}` +
+                            `${htmlContentTag.replace('<', '</')}`;
+
+        return content.length < 30 ?
+                `${htmlContentTag}` +
+                    `${name}: ${content}` +
+                `${htmlContentTag.replace('<', '</')}` : 
+                this.buildCollapsibleElement(name, collpasibleHtmlContent);
+    }
+
+    private getHtmlTag(content: string) {
+        return content.includes('xmlns=') ? '<xmp>' : '<pre>';
+    }
+
+    private formatEnvironment(jsonObject: any): string {
+        let result = '';
+        for (let prop in jsonObject) {
+            if(typeof(jsonObject[prop]) === 'object'){
+                result += this.formatEnvironment(jsonObject[prop]);
+            }
+            else{
+                result += this.buildEnvironmentElement(prop, jsonObject[prop]);
+            }
+        }
+        return result;
+    }
     // get a single test case HTML
     private getSummaryTestCase(testCase: any): string {
         // setup
@@ -257,12 +299,10 @@ export class ReportManager {
 
             let environment = '';
             try {
+                this.formatEnvironment(testCase.environment);
                 environment =
-                    '<h4>Environment</h4>' +
-                    '<pre>\n' +
-                    JSON.stringify(testCase.environment, null, 4) +
-                    '</pre>' +
-                    '</div>'
+                    '<h4>Environment</h4>' + this.formatEnvironment(testCase.environment) +
+                    '</div>';
             } catch (error) {
                 console.warn(error);
             }
@@ -326,7 +366,7 @@ export class ReportManager {
         // build
         const pattern = '(?<=\\{).*(?=\\})';
         const match = testStep.action.match(pattern);
-        let action = match === null || match === undefined ? testStep.action : match[0]
+        let action = match === null || match === undefined ? testStep.action : match[0];
         
         // get
         return `
