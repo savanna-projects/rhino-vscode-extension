@@ -256,7 +256,7 @@ export class CreateProjectCommand extends Command {
             "1. go to url {{$getparam --name:ApplicationUrl}}",
             "2. google search {automation is fun}",
             "3. close browser"
-        ]
+        ];
         let contentBasic = bodyBasic.join('\n');
         let contentWithModels = bodyWithModels.join('\n');
         let contentWithEnvironment = bodyWithEnvironment.join('\n');

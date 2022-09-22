@@ -59,7 +59,7 @@ export class Utilities {
      */
     public static updateTmConfiguration(context: vscode.ExtensionContext, tmConfiguration: string) {
         // setup
-        let tmFile = path.join(context.extensionPath, 'rhino-tmLanguage.json')
+        let tmFile = path.join(context.extensionPath, 'rhino-tmLanguage.json');
 
         // build
         const fs = require('fs');
@@ -134,19 +134,19 @@ export class Utilities {
                 archive: false,
                 localReport: true,
                 addGravityData: true
-            }
+            };
         let screenshotsConfiguration = !this.invokeIsNullOrUndefined(projectManifest.screenshotsConfiguration)
             ? projectManifest.screenshotsConfiguration
             : {
                 keepOriginal: false,
                 returnScreenshots: false,
                 onExceptionOnly: false
-            }
+            };
         let connectorConfiguration = !this.invokeIsNullOrUndefined(projectManifest.connectorConfiguration)
             ? projectManifest.connectorConfiguration
             : {
                 connector: "ConnectorText"
-            }
+            };
         let externalRepositories = !this.invokeIsNullOrUndefined(projectManifest.externalRepositories)
             ? projectManifest.externalRepositories
             : [];
@@ -213,7 +213,7 @@ export class Utilities {
                 "elementSearchingTimeout": 15000,
                 "pageLoadTimeout": 60000
             }
-        }
+        };
     }
 
     private static invokeIsNullOrUndefined(obj: any) {

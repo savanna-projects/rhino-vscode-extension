@@ -56,7 +56,7 @@ export class RegisterEnvironmentCommand extends Command {
 
         vscode.window.showInputBox(options).then((value) => {
             // setup
-            let request = RegisterEnvironmentCommand.GetEnvironment(value)
+            let request = RegisterEnvironmentCommand.GetEnvironment(value);
 
             // bad request
             if (Utilities.isNullOrUndefined(request)) {
