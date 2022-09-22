@@ -19,8 +19,6 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
     data: TreeItem[];
 
     constructor() {
-        let a = __filename;
-        let p = path.resolve(__filename, '..', '..', '..', 'images', 'folder.svg');
         let documents = DocumentsProvider.getDocuments();
         this.data = [...documents];
     }
