@@ -74,7 +74,6 @@ export class ConnectServerCommand extends Command {
                                 this.registerModels(client, context, () => {
                                     this.registerDefinitions(client, context, () => {
                                         new CreateTm(context).invokeCommand();
-                                        this.registerDocuments();
                                     });
                                 });
                             });
@@ -268,11 +267,5 @@ export class ConnectServerCommand extends Command {
     private registerDefinitions(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
         new DefinitionProvider().register(context);
         callback(client, context);
-    }
-
-    private registerDocuments() {
-        vscode.window.createTreeView('rhinoDocumentation', {
-            treeDataProvider: new DocumentsProvider()
-        });
     }
 }

@@ -4,6 +4,7 @@
 	"displayName": "rhino-language-support",
 	"description": "",
 	"version": "2.2.4",
+	"icon": "images/128x128.png",
 	"repository": {
 		"url": "https://github.com/savanna-projects/rhino-vscode-extension.git"
 	},
@@ -18,6 +19,7 @@
 		"Formatters"
 	],
 	"activationEvents": [
+		"onStartupFinished",
 		"onCommand:Register-Rhino",
 		"onCommand:Create-Project"
 	],

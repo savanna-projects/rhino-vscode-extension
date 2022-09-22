@@ -61,7 +61,7 @@ export class RegisterTestCaseCommand extends Command {
 
     private invoke() {
         // notification
-        vscode.window.setStatusBarMessage('$(sync~spin) Creating an integraed test case(s)...');
+        vscode.window.setStatusBarMessage('$(sync~spin) Creating an integrated test case(s)...');
 
         // setup
         let manifest = Utilities.getProjectManifest();

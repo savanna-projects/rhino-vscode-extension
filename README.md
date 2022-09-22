@@ -20,10 +20,18 @@
 * Format Document
 
 ### [Basics](#basics)
-* [Create New Project](#create-new-project)
-* [Manifest Overview](#manifest-overview)
-* [Create Your First Test Using Test Snippet](#create-your-first-test-using-test-snippet)
-* [Run Your Test](#run-your-test)
+- [Rhino API - Language & Integration Extension](#rhino-api---language--integration-extension)
+  - [In This Article](#in-this-article)
+    - [Basics](#basics)
+    - [Advanced](#advanced)
+  - [Commands](#commands)
+    - [Create-Project](#create-project)
+  - [Basics](#basics-1)
+    - [Create New Project](#create-new-project)
+    - [Manifest Overview](#manifest-overview)
+    - [Create Your First Test Using Test Snippet](#create-your-first-test-using-test-snippet)
+    - [Run Your Test](#run-your-test)
+  - [See Also](#see-also)
 
 ### Advanced
 * [Deploy Rhino Server](https://github.com/savanna-projects/rhino-agent/blob/master/docs/pages/GettingStarted/Deployment.md)
