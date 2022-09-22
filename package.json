@@ -3,7 +3,7 @@
 	"publisher": "RhinoAPI",
 	"displayName": "rhino-language-support",
 	"description": "",
-	"version": "2.2.3",
+	"version": "2.2.4",
 	"repository": {
 		"url": "https://github.com/savanna-projects/rhino-vscode-extension.git"
 	},
@@ -108,7 +108,15 @@
 				"mac": "cmd+F1",
 				"when": "resourceLangId == rhino"
 			}
-		]
+		],
+		"views": {
+			"explorer": [
+				{
+					"id": "rhinoDocumentation",
+					"name": "Rhino Documentation"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -137,6 +145,7 @@
 	},
 	"extensionDependencies": [
 		"humao.rest-client",
-		"pkief.material-icon-theme"
+		"pkief.material-icon-theme",
+		"davidanson.vscode-markdownlint"
 	]
 }

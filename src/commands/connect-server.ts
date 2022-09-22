@@ -12,6 +12,7 @@ import { AnnotationsAutoCompleteProvider } from '../providers/annotations-auto-c
 import { AssertionsAutoCompleteProvider } from '../providers/assertions-auto-complete-provider';
 import { DataAutoCompleteProvider } from '../providers/data-auto-complete-provider';
 import { DefinitionProvider } from '../providers/definition-provider';
+import { DocumentsProvider } from '../providers/documents-provider';
 import { MacrosAutoCompleteProvider } from '../providers/macros-auto-complete-provider';
 import { ModelsAutoCompleteProvider } from '../providers/models-auto-complete-provider';
 import { ParametersAutoCompleteProvider } from '../providers/parameters-auto-complete-provider';
@@ -73,6 +74,7 @@ export class ConnectServerCommand extends Command {
                                 this.registerModels(client, context, () => {
                                     this.registerDefinitions(client, context, () => {
                                         new CreateTm(context).invokeCommand();
+                                        this.registerDocuments();
                                     });
                                 });
                             });
@@ -266,5 +268,11 @@ export class ConnectServerCommand extends Command {
     private registerDefinitions(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
         new DefinitionProvider().register(context);
         callback(client, context);
+    }
+
+    private registerDocuments() {
+        vscode.window.createTreeView('rhinoDocumentation', {
+            treeDataProvider: new DocumentsProvider()
+        });
     }
 }

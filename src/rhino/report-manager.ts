@@ -199,7 +199,7 @@ export class ReportManager {
     // get tests summary HTML
     private getSummaryOutcome(): string {
         // build components
-        let qulityColor = this.testRun.qualityRank < 80 ? '#e74c3c' : '#1abb9c';
+        let qualityColor = this.testRun.qualityRank < 80 ? '#e74c3c' : '#1abb9c';
         let totalPass = `
         <td>
         <div class="card">
@@ -228,7 +228,7 @@ export class ReportManager {
         <td>
         <div class="card">
             <div class="card-header" title="The overall quality (the expected application behavior) of the test run.">Quality Rank</div>
-            <div class="card-body" style="color: ${qulityColor}">${Math.round(this.testRun.qualityRank)}%</div>
+            <div class="card-body" style="color: ${qualityColor}">${Math.round(this.testRun.qualityRank)}%</div>
         </div>
         </td>`;
 
