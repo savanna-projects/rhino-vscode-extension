@@ -11,6 +11,7 @@
 	"engines": {
 		"vscode": "^1.65.0"
 	},
+	"license": "Apache",
 	"markdown": "github",
 	"categories": [
 		"Other",

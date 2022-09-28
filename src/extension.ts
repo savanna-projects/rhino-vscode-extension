@@ -11,10 +11,6 @@ export function activate(context: vscode.ExtensionContext) {
 		treeDataProvider: new DocumentsProvider()
 	});
 
-	// register activation commands
-	new RegisterRhinoCommand(context).register();
-	new CreateProjectCommand(context).register();
-
 	// register symbol provider
     context.subscriptions.push(
         vscode.languages.registerDocumentSymbolProvider(
@@ -22,6 +18,10 @@ export function activate(context: vscode.ExtensionContext) {
             new RhinoDocumentSymbolProvider()
         )
     );
+
+	// register activation commands
+	new RegisterRhinoCommand(context).register();
+	new CreateProjectCommand(context).register();
 }
 
 export function deactivate(context: vscode.ExtensionContext) {
