@@ -49,14 +49,14 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
         let data: TreeItem[] = [];
 
         // bad request
-        const fs = require('fs')
+        const fs = require('fs');
         if (!fs.existsSync(documentsFolder)) {
             return [];
         }
 
         // build 
         DocumentsProvider.getTreeItems(documentsFolder, (docs: TreeItem) => {
-            if (docs.children == null || docs.children == undefined) {
+            if (docs.children === null || docs.children === undefined) {
                 return;
             }
             data.push(...docs.children);
@@ -75,7 +75,7 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
 
             // normalize
             if (parent !== null && parent !== undefined) {
-                parent.children = parent.children == null || parent.children == undefined
+                parent.children = parent.children === null || parent.children === undefined
                     ? []
                     : parent.children;
             }
@@ -129,7 +129,7 @@ class TreeItem extends vscode.TreeItem {
             title: "",
             command: "markdown.showPreviewToSide",
             arguments: [vscode.Uri.file(resource)]
-        }
+        };
     }
 
     iconPath = {

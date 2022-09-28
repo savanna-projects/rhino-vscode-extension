@@ -2,6 +2,9 @@
  * CHANGE LOG - keep only last 5 threads
  * 
  * RESOURCES
+ * 
+ * WORK ITEMS
+ * TODO: split actions inside different calsses which represents the backend structure.
  */
 import { HttpCommand } from "./http-command";
 import { HttpClient } from "./http-client";
@@ -403,6 +406,18 @@ export class RhinoClient {
         let httpCommand = new HttpCommand()
             .setMethod('DELETE')
             .setCommand(`/api/v3/configurations/${configuration}`);
+
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
+
+    public getActions(body: string, callback: any) {
+        // setup
+        let httpCommand = new HttpCommand()
+            .setMethod('POST')
+            .setCommand(`/api/v3/meta/tests/actions`)
+            .setBody(body)
+            .addHeader('Content-Type', 'text/plain');
 
         // get
         this.httpClient.invokeWebRequest(httpCommand, callback);
