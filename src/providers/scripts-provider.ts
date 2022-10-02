@@ -13,11 +13,11 @@ import path = require('path');
 import fs = require('fs');
 import * as vscode from 'vscode';
 
-export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
+export class ScriptsProvider implements vscode.TreeDataProvider<TreeItem> {
     data: TreeItem[];
 
     constructor() {
-        let documents = DocumentsProvider.getDocuments();
+        let documents = ScriptsProvider.getScripts();
         this.data = [...documents];
     }
 
@@ -36,11 +36,11 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
       │
       │ A collection of utility methods
       └────────────────────────────────────────────────────────*/
-    private static getDocuments(): TreeItem[] {
+    private static getScripts(): TreeItem[] {
         // setup
         let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
-        let documentsFolder = path.join(workspace, '..', 'docs');
+        let documentsFolder = path.join(workspace, '..', 'scripts');
         documentsFolder = documentsFolder.startsWith('\\')
             ? documentsFolder.substring(1, documentsFolder.length)
             : documentsFolder;
@@ -53,13 +53,13 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
         }
 
         // build
-        vscode.window.setStatusBarMessage('$(sync~spin) Loading documents...');
-        DocumentsProvider.getTreeItems(documentsFolder, (docs: TreeItem) => {
+        vscode.window.setStatusBarMessage('$(sync~spin) Loading scripts...');
+        ScriptsProvider.getTreeItems(documentsFolder, (docs: TreeItem) => {
             if (docs.children === null || docs.children === undefined) {
                 return;
             }
             data.push(...docs.children);
-            vscode.window.setStatusBarMessage('$(testing-passed-icon) Documents loaded');
+            vscode.window.setStatusBarMessage('$(testing-passed-icon) Scripts loaded');
         });
 
         // get
@@ -117,6 +117,7 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
 class TreeItem extends vscode.TreeItem {
     children: TreeItem[] | undefined;
     command?: vscode.Command | undefined;
+    icon: string = 'powershell.svg';
 
     constructor(label: string, resource: string, children?: TreeItem[]) {
         super(
@@ -127,19 +128,20 @@ class TreeItem extends vscode.TreeItem {
         this.children = children;
         this.command = <vscode.Command>{
             title: "",
-            command: "markdown.showPreviewToSide",
+            command: "vscode.open",
             arguments: [vscode.Uri.file(resource)]
         };
     }
 
     iconPath = {
-        light: path.join(__filename, '..', '..', '..', 'images', 'markdown.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'images', 'markdown.svg')
+        light: path.join(__filename, '..', '..', '..', 'images', 'console.svg'),
+        dark: path.join(__filename, '..', '..', '..', 'images', 'console.svg')
     };
 }
 
 class TreeSection extends vscode.TreeItem {
     children: TreeItem[] | undefined;
+    icon: string = 'folder-scripts.svg';
 
     constructor(label: string, children?: TreeItem[]) {
         super(
@@ -151,7 +153,7 @@ class TreeSection extends vscode.TreeItem {
     }
 
     iconPath = {
-        light: path.join(__filename, '..', '..', '..', 'images', 'folder-docs.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'images', 'folder-docs.svg')
+        light: path.join(__filename, '..', '..', '..', 'images', this.icon),
+        dark: path.join(__filename, '..', '..', '..', 'images', this.icon)
     };
 }

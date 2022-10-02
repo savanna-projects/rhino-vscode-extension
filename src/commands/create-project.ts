@@ -87,7 +87,9 @@ export class CreateProjectCommand extends Command {
             ph.join(path, 'docs'),
             ph.join(path, 'docs/Examples'),
             ph.join(path, 'build'),
+            ph.join(path, 'build/Examples'),
             ph.join(path, 'scripts'),
+            ph.join(path, 'scripts/Examples'),
             ph.join(path, 'src/Configurations'),
             ph.join(path, 'src/Environments'),
             ph.join(path, 'src/Models'),
@@ -511,7 +513,7 @@ export class CreateProjectCommand extends Command {
 
         // set content
         let contentHome = body.join('\n');
-        let path = ph.join(this.getPath(userPath), 'scripts');
+        let path = ph.join(this.getPath(userPath), 'scripts', 'Examples');
 
         // write
         this.writeFile(path, 'RunExamplesStandalone.ps1', contentHome);
@@ -558,7 +560,7 @@ export class CreateProjectCommand extends Command {
         // set content
         let contentGitHub = bodyGitHub.join('\n');
         let contentAzure = bodyAzure.join('\n');
-        let path = ph.join(this.getPath(userPath), 'build');
+        let path = ph.join(this.getPath(userPath), 'build', 'Examples');
 
         // write
         this.writeFile(path, 'GitActions.yaml', contentGitHub);
@@ -612,12 +614,12 @@ export class CreateProjectCommand extends Command {
 
     private static createSampleEnvironment(userPath: any) {
         // setup
-        let body = {
+        let body = `{
             "ApplicationUrl": "https://www.google.com"
-        };
+        }`;
 
         // set content
-        let content = JSON.stringify(body, null, 4);
+        let content = JSON.stringify(JSON.parse(body), null, 4);
         let path = ph.join(this.getPath(userPath), 'src', 'Environments');
 
         // write

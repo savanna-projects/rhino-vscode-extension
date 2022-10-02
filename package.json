@@ -117,6 +117,14 @@
 				{
 					"id": "rhinoDocumentation",
 					"name": "Rhino Documentation"
+				},
+				{
+					"id": "rhinoPipelines",
+					"name": "Rhino Pipelines"
+				},
+				{
+					"id": "rhinoScripts",
+					"name": "Rhino Scripts"
 				}
 			]
 		}
@@ -149,6 +157,7 @@
 	"extensionDependencies": [
 		"humao.rest-client",
 		"pkief.material-icon-theme",
-		"davidanson.vscode-markdownlint"
+		"davidanson.vscode-markdownlint",
+		"ms-vscode.powershell"
 	]
 }

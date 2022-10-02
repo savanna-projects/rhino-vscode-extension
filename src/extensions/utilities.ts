@@ -80,6 +80,20 @@ export class Utilities {
     }
 
     /**
+     * Summary. Gets RhinoServer endpoint from the project manifest.
+     * 
+     * @returns RhinoServer endpoint.
+     */
+    public static getRhinoEndpoint(): string {
+        // setup
+        let projectManifest = this.invokeGetProjectManifest();
+        let server = projectManifest.rhinoServer;
+
+        // get
+        return server.schema + '://' + server.host + ':' + server.port;
+    }
+
+    /**
      * Summary. Get a flat list of all files under a directory including all sub-directories.
      */
     public static getFiles(directory: string, callback: any) {
