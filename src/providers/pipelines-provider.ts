@@ -132,10 +132,7 @@ class TreeItem extends vscode.TreeItem {
         };
     }
 
-    iconPath = {
-        light: path.join(__filename, '..', '..', '..', 'images', 'yaml.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'images', 'yaml.svg')
-    };
+    iconPath = vscode.ThemeIcon.File;
 }
 
 class TreeSection extends vscode.TreeItem {
@@ -150,8 +147,5 @@ class TreeSection extends vscode.TreeItem {
         this.children = children;
     }
 
-    iconPath = {
-        light: path.join(__filename, '..', '..', '..', 'images', 'folder-ci.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'images', 'folder-ci.svg')
-    };
+    iconPath = vscode.ThemeIcon.Folder;;
 }

@@ -12,6 +12,7 @@
 import path = require('path');
 import fs = require('fs');
 import * as vscode from 'vscode';
+import { TransferListItem } from 'worker_threads';
 
 export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
     data: TreeItem[];
@@ -63,6 +64,7 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
         });
 
         // get
+        let a = this.filterData(data);
         return data;
     }
 
@@ -89,6 +91,10 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
                 const filePath = path.join(directoryPath, file);
                 const stats = fs.statSync(filePath);
 
+                if (filePath.toUpperCase().endsWith('.PNG')) {
+                    continue;
+                }
+
                 if (stats.isDirectory()) {
                     const item = path.basename(filePath);
                     const section = new TreeSection(item);
@@ -112,11 +118,41 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
         // callback
         callback(docs);
     }
+
+    private static filterData(data: TreeItem[]): TreeItem[] {
+        // setup
+        let cleanData: TreeItem[] = [];
+
+        // recurse
+        const stData: any = (item: TreeItem) => {
+            if (item.type === 'branch' && (item.children === null || item.children === undefined || item.children.length === 0)) {
+                return;
+            }
+            if (item.type === 'leaf' && (item.children === null || item.children === undefined || item.children.length === 0)) {
+                cleanData.push(item);
+                return;
+            }
+            if (item.children === undefined || item.children?.length === 0) {
+                return;
+            }
+            for (let child of item.children) {
+                stData(child);
+            }
+        };
+
+        // get
+        for (let d of data) {
+            stData(d);
+        }
+
+        return cleanData;
+    }
 }
 
 class TreeItem extends vscode.TreeItem {
     children: TreeItem[] | undefined;
     command?: vscode.Command | undefined;
+    type: string = 'leaf';
 
     constructor(label: string, resource: string, children?: TreeItem[]) {
         super(
@@ -132,14 +168,12 @@ class TreeItem extends vscode.TreeItem {
         };
     }
 
-    iconPath = {
-        light: path.join(__filename, '..', '..', '..', 'images', 'markdown.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'images', 'markdown.svg')
-    };
+    iconPath = vscode.ThemeIcon.File;
 }
 
 class TreeSection extends vscode.TreeItem {
     children: TreeItem[] | undefined;
+    type: string = 'branch';
 
     constructor(label: string, children?: TreeItem[]) {
         super(
@@ -150,8 +184,5 @@ class TreeSection extends vscode.TreeItem {
         this.children = children;
     }
 
-    iconPath = {
-        light: path.join(__filename, '..', '..', '..', 'images', 'folder-docs.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'images', 'folder-docs.svg')
-    };
+    iconPath = vscode.ThemeIcon.Folder;
 }

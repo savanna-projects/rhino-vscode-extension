@@ -117,7 +117,6 @@ export class ScriptsProvider implements vscode.TreeDataProvider<TreeItem> {
 class TreeItem extends vscode.TreeItem {
     children: TreeItem[] | undefined;
     command?: vscode.Command | undefined;
-    icon: string = 'powershell.svg';
 
     constructor(label: string, resource: string, children?: TreeItem[]) {
         super(
@@ -133,15 +132,11 @@ class TreeItem extends vscode.TreeItem {
         };
     }
 
-    iconPath = {
-        light: path.join(__filename, '..', '..', '..', 'images', 'console.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'images', 'console.svg')
-    };
+    iconPath = vscode.ThemeIcon.File;
 }
 
 class TreeSection extends vscode.TreeItem {
     children: TreeItem[] | undefined;
-    icon: string = 'folder-scripts.svg';
 
     constructor(label: string, children?: TreeItem[]) {
         super(
@@ -152,8 +147,5 @@ class TreeSection extends vscode.TreeItem {
         this.children = children;
     }
 
-    iconPath = {
-        light: path.join(__filename, '..', '..', '..', 'images', this.icon),
-        dark: path.join(__filename, '..', '..', '..', 'images', this.icon)
-    };
+    iconPath = vscode.ThemeIcon.Folder;
 }
