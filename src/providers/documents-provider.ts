@@ -12,63 +12,57 @@
 import path = require('path');
 import fs = require('fs');
 import * as vscode from 'vscode';
-import { TransferListItem } from 'worker_threads';
 
 export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
-    data: TreeItem[];
-
-    constructor() {
-        let documents = DocumentsProvider.getDocuments();
-        this.data = [...documents];
-    }
-
     getTreeItem(element: TreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
     }
 
     getChildren(element?: TreeItem | undefined): vscode.ProviderResult<TreeItem[]> {
-        if (element === undefined) {
-            return this.data;
-        }
-        return element.children;
+        return element === undefined
+            ? DocumentsProvider.getDocuments()
+            : element.children;
     }
 
     /*┌─[ UTILITIES ]──────────────────────────────────────────
       │
       │ A collection of utility methods
       └────────────────────────────────────────────────────────*/
-    private static getDocuments(): TreeItem[] {
+    private static getDocuments(): Thenable<TreeItem[]> {
         // setup
-        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
-        workspace = workspace === undefined ? '' : workspace;
-        let documentsFolder = path.join(workspace, '..', 'docs');
-        documentsFolder = documentsFolder.startsWith('\\')
-            ? documentsFolder.substring(1, documentsFolder.length)
-            : documentsFolder;
-        let data: TreeItem[] = [];
-
-        // bad request
-        const fs = require('fs');
-        if (!fs.existsSync(documentsFolder)) {
-            return [];
-        }
-
-        // build
-        vscode.window.setStatusBarMessage('$(sync~spin) Loading documents...');
-        DocumentsProvider.getTreeItems(documentsFolder, (docs: TreeItem) => {
-            if (docs.children === null || docs.children === undefined) {
-                return;
-            }
-            data.push(...docs.children);
-            vscode.window.setStatusBarMessage('$(testing-passed-icon) Documents loaded');
-        });
+        let options = { location: { viewId: "rhinoDocumentation" } };
 
         // get
-        let a = this.filterData(data);
-        return data;
+        return vscode.window.withProgress(options, () => {
+            return new Promise<TreeItem[]>(function (resolve) {
+                // setup
+                let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
+                workspace = workspace === undefined ? '' : workspace;
+                let documentsFolder = path.join(workspace, '..', 'docs');
+                documentsFolder = documentsFolder.startsWith('\\')
+                    ? documentsFolder.substring(1, documentsFolder.length)
+                    : documentsFolder;
+                let data: TreeItem[] = [];
+
+                // bad request
+                const fs = require('fs');
+                if (!fs.existsSync(documentsFolder)) {
+                    resolve([]);
+                }
+
+                // build
+                DocumentsProvider.getTreeItems(documentsFolder, (docs: TreeItem) => {
+                    if (docs.children === null || docs.children === undefined) {
+                        return;
+                    }
+                    data.push(...docs.children);
+                    resolve(data);
+                });
+            });
+        });
     }
 
-    public static getTreeItems(directory: string, callback: any) {
+    private static getTreeItems(directory: string, callback: any) {
         // local
         const getFromDirectory: any = (directoryPath: any, parent: TreeItem) => {
             // setup
@@ -117,35 +111,6 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
 
         // callback
         callback(docs);
-    }
-
-    private static filterData(data: TreeItem[]): TreeItem[] {
-        // setup
-        let cleanData: TreeItem[] = [];
-
-        // recurse
-        const stData: any = (item: TreeItem) => {
-            if (item.type === 'branch' && (item.children === null || item.children === undefined || item.children.length === 0)) {
-                return;
-            }
-            if (item.type === 'leaf' && (item.children === null || item.children === undefined || item.children.length === 0)) {
-                cleanData.push(item);
-                return;
-            }
-            if (item.children === undefined || item.children?.length === 0) {
-                return;
-            }
-            for (let child of item.children) {
-                stData(child);
-            }
-        };
-
-        // get
-        for (let d of data) {
-            stData(d);
-        }
-
-        return cleanData;
     }
 }
 

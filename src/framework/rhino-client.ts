@@ -185,6 +185,23 @@ export class RhinoClient {
     }
 
     /**
+     * Summary. Gets a collection of RhinoTestSymbolModel based on the RhinoTestCase spec provided.
+     * 
+     * @param callback An argument, which is then invoked inside the outer function to complete some kind of routine or action.
+     */
+     public getSymbols(input: string, callback: any) {
+        // setup
+        let httpCommand = new HttpCommand();
+        httpCommand.command = '/api/v3/Meta/tests/symbols';
+        httpCommand.addHeader('Content-Type', 'text/plain');
+        httpCommand.method = 'POST';
+        httpCommand.body = input;
+
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
+
+    /**
      * Summary. Returns a single available Plugin (both Rhino and Code).
      * 
      * @param key      The unique identifier by which to find the requested resource.

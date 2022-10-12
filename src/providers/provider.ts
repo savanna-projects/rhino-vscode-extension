@@ -12,14 +12,6 @@ export abstract class Provider {
     public abstract register(context: vscode.ExtensionContext): any;
 
     /**
-     * Summary. Sets the collection of plugins references as returns by Rhino Server.
-     * 
-     * @param manifests A collection of plugins references as returns by Rhino Server.
-     * @returns Self reference.
-     */
-    public abstract setManifests(manifests: any): any;
-
-    /**
      * Summary. Gets a locators auto-complete enum snippet.
      * 
      * @param locators A collection of locators references as returns by Rhino Server.

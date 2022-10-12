@@ -9,7 +9,7 @@
 		"url": "https://github.com/savanna-projects/rhino-vscode-extension.git"
 	},
 	"engines": {
-		"vscode": "^1.65.0"
+		"vscode": "^1.71.0"
 	},
 	"license": "Apache",
 	"markdown": "github",
@@ -66,6 +66,11 @@
 			{
 				"command": "Get-Documentation",
 				"title": "Rhino: Show Documentation"
+			},
+			{
+				"command": "Update-Symbols",
+				"title": "Rhino: Actively updates the symbols for the open document",
+				"icon": "$(debug-restart-frame)"
 			}
 		],
 		"languages": [
@@ -102,7 +107,14 @@
 					"command": "Get-Documentation",
 					"group": "navigation"
 				}
-			]
+			],
+			"view/title": [
+				{
+				  "command": "Update-Symbols",
+				  "when": "view == outline",
+				  "group": "navigation"
+				}
+			  ]
 		},
 		"keybindings": [
 			{
@@ -157,7 +169,6 @@
 	"extensionDependencies": [
 		"humao.rest-client",
 		"pkief.material-icon-theme",
-		"davidanson.vscode-markdownlint",
-		"ms-vscode.powershell"
+		"davidanson.vscode-markdownlint"
 	]
 }
