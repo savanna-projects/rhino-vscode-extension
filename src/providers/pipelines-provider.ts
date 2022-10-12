@@ -21,7 +21,7 @@ export class PipelinesProvider implements vscode.TreeDataProvider<TreeItem> {
         this.data = [...documents];
     }
 
-    getTreeItem(element: TreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    getTreeItem(element: TreeItem): TreeItem | Thenable<TreeItem> {
         return element;
     }
 

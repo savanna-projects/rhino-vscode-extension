@@ -29,47 +29,58 @@
 		"commands": [
 			{
 				"command": "Create-Project",
-				"title": "Rhino: Creates a New Rhino Project"
+				"category": "Rhino",
+				"title": "Creates a New Rhino Project"
 			},
 			{
 				"command": "Invoke-TestCase",
-				"title": "Rhino: Runs the automation test(s) from the currently open document"
+				"category": "Rhino",
+				"title": "Runs the automation test(s) from the currently open document"
 			},
 			{
 				"command": "Invoke-TestCase -All",
-				"title": "Rhino: Runs all the automation test(s) under this projects"
+				"category": "Rhino",
+				"title": "Runs all the automation test(s) under this projects"
 			},
 			{
 				"command": "Register-Environment",
-				"title": "Rhino: Register an environment file under 'Environments' folder"
+				"category": "Rhino",
+				"title": "Register an environment file under 'Environments' folder"
 			},
 			{
 				"command": "Register-Models",
-				"title": "Rhino: Register all the models under 'Models' folder"
+				"category": "Rhino",
+				"title": "Register all the models under 'Models' folder"
 			},
 			{
 				"command": "Register-Plugins",
-				"title": "Rhino: Register all the plugins under 'Plugins' folder"
+				"category": "Rhino",
+				"title": "Register all the plugins under 'Plugins' folder"
 			},
 			{
 				"command": "Register-Rhino",
-				"title": "Rhino: Connect to Rhino, fetch Metadata & activate commands"
+				"category": "Rhino",
+				"title": "Connect to Rhino, fetch Metadata & activate commands"
 			},
 			{
 				"command": "Register-TestCase",
-				"title": "Rhino: Creates a new Test Case(s) entity on the integrated application from the currently open document"
+				"category": "Rhino",
+				"title": "Creates a new Test Case(s) entity on the integrated application from the currently open document"
 			},
 			{
 				"command": "Get-TestCase",
-				"title": "Rhino: Gets a Test Case(s) specification(s) from the integrated application"
+				"category": "Rhino",
+				"title": "Gets a Test Case(s) specification(s) from the integrated application"
 			},
 			{
 				"command": "Get-Documentation",
-				"title": "Rhino: Show Documentation"
+				"category": "Rhino",
+				"title": "Show Documentation"
 			},
 			{
 				"command": "Update-Symbols",
-				"title": "Rhino: Actively updates the symbols for the open document",
+				"category": "Rhino",
+				"title": "Actively updates the symbols for the open document",
 				"icon": "$(debug-restart-frame)"
 			}
 		],
