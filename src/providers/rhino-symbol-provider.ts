@@ -136,7 +136,7 @@ export class RhinoDocumentSymbolProvider extends Provider implements vscode.Docu
     }
 
     /**
-     * Summary. Register all providers into the given context. 
+     * Summary. Register the provider into the given context. 
      */
     public register(context: vscode.ExtensionContext): any {
         // setup

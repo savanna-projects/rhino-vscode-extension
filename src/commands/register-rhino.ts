@@ -16,6 +16,7 @@ import { InvokeAllTestCasesCommand } from './invoke-all-test-cases';
 import { RegisterEnvironmentCommand } from './register-environment';
 import { GetDocumentationCommand } from './get-documentation';
 import { TestCaseFormatter } from '../formatters/test-case-formatter';
+import { UpdateDocumentsCommand } from './update-documents';
 
 export class RegisterRhinoCommand extends Command {
     /**
@@ -84,7 +85,6 @@ export class RegisterRhinoCommand extends Command {
 
         // TODO: create a register which automatically resolves all commands in the domain.
         // build
-        new ConnectServerCommand(context).invokeCommand();
         new RegisterTestCaseCommand(context).register();
         new CreateProjectCommand(context).register();
         new InvokeTestCaseCommand(context).register();
@@ -94,5 +94,6 @@ export class RegisterRhinoCommand extends Command {
         new GetTestCaseCommand(context).register();
         new RegisterEnvironmentCommand(context).register();
         new GetDocumentationCommand(context).register();
+        new ConnectServerCommand(context).invokeCommand();
     }
 }

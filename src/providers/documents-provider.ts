@@ -24,6 +24,19 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
             : element.children;
     }
 
+    /**
+     * Summary. Creates the provider into the given context. 
+     */
+    public register(): any {
+        // setup
+        let options = {
+            treeDataProvider: this
+        };
+
+        // get
+        vscode.window.createTreeView('rhinoDocumentation', options);
+    }
+
     /*┌─[ UTILITIES ]──────────────────────────────────────────
       │
       │ A collection of utility methods
@@ -66,7 +79,7 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
         // local
         const getFromDirectory: any = (directoryPath: any, parent: TreeItem) => {
             // setup
-            const files = fs.readdirSync(directoryPath);
+            const files = DocumentsProvider.sortFilesAndFolders(directoryPath, fs.readdirSync(directoryPath));
             const directoryName = path.basename(directoryPath);
 
             // normalize
@@ -111,6 +124,53 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
 
         // callback
         callback(docs);
+    }
+
+    private static sortFilesAndFolders(directoryPath: string, unsorted: string[]): string[] {
+        // local
+        const sortByName = (list: string[]) => {
+            return list.sort((n1: string, n2: string) => {
+                if (n1 > n2) {
+                    return 1;
+                }
+
+                if (n1 < n2) {
+                    return -1;
+                }
+
+                return 0;
+            });
+        };
+
+        // setup
+        let excludeFolders: string[] = [
+            "Images"
+        ].map(i => i.toUpperCase());
+        let folders: string[] = [];
+        let files: string[] = [];
+
+        // sort o-n
+        for (let item of unsorted) {
+            let file = path.join(directoryPath, item);
+            let stats = fs.statSync(file);
+            if (stats.isDirectory()) {
+                var isExcluded = excludeFolders.indexOf(item.toUpperCase()) > -1;
+                if (isExcluded) {
+                    continue;
+                }
+                folders.push(item);
+            }
+            else if (stats.isFile()) {
+                files.push(item);
+            }
+        }
+
+        // sort a-z
+        folders = sortByName(folders);
+        files = sortByName(files);
+
+        // get
+        return [...folders, ...files];
     }
 }
 
