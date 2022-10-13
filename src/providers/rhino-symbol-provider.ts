@@ -26,7 +26,10 @@ export class RhinoDocumentSymbolProvider extends Provider implements vscode.Docu
      * @returns An array of document highlights or a thenable that resolves to such.
      */
     public provideDocumentSymbols(document: vscode.TextDocument): vscode.ProviderResult<vscode.DocumentSymbol[]> {
-        return this.resolveSymbols(document);
+        let options = { location: { viewId: "outline" } };
+        return vscode.window.withProgress(options, () => {
+            return this.resolveSymbols(document);
+        });
     }
 
     /**
@@ -49,36 +52,33 @@ export class RhinoDocumentSymbolProvider extends Provider implements vscode.Docu
             return documentSymbols;
         };
 
-        let options = { location: { viewId: "outline" } };
-        return vscode.window.withProgress(options, () => {
-            return new Promise<vscode.DocumentSymbol[]>(function (resolve, reject) {
-                // setup
-                let text = document.getText();
-                let input = text === undefined ? '' : text;
+        return new Promise<vscode.DocumentSymbol[]>(function (resolve, reject) {
+            // setup
+            let text = document.getText();
+            let input = text === undefined ? '' : text;
 
-                // bad request
-                if (input === undefined || input === '') {
-                    resolve([]);
+            // bad request
+            if (input === undefined || input === '') {
+                resolve([]);
+            }
+
+            // setup
+            let endpoint = Utilities.getRhinoEndpoint();
+            let client = new RhinoClient(endpoint);
+
+            // resolve
+            client.getSymbols(input, (data: string) => {
+                let symbols = JSON.parse(data);
+                let documentSymbols = get(symbols);
+
+                if (documentSymbols === null || documentSymbols === undefined || documentSymbols.length === 0) {
+                    return [];
                 }
 
-                // setup
-                let endpoint = Utilities.getRhinoEndpoint();
-                let client = new RhinoClient(endpoint);
-
-                // resolve
-                client.getSymbols(input, (data: string) => {
-                    let symbols = JSON.parse(data);
-                    let documentSymbols = get(symbols);
-
-                    if (documentSymbols === null || documentSymbols === undefined || documentSymbols.length === 0) {
-                        return [];
-                    }
-
-                    let symbolsTree = documentSymbols.length > 1
-                        ? documentSymbols
-                        : documentSymbols[0].children;
-                    resolve(symbolsTree);
-                });
+                let symbolsTree = documentSymbols.length > 1
+                    ? documentSymbols
+                    : documentSymbols[0].children;
+                resolve(symbolsTree);
             });
         });
     }
