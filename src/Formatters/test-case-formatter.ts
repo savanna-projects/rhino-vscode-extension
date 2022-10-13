@@ -253,7 +253,7 @@ export class TestCaseFormatter extends Formatter {
             const assertion = expectedResults[i].trim();
             let evaluation = this.getEvaluation(assertion, lastIndex, i);
 
-            if (evaluation == null) {
+            if (evaluation === null) {
                 continue;
             }
             if (evaluation.type !== 'N/A') {
