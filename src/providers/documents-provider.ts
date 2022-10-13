@@ -87,7 +87,7 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
         vscode.commands.registerCommand('Update-Documents', () => {
             this.refresh();
         });
-        
+
         // register
         const tree = vscode.window.createTreeView('rhinoDocumentation', options);
         this.context.subscriptions.push(tree);

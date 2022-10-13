@@ -213,7 +213,6 @@
 	"extensionDependencies": [
 		"humao.rest-client",
 		"pkief.material-icon-theme",
-		"davidanson.vscode-markdownlint",
-		"docsmsft.docs-yaml"
+		"davidanson.vscode-markdownlint"
 	]
 }
