@@ -15,6 +15,21 @@ import { Utilities } from '../extensions/utilities';
 import { TreeItem } from '../contracts/tree-item';
 
 export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
+    // members
+    private context: vscode.ExtensionContext;
+
+    // events
+    private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | null | void> = new vscode.EventEmitter<TreeItem | undefined | null | void>();
+    readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
+
+    constructor(context: vscode.ExtensionContext) {
+        this.context = context;
+    }
+
+    refresh(): void {
+        this._onDidChangeTreeData.fire();
+    }
+
     getTreeItem(element: TreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
     }
@@ -51,6 +66,7 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
                 const command = "markdown.showPreviewToSide";
                 let data = Utilities.getTreeItems(documentsFolder, excludeFolders, includeFiles, command);
 
+                // get
                 resolve(data);
             });
         });
@@ -61,11 +77,19 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
      */
     public register(): any {
         // setup
-        let options = {
-            treeDataProvider: this
+        const options = {
+            treeDataProvider: this,
+            showCollapseAll: true
         };
 
-        // get
-        vscode.window.createTreeView('rhinoDocumentation', options);
+        // build
+        vscode.window.registerTreeDataProvider('rhinoDocumentation', this);
+        vscode.commands.registerCommand('Update-Documents', () => {
+            this.refresh();
+        });
+        
+        // register
+        const tree = vscode.window.createTreeView('rhinoDocumentation', options);
+        this.context.subscriptions.push(tree);
     }
 }

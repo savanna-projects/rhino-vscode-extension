@@ -7,18 +7,26 @@
  * https://www.freecodecamp.org/news/definitive-guide-to-snippets-visual-studio-code/
  * 
  * CREDITS
- * https://iconscout.com/contributors/vorillaz
  */
 import path = require('path');
-import fs = require('fs');
 import * as vscode from 'vscode';
+import { TreeItem } from '../contracts/tree-item';
+import { Utilities } from '../extensions/utilities';
 
 export class ScriptsProvider implements vscode.TreeDataProvider<TreeItem> {
-    data: TreeItem[];
+    // members
+    private context: vscode.ExtensionContext;
 
-    constructor() {
-        let documents = ScriptsProvider.getScripts();
-        this.data = [...documents];
+    // events
+    private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | null | void> = new vscode.EventEmitter<TreeItem | undefined | null | void>();
+    readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
+
+    constructor(context: vscode.ExtensionContext) {
+        this.context = context;
+    }
+
+    refresh(): void {
+        this._onDidChangeTreeData.fire();
     }
 
     getTreeItem(element: TreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
@@ -26,126 +34,61 @@ export class ScriptsProvider implements vscode.TreeDataProvider<TreeItem> {
     }
 
     getChildren(element?: TreeItem | undefined): vscode.ProviderResult<TreeItem[]> {
-        if (element === undefined) {
-            return this.data;
+        // exit conditions
+        if (element !== undefined) {
+            return element?.children;
         }
-        return element.children;
-    }
 
-    /*┌─[ UTILITIES ]──────────────────────────────────────────
-      │
-      │ A collection of utility methods
-      └────────────────────────────────────────────────────────*/
-    private static getScripts(): TreeItem[] {
         // setup
-        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
-        workspace = workspace === undefined ? '' : workspace;
-        let documentsFolder = path.join(workspace, '..', 'scripts');
-        documentsFolder = documentsFolder.startsWith('\\')
-            ? documentsFolder.substring(1, documentsFolder.length)
-            : documentsFolder;
-        let data: TreeItem[] = [];
-
-        // bad request
-        const fs = require('fs');
-        if (!fs.existsSync(documentsFolder)) {
-            return [];
-        }
-
-        // build
-        vscode.window.setStatusBarMessage('$(sync~spin) Loading scripts...');
-        ScriptsProvider.getTreeItems(documentsFolder, (docs: TreeItem) => {
-            if (docs.children === null || docs.children === undefined) {
-                return;
-            }
-            data.push(...docs.children);
-            vscode.window.setStatusBarMessage('$(testing-passed-icon) Scripts loaded');
-        });
+        let options = { location: { viewId: "rhinoScripts" } };
 
         // get
-        return data;
+        return vscode.window.withProgress(options, () => {
+            return new Promise<TreeItem[]>((resolve) => {
+                // setup
+                let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
+                workspace = workspace === undefined ? '' : workspace;
+                let documentsFolder = path.join(workspace, '..', 'scripts');
+                documentsFolder = documentsFolder.startsWith('\\')
+                    ? documentsFolder.substring(1, documentsFolder.length)
+                    : documentsFolder;
+
+                // bad request
+                const fs = require('fs');
+                if (!fs.existsSync(documentsFolder)) {
+                    resolve([]);
+                }
+
+                // build
+                const includeFiles = [".cmd", ".sh", ".ps1", ".bat", ".py", ".js"];
+                const excludeFolders = ["images"];
+                const command = "vscode.open";
+                let data = Utilities.getTreeItems(documentsFolder, excludeFolders, includeFiles, command);
+
+                // get
+                resolve(data);
+            });
+        });
     }
 
-    public static getTreeItems(directory: string, callback: any) {
-        // local
-        const getFromDirectory: any = (directoryPath: any, parent: TreeItem) => {
-            // setup
-            const files = fs.readdirSync(directoryPath);
-            const directoryName = path.basename(directoryPath);
-
-            // normalize
-            if (parent !== null && parent !== undefined) {
-                parent.children = parent.children === null || parent.children === undefined
-                    ? []
-                    : parent.children;
-            }
-            else {
-                parent = new TreeSection(directoryName);
-                parent.children = [];
-            }
-            parent.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-
-            for (const file of files) {
-                const filePath = path.join(directoryPath, file);
-                const stats = fs.statSync(filePath);
-
-                if (stats.isDirectory()) {
-                    const item = path.basename(filePath);
-                    const section = new TreeSection(item);
-                    section.collapsibleState = 1;
-                    parent.children?.push(section);
-                    getFromDirectory(filePath, section);
-                }
-                else {
-                    let onFile = filePath.replaceAll('\\', '/');
-                    onFile = onFile.match(/^[a-z,A-Z]:/) ? `/${onFile}` : onFile;
-                    parent.children?.push(new TreeItem(file, onFile));
-                }
-            }
-
-            return parent;
+    /**
+     * Summary. Creates the provider into the given context. 
+     */
+     public register(): any {
+        // setup
+        const options = {
+            treeDataProvider: this,
+            showCollapseAll: true
         };
 
         // build
-        let docs = getFromDirectory(directory);
+        vscode.window.registerTreeDataProvider('rhinoScripts', this);
+        vscode.commands.registerCommand('Update-Scripts', () => {
+            this.refresh();
+        });
 
-        // callback
-        callback(docs);
+        // register
+        const tree = vscode.window.createTreeView('rhinoScripts', options);
+        this.context.subscriptions.push(tree);
     }
-}
-
-class TreeItem extends vscode.TreeItem {
-    children: TreeItem[] | undefined;
-    command?: vscode.Command | undefined;
-
-    constructor(label: string, resource: string, children?: TreeItem[]) {
-        super(
-            label,
-            children === undefined
-                ? vscode.TreeItemCollapsibleState.None
-                : vscode.TreeItemCollapsibleState.Expanded);
-        this.children = children;
-        this.command = <vscode.Command>{
-            title: "",
-            command: "vscode.open",
-            arguments: [vscode.Uri.file(resource)]
-        };
-    }
-
-    iconPath = vscode.ThemeIcon.File;
-}
-
-class TreeSection extends vscode.TreeItem {
-    children: TreeItem[] | undefined;
-
-    constructor(label: string, children?: TreeItem[]) {
-        super(
-            label,
-            children === undefined
-                ? vscode.TreeItemCollapsibleState.None
-                : vscode.TreeItemCollapsibleState.Expanded);
-        this.children = children;
-    }
-
-    iconPath = vscode.ThemeIcon.Folder;
 }

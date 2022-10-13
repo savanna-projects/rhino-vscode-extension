@@ -94,6 +94,12 @@
 				"category": "Rhino",
 				"title": "Actively updates the pipelines list for the open project",
 				"icon": "$(extensions-refresh)"
+			},
+			{
+				"command": "Update-Scripts",
+				"category": "Rhino",
+				"title": "Actively updates the scripts list for the open project",
+				"icon": "$(extensions-refresh)"
 			}
 		],
 		"languages": [
@@ -145,6 +151,11 @@
 				{
 					"command": "Update-Pipelines",
 					"when": "view == rhinoPipelines",
+					"group": "navigation"
+				},
+				{
+					"command": "Update-Scripts",
+					"when": "view == rhinoScripts",
 					"group": "navigation"
 				}
 			]

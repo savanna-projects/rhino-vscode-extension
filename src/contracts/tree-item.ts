@@ -19,9 +19,11 @@ export class TreeItem extends vscode.TreeItem {
             label,
             children === undefined
                 ? vscode.TreeItemCollapsibleState.None
-                : vscode.TreeItemCollapsibleState.Expanded);
-        this.children = children;
+                : vscode.TreeItemCollapsibleState.Collapsed);
         this.command = command;
         this.iconPath = iconPath;
+        if (children !== undefined) {
+            this.children = children;
+        }
     }
 }

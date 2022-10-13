@@ -15,6 +15,21 @@ import { Utilities } from '../extensions/utilities';
 import { TreeItem } from '../contracts/tree-item';
 
 export class PipelinesProvider implements vscode.TreeDataProvider<TreeItem> {
+    // members
+    private context: vscode.ExtensionContext;
+
+    // events
+    private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | null | void> = new vscode.EventEmitter<TreeItem | undefined | null | void>();
+    readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
+
+    constructor(context: vscode.ExtensionContext) {
+        this.context = context;
+    }
+
+    refresh(): void {
+        this._onDidChangeTreeData.fire();
+    }
+
     getTreeItem(element: TreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
     }
@@ -51,6 +66,7 @@ export class PipelinesProvider implements vscode.TreeDataProvider<TreeItem> {
                 const command = "vscode.open";
                 let data = Utilities.getTreeItems(documentsFolder, excludeFolders, includeFiles, command);
 
+                // get
                 resolve(data);
             });
         });
@@ -61,11 +77,19 @@ export class PipelinesProvider implements vscode.TreeDataProvider<TreeItem> {
      */
     public register(): any {
         // setup
-        let options = {
-            treeDataProvider: this
+        const options = {
+            treeDataProvider: this,
+            showCollapseAll: true
         };
 
-        // get
-        vscode.window.createTreeView('rhinoPipelines', options);
+        // build
+        vscode.window.registerTreeDataProvider('rhinoPipelines', this);
+        vscode.commands.registerCommand('Update-Pipelines', () => {
+            this.refresh();
+        });
+
+        // register
+        const tree = vscode.window.createTreeView('rhinoPipelines', options);
+        this.context.subscriptions.push(tree);
     }
 }

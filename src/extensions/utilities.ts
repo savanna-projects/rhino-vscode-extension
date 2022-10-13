@@ -202,7 +202,6 @@ export class Utilities {
                 parent = new TreeItem(folderPath, vscode.ThemeIcon.Folder);
                 parent.children = [];
             }
-            parent.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
 
             for (const file of files) {
                 const filePath = path.join(directoryPath, file);
@@ -211,7 +210,7 @@ export class Utilities {
                 if (stats.isDirectory()) {
                     const item = path.basename(filePath);
                     const section = new TreeItem(item, vscode.ThemeIcon.Folder);
-                    section.collapsibleState = 1;
+                    section.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
                     parent.children?.push(section);
                     getFromDirectory(filePath, section);
                 }
