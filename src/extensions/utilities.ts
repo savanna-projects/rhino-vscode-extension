@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import path = require('path');
 import fs = require('fs');
+import { TreeItem } from '../contracts/tree-item';
 
 export class Utilities {
     /**
@@ -122,6 +123,123 @@ export class Utilities {
 
         // callback
         callback(list);
+    }
+
+    /**
+     * Summary. Get a flat list of all files and folders sorted by folders > a-z > files a-z.
+     */
+    public static getSortedFilesAndFolders(
+        folderPath: string, excludeFolders: string[] = [], includeFiles: string[] = []): string[] {
+        // local
+        const sortByName = (list: string[]) => {
+            return list.sort((n1: string, n2: string) => {
+                if (n1 > n2) {
+                    return 1;
+                }
+
+                if (n1 < n2) {
+                    return -1;
+                }
+
+                return 0;
+            });
+        };
+
+        // setup
+        excludeFolders = excludeFolders.map(i => i.toUpperCase());
+        includeFiles = includeFiles.map(i => i.toUpperCase());
+        let unsorted = fs.readdirSync(folderPath);
+        let folders: string[] = [];
+        let files: string[] = [];
+
+        // sort o-n
+        for (let item of unsorted) {
+            let file = path.join(folderPath, item);
+            let stats = fs.statSync(file);
+            if (stats.isDirectory()) {
+                let isExcluded = excludeFolders.indexOf(item.toUpperCase()) > -1 && excludeFolders.length !== 0;
+                if (isExcluded) {
+                    continue;
+                }
+                folders.push(item);
+            }
+            else if (stats.isFile()) {
+                let suffix = path.extname(item).toUpperCase();
+                let isIncluded = includeFiles.length === 0 || includeFiles.indexOf(suffix) === 0;
+                if (!isIncluded) {
+                    continue;
+                }
+                files.push(item);
+            }
+        }
+
+        // sort a-z
+        folders = sortByName(folders);
+        files = sortByName(files);
+
+        // get
+        return [...folders, ...files];
+    }
+
+    public static getTreeItems(
+        directory: string,
+        excludeFolders: string[] = [],
+        includeFiles: string[] = [],
+        openItemCommand?: string): Thenable<TreeItem[]> {
+
+        const getFromDirectory: any = (directoryPath: any, parent: TreeItem) => {
+            // setup
+            const folderPath = path.basename(directoryPath);
+            const files = Utilities.getSortedFilesAndFolders(directoryPath, excludeFolders, includeFiles);
+
+            // normalize
+            if (parent !== null && parent !== undefined) {
+                parent.children = parent.children === null || parent.children === undefined
+                    ? []
+                    : parent.children;
+            }
+            else {
+                parent = new TreeItem(folderPath, vscode.ThemeIcon.Folder);
+                parent.children = [];
+            }
+            parent.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+
+            for (const file of files) {
+                const filePath = path.join(directoryPath, file);
+                const stats = fs.statSync(filePath);
+
+                if (stats.isDirectory()) {
+                    const item = path.basename(filePath);
+                    const section = new TreeItem(item, vscode.ThemeIcon.Folder);
+                    section.collapsibleState = 1;
+                    parent.children?.push(section);
+                    getFromDirectory(filePath, section);
+                }
+                else {
+                    let onFile = filePath.replaceAll('\\', '/');
+                    onFile = onFile.match(/^[a-z,A-Z]:/) ? `/${onFile}` : onFile;
+                    const command = <vscode.Command>{
+                        title: "",
+                        command: openItemCommand,
+                        arguments: [vscode.Uri.file(onFile)]
+                    };
+
+                    const item = new TreeItem(file, vscode.ThemeIcon.File, undefined, command);
+                    parent.children?.push(item);
+                }
+            }
+
+            return parent;
+        };
+
+        // build
+        return new Promise<any>((resolve) => {
+            let docs = getFromDirectory(directory);
+            if (docs.children === null || docs.children === undefined) {
+                resolve([docs]);
+            }
+            resolve([...docs.children]);
+        });
     }
 
     /**

@@ -32,6 +32,19 @@ export class PipelinesProvider implements vscode.TreeDataProvider<TreeItem> {
         return element.children;
     }
 
+    /**
+     * Summary. Creates the provider into the given context. 
+     */
+     public register(): any {
+        // setup
+        let options = {
+            treeDataProvider: this
+        };
+
+        // get
+        vscode.window.createTreeView('rhinoPipelines', options);
+    }
+
     /*┌─[ UTILITIES ]──────────────────────────────────────────
       │
       │ A collection of utility methods
@@ -53,13 +66,11 @@ export class PipelinesProvider implements vscode.TreeDataProvider<TreeItem> {
         }
 
         // build
-        vscode.window.setStatusBarMessage('$(sync~spin) Loading pipelines...');
         PipelinesProvider.getTreeItems(documentsFolder, (docs: TreeItem) => {
             if (docs.children === null || docs.children === undefined) {
                 return;
             }
             data.push(...docs.children);
-            vscode.window.setStatusBarMessage('$(testing-passed-icon) Pipelines loaded');
         });
 
         // get
