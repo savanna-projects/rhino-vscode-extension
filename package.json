@@ -43,6 +43,12 @@
 				"title": "Runs all the automation test(s) under this projects"
 			},
 			{
+				"command": "Invoke-TestCase -Folder",
+				"category": "Rhino",
+				"title": "Runs the automation test(s) from the currently selected folder",
+				"icon": "$(testing-run-all-icon)"
+			},
+			{
 				"command": "Register-Environment",
 				"category": "Rhino",
 				"title": "Register an environment file under 'Environments' folder"
