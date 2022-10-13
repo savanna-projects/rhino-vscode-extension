@@ -11,11 +11,16 @@ import { RhinoClient } from '../framework/rhino-client';
 import { Provider } from './provider';
 
 export class RhinoDocumentSymbolProvider extends Provider implements vscode.DocumentSymbolProvider {
+    // members
+    private context: vscode.ExtensionContext;
+
     /**
      * Creates a new instance of CommandsProvider
      */
-    constructor() {
+    constructor(context: vscode.ExtensionContext) {
         super();
+
+        this.context = context;
     }
 
     /**
@@ -138,11 +143,11 @@ export class RhinoDocumentSymbolProvider extends Provider implements vscode.Docu
     /**
      * Summary. Register the provider into the given context. 
      */
-    public register(context: vscode.ExtensionContext): any {
+    public register(): any {
         // setup
         let options = [ExtensionSettings.providerOptions];
 
         // register
-        context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(options, this));
+        this.context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(options, this));
     }
 }

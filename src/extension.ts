@@ -13,7 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
 	new ScriptsProvider(context).register();
 
 	// register symbol provider
-	new RhinoDocumentSymbolProvider().register(context);
+	new RhinoDocumentSymbolProvider(context).register();
 
 	// register activation commands
 	new CreateProjectCommand(context).register();
