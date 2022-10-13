@@ -6,13 +6,12 @@
  * CREDITS
  */
 import * as vscode from 'vscode';
-import { DocumentsProvider } from '../providers/documents-provider';
 import { PipelinesProvider } from '../providers/pipelines-provider';
 import { Command } from "./command";
 
 export class UpdatePipelinesCommand extends Command {
     // members
-    private provider: DocumentsProvider; 
+    private provider: PipelinesProvider; 
 
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
