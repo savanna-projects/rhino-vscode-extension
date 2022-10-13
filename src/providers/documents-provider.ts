@@ -10,11 +10,9 @@
  * https://iconscout.com/contributors/vorillaz
  */
 import path = require('path');
-import fs = require('fs');
 import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
 import { TreeItem } from '../contracts/tree-item';
-import { TransferListItem } from 'worker_threads';
 
 export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
     getTreeItem(element: TreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {

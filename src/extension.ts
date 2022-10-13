@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { CreateProjectCommand } from './commands/create-project';
 import { RegisterRhinoCommand } from './commands/register-rhino';
 import { UpdateDocumentsCommand } from './commands/update-documents';
+import { UpdatePipelinesCommand } from './commands/update-pipelines';
 import { DocumentsProvider } from './providers/documents-provider';
 import { PipelinesProvider } from './providers/pipelines-provider';
 import { RhinoDocumentSymbolProvider } from './providers/rhino-symbol-provider';
@@ -22,6 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// register activation commands
 	new UpdateDocumentsCommand(context).register();
+	new UpdatePipelinesCommand(context).register();
 	new CreateProjectCommand(context).register();
 	new RegisterRhinoCommand(context).register();
 }

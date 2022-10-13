@@ -165,7 +165,7 @@ export class Utilities {
             }
             else if (stats.isFile()) {
                 let suffix = path.extname(item).toUpperCase();
-                let isIncluded = includeFiles.length === 0 || includeFiles.indexOf(suffix) === 0;
+                let isIncluded = includeFiles.length === 0 || includeFiles.indexOf(suffix) > -1;
                 if (!isIncluded) {
                     continue;
                 }
