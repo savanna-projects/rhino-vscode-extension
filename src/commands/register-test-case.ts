@@ -82,13 +82,15 @@ export class RegisterTestCaseCommand extends Command {
             vscode.window.setStatusBarMessage('$(sync~spin) Getting an integrated test case(s)...');
             let model = {
                 connector: manifest.connectorConfiguration,
-                entity: testCasesResponse
+                entity: testCasesResponse.length > 0 ? testCasesResponse[0] : ''
             };
+            if (model.entity === '') {
+                return;
+            }
             this.getRhinoClient().getTestCases(model, (testCase: any) => {
-                let document = JSON.parse(testCase).join('\n\n>>>\n\n');
                 let range = this.getDocumentRange();
                 vscode.window.activeTextEditor?.edit((i) => {
-                    i.replace(range, document);
+                    i.replace(range, testCase);
                     vscode.window.setStatusBarMessage('$(testing-passed-icon) Integrated Test case(s) retrieved');
                 });
             });

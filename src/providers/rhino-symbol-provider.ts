@@ -3,6 +3,15 @@
  * 
  * RESOURCES
  * https://code.visualstudio.com/api/language-extensions/programmatic-language-features
+ * 
+ * WORK ITEMS
+ * TODO: create configuration based on manifest
+ * TODO: send configuration to agent and get the configuration id
+ * TODO: send symbol request with the configuration id (to support external repositories)
+ * TODO: activate on connect and not on startup
+ * TODO: handle recovery from connection error
+ * TODO: distinct tests by id (when data driven is applied) to avoid symbols duplications
+ * TODO: show data driven/parameters sets as a section under in the top level (like models)
  */
 import * as vscode from 'vscode';
 import { ExtensionSettings } from '../extension-settings';

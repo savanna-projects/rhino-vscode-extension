@@ -2,6 +2,9 @@
  * CHANGE LOG - keep only last 5 threads
  * 
  * RESOURCES
+ * 
+ * WORK ITEMS
+ * TODO: use promises and parallel calls to reduce client creation time
  */
 import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
@@ -12,7 +15,6 @@ import { AnnotationsAutoCompleteProvider } from '../providers/annotations-auto-c
 import { AssertionsAutoCompleteProvider } from '../providers/assertions-auto-complete-provider';
 import { DataAutoCompleteProvider } from '../providers/data-auto-complete-provider';
 import { DefinitionProvider } from '../providers/definition-provider';
-import { DocumentsProvider } from '../providers/documents-provider';
 import { MacrosAutoCompleteProvider } from '../providers/macros-auto-complete-provider';
 import { ModelsAutoCompleteProvider } from '../providers/models-auto-complete-provider';
 import { ParametersAutoCompleteProvider } from '../providers/parameters-auto-complete-provider';

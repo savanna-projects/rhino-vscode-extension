@@ -310,7 +310,7 @@ export class RhinoClient {
         let httpCommand = new HttpCommand()
             .setMethod('POST')
             .setBody(integrationModel)
-            .setCommand('/api/v3/integration/test/specs')
+            .setCommand('/api/v3/integration/test/spec')
             .addHeader('Content-Type', 'application/json');
 
         // get
