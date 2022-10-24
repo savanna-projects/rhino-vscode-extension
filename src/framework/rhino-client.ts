@@ -439,4 +439,14 @@ export class RhinoClient {
         // get
         this.httpClient.invokeWebRequest(httpCommand, callback);
     }
+
+    public getStatus(callback: any){
+        // setup
+        let httpCommand = new HttpCommand()
+            .setMethod('GET')
+            .setCommand(`/api/v3/ping/rhino`);
+
+        // get
+        this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
 }

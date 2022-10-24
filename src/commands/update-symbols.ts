@@ -6,6 +6,7 @@
  * CREDITS
  */
 import * as vscode from 'vscode';
+import { RhinoDocumentSymbolProvider } from '../providers/rhino-symbol-provider';
 import { Command } from "./command";
 
 export class UpdateSymbolsCommand extends Command {
@@ -46,7 +47,7 @@ export class UpdateSymbolsCommand extends Command {
         this.invoke(callback);
     }
 
-    private invoke(callback: any) { 
+    private invoke(callback: any) {
         callback();
     }
 }

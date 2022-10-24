@@ -1,23 +1,15 @@
 import * as vscode from 'vscode';
 import { CreateProjectCommand } from './commands/create-project';
 import { RegisterRhinoCommand } from './commands/register-rhino';
-import { DocumentsProvider } from './providers/documents-provider';
-import { PipelinesProvider } from './providers/pipelines-provider';
-import { RhinoDocumentSymbolProvider } from './providers/rhino-symbol-provider';
-import { ScriptsProvider } from './providers/scripts-provider';
 
 export function activate(context: vscode.ExtensionContext) {
-	// create explorer views
-	new DocumentsProvider(context).register();
-	new PipelinesProvider(context).register();
-	new ScriptsProvider(context).register();
+	// setup
+	let registerCommand = new RegisterRhinoCommand(context);
 
-	// register symbol provider
-	new RhinoDocumentSymbolProvider(context).register();
-
-	// register activation commands
+	// register
 	new CreateProjectCommand(context).register();
-	new RegisterRhinoCommand(context).register();
+	registerCommand.register();
+	registerCommand.invokeCommand();
 }
 
 export function deactivate(context: vscode.ExtensionContext) {

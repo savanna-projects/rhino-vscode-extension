@@ -2,11 +2,13 @@
  * CHANGE LOG - keep only last 5 threads
  * 
  * RESOURCES
+ * 
+ * WORK ITEMS
+ * TODO: create a register which automatically resolves all commands/providers in the domain.
  */
 import * as vscode from 'vscode';
 import { Command } from "./command";
 import { ConnectServerCommand } from './connect-server';
-import { CreateProjectCommand } from './create-project';
 import { InvokeTestCaseCommand } from './invoke-test-case';
 import { RegisterPluginsCommand } from './register-plugins';
 import { RegisterTestCaseCommand } from './register-test-case';
@@ -16,6 +18,12 @@ import { InvokeAllTestCasesCommand } from './invoke-all-test-cases';
 import { RegisterEnvironmentCommand } from './register-environment';
 import { GetDocumentationCommand } from './get-documentation';
 import { TestCaseFormatter } from '../formatters/test-case-formatter';
+import { DocumentsProvider } from '../providers/documents-provider';
+import { PipelinesProvider } from '../providers/pipelines-provider';
+import { ScriptsProvider } from '../providers/scripts-provider';
+import { RhinoDocumentSymbolProvider } from '../providers/rhino-symbol-provider';
+import { RhinoDefinitionProvider } from '../providers/rhino-definition-provider';
+import { UpdateSymbolsCommand } from './update-symbols';
 
 export class RegisterRhinoCommand extends Command {
     /**
@@ -82,10 +90,19 @@ export class RegisterRhinoCommand extends Command {
         }
         subscriptions.splice(1, subscriptions.length);
 
-        // TODO: create a register which automatically resolves all commands in the domain.
-        // build
+        // register providers: explorer views
+        new DocumentsProvider(context).register();
+        new PipelinesProvider(context).register();
+        new ScriptsProvider(context).register();
+
+        // register providers: symbols
+        new RhinoDocumentSymbolProvider(context).register();
+
+        // register providers: context
+        new RhinoDefinitionProvider(context).register();
+
+        // register commands
         new RegisterTestCaseCommand(context).register();
-        new CreateProjectCommand(context).register();
         new InvokeTestCaseCommand(context).register();
         new InvokeAllTestCasesCommand(context).register();
         new RegisterPluginsCommand(context).register();
@@ -93,6 +110,7 @@ export class RegisterRhinoCommand extends Command {
         new GetTestCaseCommand(context).register();
         new RegisterEnvironmentCommand(context).register();
         new GetDocumentationCommand(context).register();
-        new ConnectServerCommand(context).invokeCommand();
+        new UpdateSymbolsCommand(context).register();
+        new ConnectServerCommand(context).register();
     }
 }

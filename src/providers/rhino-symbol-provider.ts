@@ -22,6 +22,7 @@ import { Provider } from './provider';
 export class RhinoDocumentSymbolProvider extends Provider implements vscode.DocumentSymbolProvider {
     // members
     private context: vscode.ExtensionContext;
+    private client: RhinoClient;
 
     /**
      * Creates a new instance of CommandsProvider
@@ -29,7 +30,9 @@ export class RhinoDocumentSymbolProvider extends Provider implements vscode.Docu
     constructor(context: vscode.ExtensionContext) {
         super();
 
+        // setup
         this.context = context;
+        this.client = new RhinoClient(Utilities.getRhinoEndpoint());
     }
 
     /**
@@ -66,7 +69,7 @@ export class RhinoDocumentSymbolProvider extends Provider implements vscode.Docu
             return documentSymbols;
         };
 
-        return new Promise<vscode.DocumentSymbol[]>(function (resolve, reject) {
+        return new Promise<vscode.DocumentSymbol[]>((resolve) => {
             // setup
             let text = document.getText();
             let input = text === undefined ? '' : text;
@@ -76,12 +79,8 @@ export class RhinoDocumentSymbolProvider extends Provider implements vscode.Docu
                 resolve([]);
             }
 
-            // setup
-            let endpoint = Utilities.getRhinoEndpoint();
-            let client = new RhinoClient(endpoint);
-
             // resolve
-            client.getSymbols(input, (data: string) => {
+            this.client.getSymbols(input, (data: string) => {
                 let symbols = JSON.parse(data);
                 let documentSymbols = get(symbols);
 

@@ -12,16 +12,16 @@ import { ExtensionSettings } from '../extension-settings';
 import { Utilities } from '../extensions/utilities';
 import { Provider } from './provider';
 
-export class DefinitionProvider extends Provider {
+export class RhinoDefinitionProvider extends Provider {
     // members
-    private manifests: any[];
+    private context: vscode.ExtensionContext;
 
     /**
      * Creates a new instance of CommandsProvider
      */
-    constructor() {
+    constructor(context: vscode.ExtensionContext) {
         super();
-        this.manifests = [];
+        this.context = context;
     }
 
     /*┌─[ ABSTRACT IMPLEMENTATION ]────────────────────────────
@@ -31,7 +31,7 @@ export class DefinitionProvider extends Provider {
     /**
      * Summary. Register all providers into the given context. 
      */
-    public register(context: vscode.ExtensionContext): any {
+    public register(): any {
         // setup
         let plugins = this.getPlugins();
 
@@ -56,7 +56,7 @@ export class DefinitionProvider extends Provider {
 
         // register
         let items = [definitions];
-        context.subscriptions.push(...items);
+        this.context.subscriptions.push(...items);
     }
 
     /**
@@ -66,11 +66,8 @@ export class DefinitionProvider extends Provider {
      * @returns Self reference.
      */
     public setManifests(manifests: any): any {
-        // setup
-        this.manifests = manifests;
-
-        // get
-        return this;
+        console.log(manifests);
+        return [];
     }
 
     /*┌─[ UTILITIES ]──────────────────────────────────────────
