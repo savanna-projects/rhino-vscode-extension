@@ -91,27 +91,33 @@ export class ConnectServerCommand extends Command {
     private registerActions(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
         // user interface
         vscode.window.setStatusBarMessage('$(sync~spin) Loading action(s)...');
-
+        
+        console.log(`${new Date().getTime()} - Start loading actions`);
         // setup
         let configuration = Utilities.getConfigurationByManifest();
 
         // build
         client.createConfiguration(configuration, (data: any) => {
+            console.log(`${new Date().getTime()} - Start register actions create config`,configuration, data);
             let response = JSON.parse(data);
             let configurationId = Utilities.isNullOrUndefined(response) || Utilities.isNullOrUndefined(response.id)
                 ? ''
                 : response.id;
             client.getPluginsByConfiguration(configurationId, (plugins: any) => {
+                console.log(`${new Date().getTime()} - Getting register actions plugins by config`,configurationId);
                 let hasNoPlugins = Utilities.isNullOrUndefined(plugins) || plugins === '';
                 if (hasNoPlugins) {
                     client.getPlugins((plugins: any) => {
+                        console.log(`${new Date().getTime()} - NO PLUGINS - Getting register actions metadata by config`,configurationId);
                         this.getMetadata(client, context, plugins, '', callback);
                     });
                 }
                 else {
+                    console.log(`${new Date().getTime()} - Getting register actions metadata by config`,configurationId);
                     this.getMetadata(client, context, plugins, configurationId, callback);
                 }
             });
+
         });
     }
 
@@ -156,6 +162,7 @@ export class ConnectServerCommand extends Command {
     private registerAnnotations(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
         // user interface
         vscode.window.setStatusBarMessage('$(sync~spin) Loading annotations(s)...');
+        console.log(`${new Date().getTime()} - Start loading annotations`);
 
         // build
         client.getAnnotations((annotations: any) => {
@@ -179,6 +186,7 @@ export class ConnectServerCommand extends Command {
     private registerAssertions(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
         // user interface
         vscode.window.setStatusBarMessage('$(sync~spin) Loading assertion method(s)...');
+        console.log(`${new Date().getTime()} - Start loading assertions`);
 
         // build
         client.getAnnotations((annotations: any) => {
@@ -213,6 +221,7 @@ export class ConnectServerCommand extends Command {
     private registerMacros(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
         // user interface
         vscode.window.setStatusBarMessage('$(sync~spin) Loading macros(s)...');
+        console.log(`${new Date().getTime()} - Start loading macros`);
 
         // build
         client.getMacros((macros: any) => {
@@ -233,6 +242,7 @@ export class ConnectServerCommand extends Command {
     private registerDataDrivenSnippet(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
         // user interface
         vscode.window.setStatusBarMessage('$(sync~spin) Loading data-driven snippet(s)...');
+        console.log(`${new Date().getTime()} - Start loading data-driven snippet(s)`);
 
         // build
         client.getAnnotations((annotations: any) => {
@@ -250,6 +260,7 @@ export class ConnectServerCommand extends Command {
     private registerModels(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
         // user interface
         vscode.window.setStatusBarMessage('$(sync~spin) Loading page model(s)...');
+        console.log(`${new Date().getTime()} - Start loading page model(s)`);
 
         // build
         client.getModels((models: any) => {
