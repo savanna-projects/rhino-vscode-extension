@@ -12,7 +12,6 @@ export abstract class Command {
     private commandName: string;
     private endpoint: string;
     private context: vscode.ExtensionContext;
-    private options: any;
     private projectManifest: any;
     private client: RhinoClient;
 
@@ -26,16 +25,10 @@ export abstract class Command {
         this.commandName = '';
         this.endpoint = 'http://localhost:9000';
         this.context = context;
-        this.options = {
-            scheme: 'file',
-            language: 'rhino'
-       };
 
-       // build
-       this.projectManifest = Utilities.getProjectManifest();
-       var server = this.projectManifest.rhinoServer;
-       var rhinoEndpont = this.setEndpoint(server.schema + '://' + server.host + ':' + server.port).getEndpoint();
-       this.client = new RhinoClient(rhinoEndpont);
+        // build
+        this.projectManifest = Utilities.getProjectManifest();
+        this.client = new RhinoClient(Utilities.getRhinoEndpoint());
     }
 
     /*┌─[ SETTERS ]────────────────────────────────────────────
@@ -70,7 +63,7 @@ export abstract class Command {
         // get
         return this;
     }
-    
+
     /**
      * Summary. Sets the Rhino Project manifest to use with the command.
      * 
@@ -108,15 +101,6 @@ export abstract class Command {
     }
 
     /**
-     * Summary. Gets the command options.
-     * 
-     * @returns The Rhino Server endpoint. 
-     */
-    public getOptions(): any {
-        return this.options;
-    }
-
-    /**
      * Summary. Gets the Rhino API client to use with the command.
      * 
      * @returns The Rhino API client. 
@@ -149,12 +133,12 @@ export abstract class Command {
       │ any command.
       └────────────────────────────────────────────────────────*/
     /**
-     * Summary. When implemented, returns registerable command.
+     * Summary. When implemented, returns registerable command
      */
     public abstract register(): any;
 
     /**
      * Summary. Implement the command invoke pipeline.
      */
-    public abstract invokeCommand(): any;
+    public abstract invokeCommand(callback: any): any;
 }

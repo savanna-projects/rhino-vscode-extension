@@ -1,28 +1,17 @@
-/*
- * CHANGE LOG - keep only last 5 threads
- * 
- * RESOURCES
- * https://code.visualstudio.com/api/references/vscode-api#window.showInputBox
- */
 import * as vscode from 'vscode';
-import { ConnectRhinoServer } from './commands/connect-rhino-server';
-import { CreateIntegratedTestCase } from './commands/create-integrated-test-case';
-import { CreateRhinoProject } from './commands/create-rhino-project';
-import { InvokeRhinoTestCases } from './commands/invoke-rhino-test-cases';
-import { RegisterPlugins } from './commands/register-plugins';
+import { CreateProjectCommand } from './commands/create-project';
+import { RegisterRhinoCommand } from './commands/register-rhino';
 
-/**
- * Summary. This function will be called upon activating the extension.
- * 
- * @param context The context of the extension.
- */
 export function activate(context: vscode.ExtensionContext) {
-	new ConnectRhinoServer(context).register();
-	new InvokeRhinoTestCases(context).setCommandName('Invoke-RhinoTestCase').register();
-	new CreateRhinoProject(context).register();
-	new CreateIntegratedTestCase(context).register();
-	new RegisterPlugins(context).register();
+	// setup
+	let registerCommand = new RegisterRhinoCommand(context);
+
+	// register
+	new CreateProjectCommand(context).register();
+	registerCommand.register();
+	registerCommand.invokeCommand();
 }
 
-// this method is called when your extension is deactivated
-export function deactivate() { }
+export function deactivate(context: vscode.ExtensionContext) {
+	context.subscriptions.splice(0, context.subscriptions.length);
+}

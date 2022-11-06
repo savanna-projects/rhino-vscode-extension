@@ -1,48 +1,111 @@
 {
 	"name": "rhino-language-support",
-	"publisher": "rhinoapi",
-	"displayName": "Rhino Language Support",
-	"description": "Syntax highlights and Language Server for Rhino API",
-	"version": "1.0.3",
+	"publisher": "RhinoAPI",
+	"displayName": "rhino-language-support",
+	"description": "",
+	"version": "2.2.8",
 	"icon": "images/128x128.png",
-	"engines": {
-		"vscode": "^1.55.0"
-	},
-	"markdown": "github",
 	"repository": {
-		"url": "https://github.com/savanna-projects/rhino-vscode-extension"
+		"url": "https://github.com/savanna-projects/rhino-vscode-extension.git"
 	},
+	"engines": {
+		"vscode": "^1.71.0"
+	},
+	"license": "Apache",
+	"markdown": "github",
 	"categories": [
 		"Other",
 		"Programming Languages",
-		"Snippets"
+		"Snippets",
+		"Formatters"
 	],
 	"activationEvents": [
-		"onCommand:Connect-RhinoServer",
-		"onCommand:Create-RhinoProject"
+		"onStartupFinished",
+		"onCommand:Register-Rhino",
+		"onCommand:Create-Project"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "Connect-RhinoServer",
-				"title": "Rhino: Connect to Rhino, fetch Metadata & activate commands"
+				"command": "Create-Project",
+				"category": "Rhino",
+				"title": "Creates a New Rhino Project"
 			},
 			{
-				"command": "Create-RhinoProject",
-				"title": "Rhino: Creates a New Rhino Project"
+				"command": "Invoke-TestCase",
+				"category": "Rhino",
+				"title": "Runs the automation test(s) from the currently open document"
 			},
 			{
-				"command": "Invoke-RhinoTestCase",
-				"title": "Rhino: Runs the automation test(s) from the currently open document"
+				"command": "Invoke-TestCase -All",
+				"category": "Rhino",
+				"title": "Runs all the automation test(s) under this projects"
 			},
 			{
-				"command": "Create-IntegratedTestCase",
-				"title": "Rhino: Creates a new Test Case(s) entity on the integrated application from the currently open document"
+				"command": "Invoke-TestCase -Folder",
+				"category": "Rhino",
+				"title": "Runs the automation test(s) from the currently selected folder",
+				"icon": "$(testing-run-all-icon)"
+			},
+			{
+				"command": "Register-Environment",
+				"category": "Rhino",
+				"title": "Register an environment file under 'Environments' folder"
+			},
+			{
+				"command": "Register-Models",
+				"category": "Rhino",
+				"title": "Register all the models under 'Models' folder"
 			},
 			{
 				"command": "Register-Plugins",
-				"title": "Rhino: Register all the plugins under 'Plugins' folder"
+				"category": "Rhino",
+				"title": "Register all the plugins under 'Plugins' folder"
+			},
+			{
+				"command": "Connect-Server",
+				"category": "Rhino",
+				"title": "Connect to Rhino, fetch Metadata & activate commands"
+			},
+			{
+				"command": "Register-TestCase",
+				"category": "Rhino",
+				"title": "Creates a new Test Case(s) entity on the integrated application from the currently open document"
+			},
+			{
+				"command": "Get-TestCase",
+				"category": "Rhino",
+				"title": "Gets a Test Case(s) specification(s) from the integrated application"
+			},
+			{
+				"command": "Get-Documentation",
+				"category": "Rhino",
+				"title": "Show the documentation for the currently open test case or plugin"
+			},
+			{
+				"command": "Update-Symbols",
+				"category": "Rhino",
+				"title": "Actively updates the symbols for the open document",
+				"icon": "$(extensions-refresh)"
+			},
+			{
+				"command": "Update-Documents",
+				"category": "Rhino",
+				"title": "Actively updates the documents list for the open project",
+				"icon": "$(extensions-refresh)"
+			},
+			{
+				"command": "Update-Pipelines",
+				"category": "Rhino",
+				"title": "Actively updates the pipelines list for the open project",
+				"icon": "$(extensions-refresh)"
+			},
+			{
+				"command": "Update-Scripts",
+				"category": "Rhino",
+				"title": "Actively updates the scripts list for the open project",
+				"icon": "$(extensions-refresh)"
 			}
 		],
 		"languages": [
@@ -53,7 +116,8 @@
 					"rhino"
 				],
 				"extensions": [
-					".rhino"
+					".rhino",
+					".rmodel"
 				],
 				"configuration": "./language-configuration.json"
 			}
@@ -62,7 +126,7 @@
 			{
 				"language": "rhino",
 				"scopeName": "source.rhino",
-				"path": "./rhino-tm-language.json"
+				"path": "./rhino-tmLanguage.json"
 			}
 		],
 		"snippets": [
@@ -70,27 +134,91 @@
 				"language": "rhino",
 				"path": "./snippet-test-full.json"
 			}
-		]
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"command": "Get-Documentation",
+					"when": "resourceLangId == rhino",
+					"group": "navigation"
+				}
+			],
+			"view/title": [
+				{
+					"command": "Update-Symbols",
+					"when": "view == outline",
+					"group": "navigation"
+				},
+				{
+					"command": "Update-Documents",
+					"when": "view == rhinoDocumentation",
+					"group": "navigation"
+				},
+				{
+					"command": "Update-Pipelines",
+					"when": "view == rhinoPipelines",
+					"group": "navigation"
+				},
+				{
+					"command": "Update-Scripts",
+					"when": "view == rhinoScripts",
+					"group": "navigation"
+				}
+			]
+		},
+		"keybindings": [
+			{
+				"command": "Get-Documentation",
+				"key": "ctrl+F1",
+				"mac": "cmd+F1",
+				"when": "resourceLangId == rhino"
+			}
+		],
+		"views": {
+			"explorer": [
+				{
+					"id": "rhinoDocumentation",
+					"name": "Rhino Documentation"
+				},
+				{
+					"id": "rhinoPipelines",
+					"name": "Rhino Pipelines"
+				},
+				{
+					"id": "rhinoScripts",
+					"name": "Rhino Scripts"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
-		"lint": "eslint src --ext ts",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
+		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/glob": "^7.1.1",
-		"@types/mocha": "^7.0.2",
-		"@types/node": "^13.13.51",
-		"@types/vscode": "^1.55.0",
-		"@typescript-eslint/eslint-plugin": "^2.30.0",
-		"@typescript-eslint/parser": "^2.30.0",
-		"eslint": "^6.8.0",
-		"glob": "^7.1.6",
-		"mocha": "^7.1.2",
-		"typescript": "^3.9.9",
-		"vscode-test": "^1.5.2"
-	}
+		"@types/glob": "^7.2.0",
+		"@types/mocha": "^8.2.3",
+		"@types/node": "^12.20.47",
+		"@types/vscode": "^1.65.0",
+		"@typescript-eslint/eslint-plugin": "^4.33.0",
+		"@typescript-eslint/parser": "^4.33.0",
+		"eslint": "^7.32.0",
+		"glob": "^7.2.0",
+		"mocha": "^9.2.2",
+		"typescript": "^4.6.2",
+		"vscode-test": "^1.6.1"
+	},
+	"dependencies": {
+		"npm": "^8.18.0",
+		"vsce": "^2.11.0"
+	},
+	"extensionDependencies": [
+		"humao.rest-client",
+		"pkief.material-icon-theme",
+		"davidanson.vscode-markdownlint"
+	]
 }

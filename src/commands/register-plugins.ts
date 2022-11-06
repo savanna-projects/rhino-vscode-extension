@@ -9,19 +9,21 @@
  */
 import path = require('path');
 import * as vscode from 'vscode';
-import { Command } from "./command-base";
+import { Utilities } from '../extensions/utilities';
+import { Command } from "./command";
+import { RegisterRhinoCommand } from './register-rhino';
 
-export class RegisterPlugins extends Command {
+export class RegisterPluginsCommand extends Command {
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
      * @param context The context under which to register the command.
      */
     constructor(context: vscode.ExtensionContext) {
-         super(context);
-         
-         // build
-         this.setCommandName('Register-Plugins');
+        super(context);
+
+        // build
+        this.setCommandName('Register-Plugins');
     }
 
     /*┌─[ REGISTER ]───────────────────────────────────────────
@@ -34,70 +36,83 @@ export class RegisterPlugins extends Command {
      *          and present the report.
      */
     public register(): any {
-          // setup
-          var command = vscode.commands.registerCommand(this.getCommandName(), () => {
-              this.invoke();
-          });
+        // setup
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
+            this.invoke(undefined);
+        });
 
-          // set
-          this.getContext().subscriptions.push(command);
+        // set
+        this.getContext().subscriptions.push(command);
     }
 
     /**
      * Summary. Implement the command invoke pipeline.
      */
-    public invokeCommand() {
-        this.invoke();
+    public invokeCommand(callback: any) {
+        this.invoke(callback);
     }
 
-    private invoke() {
+    private invoke(callback: any) {
         // notification
         vscode.window.setStatusBarMessage('$(sync~spin) Registering plugin(s)...');
+        
+        // setup
+        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
+        workspace = workspace === undefined ? '' : workspace;
+        let pluginsFolder = path.join(workspace, 'Plugins');
+        pluginsFolder = pluginsFolder.startsWith('\\')
+            ? pluginsFolder.substring(1, pluginsFolder.length)
+            : pluginsFolder;
 
-        // build
-        var plugins = this.getPluginsFromFiles();
-        var createModel = plugins.join("\n>>>\n");
+        Utilities.getFiles(pluginsFolder, (files: string[]) => {
+            let plugins: string[] = [];
 
-        // register
-        this.registerPlugins(createModel);
+            for (const file of files) {
+                let plugin = this.getPluginsFromFile(file);
+                plugins.push(plugin);
+            }
+
+            let distinctPlugins = [...new Set(plugins)];
+            let createModel = distinctPlugins
+                .join("\n>>>\n")
+                .split('\n')
+                .map(i => i.replace(/^\d+\.\s+/, ''))
+                .join('\n');
+
+            this.registerPlugins(createModel, callback);
+        });
     }
 
-    private getPluginsFromFiles(): string[] {
+    private getPluginsFromFile(file: string): string {
         // setup
-		var workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
-		workspace = workspace === undefined ? '' : workspace;
-        
-        var plugins_folder = path.join(workspace, 'Plugins');
-        plugins_folder = plugins_folder.startsWith('\\')
-            ? plugins_folder.substr(1, plugins_folder.length)
-            : plugins_folder;
-        
-        // build
         const fs = require('fs');
-        var files = fs.readdirSync(plugins_folder);
-        var plugins_data = [];
-        
-        for (let index = 0; index < files.length; index++) {
-            try {
-                var plugin_file = path.join(plugins_folder, files[index]);
-                var plugin_data = fs.readFileSync(plugin_file, 'utf8');//.replace(/(\r\n|\n|\r)/gm, "");
-                plugins_data.push(plugin_data);
-            } catch(e) {
-                console.log('Error:', e.stack);
-            }
-        }
 
         // get
-        return plugins_data;
+        try {
+            return fs.readFileSync(file, 'utf8');
+        } catch (e) {
+            console.log(e);
+        }
+
+        // default
+        return '';
     }
 
-    private registerPlugins(createModel: string) {
+    private registerPlugins(createModel: string, callback: any) {
         this.getRhinoClient().createPlugins(createModel, (response: any) => {
             // setup
-            var total = response.toString().split('>>>').length;
+            let total = response.toString().split('>>>').length;
 
             // notification
             vscode.window.setStatusBarMessage('$(testing-passed-icon) Total of ' + total + ' plugin(s) registered');
+
+            // register
+            new RegisterRhinoCommand(this.getContext()).invokeCommand();
+
+            // callback
+            if (callback !== undefined) {
+                callback();
+            }
         });
     }
 }

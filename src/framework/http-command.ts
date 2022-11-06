@@ -104,7 +104,7 @@ export class HttpCommand {
      */
     public addDefaultHeaders() {
         // build
-        this.headers["ContentType"] ="application/json";
+        this.headers["Content-Type"] ="application/json";
 
         // get
         return this;

@@ -8,23 +8,25 @@
  * https://code.visualstudio.com/api/extension-guides/webview
  */
 import * as vscode from 'vscode';
-import { ReportManager } from '../extensions/report-manager';
-import { Command } from "./command-base";
+import { Utilities } from '../extensions/utilities';
+import { ReportManager } from '../rhino/report-manager';
+import { Command } from "./command";
 
-export class InvokeRhinoTestCases extends Command {
+export class InvokeTestCaseCommand extends Command {
     // members
     private testCases: string[];
-    
+
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
      * @param context The context under which to register the command.
      */
     constructor(context: vscode.ExtensionContext) {
-         super(context);
+        super(context);
 
-         // setup
-         this.testCases = [];
+        // setup
+        this.testCases = [];
+        this.setCommandName('Invoke-TestCase');
     }
 
     /*┌─[ SETTERS ]────────────────────────────────────────────
@@ -38,34 +40,34 @@ export class InvokeRhinoTestCases extends Command {
      * @param testCases One or more Rhino Test Case(s) to invoke.
      * @returns Self reference
      */
-    public addTestCases(...testCases: string[]): InvokeRhinoTestCases {
+    public addTestCases(...testCases: string[]): InvokeTestCaseCommand {
         // build
         this.testCases.push(...testCases);
 
         // get
         return this;
     }
-  
-      /**
+
+    /**
      * Summary. Adds one or more Rhino Test Case(s) into the tests collection.
      * 
      * @returns Self reference
      */
-    public addOpenTestCases(): InvokeRhinoTestCases {
-      // setup
-      var editor = vscode.window.activeTextEditor;
-      
-      // bad request
-      if(!editor) {
-        return this;
-      }
+    public addOpenTestCases(): InvokeTestCaseCommand {
+        // setup
+        let editor = vscode.window.activeTextEditor;
 
-      // build
-      var testCases = editor.document.getText().split('>>>');
-      this.testCases.push(...testCases);
-      
-      // get
-      return this;
+        // bad request
+        if (!editor) {
+            return this;
+        }
+
+        // build
+        let testCases = editor.document.getText().split('>>>');
+        this.testCases.push(...testCases);
+
+        // get
+        return this;
     }
 
     /*┌─[ REGISTER ]───────────────────────────────────────────
@@ -78,13 +80,13 @@ export class InvokeRhinoTestCases extends Command {
      *          and present the report.
      */
     public register(): any {
-          // setup
-          var command = vscode.commands.registerCommand(this.getCommandName(), () => {
-              this.invoke();
-          });
+        // setup
+        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
+            this.invoke();
+        });
 
-          // set
-          this.getContext().subscriptions.push(command);
+        // set
+        this.getContext().subscriptions.push(command);
     }
 
     /**
@@ -95,66 +97,60 @@ export class InvokeRhinoTestCases extends Command {
     }
 
     private invoke() {
+        // setup
+        let context = this.getContext();
+
         // notification
         vscode.window.setStatusBarMessage('$(sync~spin) Invoking test case(s)...');
-
+        
         // invoke
         this.getRhinoClient().invokeConfiguration(this.getConfiguration(), (testRun: any) => {
-          testRun.actual === true
-            ? vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke completed w/o test(s) failures")
-            : vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke completed, w/ test(s) failures");
+            let _testRun = JSON.parse(testRun);
+            _testRun.actual === true
+                ? vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke completed w/o test(s) failures")
+                : vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke completed, w/ test(s) failures");
 
-          console.info(testRun);
-          try {
-            const panel = vscode.window.createWebviewPanel("RhinoReport", "Rhino Report", vscode.ViewColumn.One);
-            panel.webview.html = new ReportManager(testRun).getHtmlReport(); 
-          } catch (error) {
-            var a = error;
-          }
+            console.info(testRun);
+            try {
+                let htmlReport = new ReportManager(_testRun).getHtmlReport();
+                const panel = vscode.window.createWebviewPanel("RhinoReport", "Rhino Report", vscode.ViewColumn.One);
+                panel.webview.html = htmlReport;
+            } catch (error) {
+                console.error(error);
+                vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke was not completed");
+            }
         });
     }
 
     // creates default configuration with text connector
     private getConfiguration() {
-      // setup
-      var projectManifest = this.getProjectManifest();
-      var testsRepository = this.getCommandName() === 'Invoke-RhinoTestCase'
-        ? this.getOpenTestCases()
-        : this.testCases;
+        // setup
+        let testsRepository = this.getCommandName() === 'Invoke-TestCase'
+            ? this.getOpenTestCases()
+            : this.testCases;
+        let configuration = Utilities.getConfigurationByManifest();
 
-      // build
-      return {
-        name: "VS Code - Stand Alone Test Run",
-        testsRepository: testsRepository,
-        driverParameters: projectManifest.driverParameters,
-        authentication: projectManifest.authentication,
-        screenshotsConfiguration: {
-          keepOriginal: false,
-          returnScreenshots: false,
-          onExceptionOnly: false
-        },
-        reportConfiguration: {
-          reporters: [
-            "reporter_basic"
-          ],
-          archive: false,
-          localReport: true,
-          addGravityData: true
-        }
-      };
+        // build
+        configuration.testsRepository = testsRepository;
+
+        // get
+        return configuration;
     }
 
     // get test cases from the open document
     private getOpenTestCases(): string[] {
-      // setup
-      var editor = vscode.window.activeTextEditor;
-      
-      // bad request
-      if(!editor) {
-        return [];
-      }
-      
-      // get
-      return editor.document.getText().split('>>>');
+        // setup
+        let editor = vscode.window.activeTextEditor;
+
+        // bad request
+        if (!editor) {
+            return [];
+        }
+
+        // clean
+        let text = editor.document.getText().split('\n').map(i => i.replace(/^\d+\.\s+/, '')).join('\n');
+
+        // get
+        return text.split('>>>');
     }
 }
