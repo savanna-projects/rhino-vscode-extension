@@ -55,11 +55,17 @@ export class RegisterEnvironmentCommand extends Command {
         };
 
         vscode.window.showInputBox(options).then((value) => {
-            // setup
-            let request = RegisterEnvironmentCommand.GetEnvironment(value);
 
+            // setup
+            let requests = RegisterEnvironmentCommand.getEnvironments(value);
+            let mergedJson:JSON = requests[0];
+            
+            for (let request of requests) {
+                mergedJson = {...mergedJson, ...request};
+            }
+            
             // bad request
-            if (Utilities.isNullOrUndefined(request)) {
+            if (Utilities.isNullOrUndefined(mergedJson)) {
                 vscode.window.setStatusBarMessage('$(testing-error-icon) Environment file not found or not valid.');
                 return;
             }
@@ -68,35 +74,52 @@ export class RegisterEnvironmentCommand extends Command {
             vscode.window.setStatusBarMessage('$(sync~spin) Registering environment...');
 
             // get
-            client.addEnvironment(request, () => {
+            client.addEnvironment(mergedJson, () => {
                 client.syncEnvironment((response: any) => {
                     vscode.window.setStatusBarMessage('$(testing-passed-icon) Environment registered');
                     callback(response);
                 });
-            });
-        });
-    }
+            }); 
+        }
+    );
+}
 
-    private static GetEnvironment(environment: string | undefined): any {
+    private static getEnvironments(environment: string | undefined): any {
         // setup
-        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
-        workspace = workspace === undefined ? '' : workspace;
-        let environmentFile = path.join(workspace, "Environments", environment + '.json');
-        environmentFile = environmentFile.startsWith('\\')
-            ? environmentFile.substring(1, environmentFile.length)
-            : environmentFile;
-
-        // build
-        let data = "{}";
-        const fs = require('fs');
-        try {
-            data = fs.readFileSync(environmentFile, 'utf8');
-            return JSON.parse(data);
-        } catch (e: any) {
-            console.log('Error:', e.stack);
+        let listOfEnviorments = environment?.split(/\s*,\s*/);
+        
+        // check if undefined 
+        if(!listOfEnviorments) {
+            vscode.window.setStatusBarMessage('$(testing-error-icon) Environment file not found or not valid.');
+            return;
         }
 
-        // default
-        return JSON.parse(data);
+        let requests:JSON[] = [];
+
+        for (let curEnvironment of listOfEnviorments) {
+
+            console.log(curEnvironment);
+
+            let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
+            workspace = workspace === undefined ? '' : workspace;
+
+            let environmentFile = path.join(workspace, "Environments", curEnvironment + '.json');
+            environmentFile = environmentFile.startsWith('\\')
+                ? environmentFile.substring(1, environmentFile.length)
+                : environmentFile;
+    
+            // build
+            let data = "{}";
+            const fs = require('fs');
+            try {
+                data = fs.readFileSync(environmentFile, 'utf8');
+                requests.push(JSON.parse(data));
+            } catch (e: any) {
+                console.log('Error:', e.stack);
+                return;
+            }
+        }
+
+        return requests;
     }
 }
