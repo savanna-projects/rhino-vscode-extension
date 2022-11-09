@@ -97,9 +97,7 @@ export class RegisterEnvironmentCommand extends Command {
         let requests:JSON[] = [];
 
         for (let curEnvironment of listOfEnviorments) {
-
-            console.log(curEnvironment);
-
+            // setup
             let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
             workspace = workspace === undefined ? '' : workspace;
 
