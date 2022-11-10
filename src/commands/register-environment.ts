@@ -94,30 +94,32 @@ export class RegisterEnvironmentCommand extends Command {
             return;
         }
 
-        let requests:JSON[] = [];
+        // setup
+        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
+        workspace = workspace === undefined ? '' : workspace;
+        let environmetsFolder = path.join(workspace, 'Environments');
+        environmetsFolder = environmetsFolder.startsWith('\\')
+            ? environmetsFolder.substring(1, environmetsFolder.length)
+            : environmetsFolder;
 
-        for (let curEnvironment of listOfEnviorments) {
-            // setup
-            let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
-            workspace = workspace === undefined ? '' : workspace;
+        return Utilities.getFilesByFileNames(environmetsFolder, listOfEnviorments, (listOfPaths: string[]) => {
+            
+            // setup 
+            let requests:JSON[] = []; 
 
-            let environmentFile = path.join(workspace, "Environments", curEnvironment + '.json');
-            environmentFile = environmentFile.startsWith('\\')
-                ? environmentFile.substring(1, environmentFile.length)
-                : environmentFile;
-    
-            // build
-            let data = "{}";
-            const fs = require('fs');
-            try {
-                data = fs.readFileSync(environmentFile, 'utf8');
-                requests.push(JSON.parse(data));
-            } catch (e: any) {
-                console.log('Error:', e.stack);
-                return;
+            for (let curPath of listOfPaths) {
+                // build
+                let data = "{}";
+                const fs = require('fs');
+                try {
+                    data = fs.readFileSync(curPath, 'utf8');
+                    requests.push(JSON.parse(data));
+                } catch (e: any) {
+                    console.log('Error:', e.stack);
+                    return;
+                }
             }
-        }
-
-        return requests;
+            return requests;
+        });
     }
 }

@@ -126,6 +126,46 @@ export class Utilities {
     }
 
     /**
+     * Summary. Get a flat list of all files under a directory including all sub-directories by file names.
+     */
+         public static getFilesByFileNames(directory: string, arrayOfNames: string[], callback: any) {
+            // setup
+            const list: string[] = [];
+            var patternToExtractName = /(?!\\)\w+(?=.json))/;
+
+            // iterate
+            const getFilesFromDirectory: any = (directoryPath: any) => {
+                const files = fs.readdirSync(directoryPath);
+    
+                for (const file of files) {
+                    const filePath = path.join(directoryPath, file);
+                    const stats = fs.statSync(filePath);
+    
+                    if (stats.isDirectory()) {
+                        getFilesFromDirectory(filePath);
+                    }
+                    else {
+
+                        for (const name of arrayOfNames) {
+                            var matches = filePath.match(patternToExtractName);
+                            
+                            if(matches !== null && matches[0] === name)
+                            {
+                                list.push(filePath);
+                            }
+                        }
+                    }
+                }
+            };
+    
+            // build
+            getFilesFromDirectory(directory);
+    
+            // callback
+            callback(list);
+        }
+
+    /**
      * Summary. Get a flat list of all files and folders sorted by folders > a-z > files a-z.
      */
     public static getSortedFilesAndFolders(
