@@ -55,36 +55,37 @@ export class RegisterEnvironmentCommand extends Command {
         };
 
         vscode.window.showInputBox(options).then((value) => {
+            RegisterEnvironmentCommand.getEnvironments(value, (requests:JSON[]) =>{
 
-            // setup
-            let requests = RegisterEnvironmentCommand.getEnvironments(value);
-            let mergedJson:JSON = requests[0];
+                // setup
+                let mergedJson:JSON = requests[0];
             
-            for (let request of requests) {
-                mergedJson = {...mergedJson, ...request};
-            }
-            
-            // bad request
-            if (Utilities.isNullOrUndefined(mergedJson)) {
-                vscode.window.setStatusBarMessage('$(testing-error-icon) Environment file not found or not valid.');
-                return;
-            }
+                // merge requests
+                for (let request of requests) {
+                    mergedJson = {...mergedJson, ...request};
+                }
+                
+                // bad request
+                if (Utilities.isNullOrUndefined(mergedJson)) {
+                    vscode.window.setStatusBarMessage('$(testing-error-icon) Environment file not found or not valid.');
+                    return;
+                }
 
-            // user interface
-            vscode.window.setStatusBarMessage('$(sync~spin) Registering environment...');
+                // user interface
+                vscode.window.setStatusBarMessage('$(sync~spin) Registering environment...');
 
-            // get
-            client.addEnvironment(mergedJson, () => {
-                client.syncEnvironment((response: any) => {
-                    vscode.window.setStatusBarMessage('$(testing-passed-icon) Environment registered');
-                    callback(response);
-                });
+                // get
+                client.addEnvironment(mergedJson, () => {
+                    client.syncEnvironment((response: any) => {
+                        vscode.window.setStatusBarMessage('$(testing-passed-icon) Environment registered');
+                        callback(response);
+                    });
+                }); 
             }); 
-        }
-    );
-}
+        });
+    }
 
-    private static getEnvironments(environment: string | undefined): any {
+    private static getEnvironments(environment: string | undefined, callback: any) {
         // setup
         let listOfEnviorments = environment?.split(/\s*,\s*/);
         
@@ -102,7 +103,7 @@ export class RegisterEnvironmentCommand extends Command {
             ? environmetsFolder.substring(1, environmetsFolder.length)
             : environmetsFolder;
 
-        return Utilities.getFilesByFileNames(environmetsFolder, listOfEnviorments, (listOfPaths: string[]) => {
+        Utilities.getFilesByFileNames(environmetsFolder, listOfEnviorments, (listOfPaths: string[]) => {
             
             // setup 
             let requests:JSON[] = []; 
@@ -119,7 +120,7 @@ export class RegisterEnvironmentCommand extends Command {
                     return;
                 }
             }
-            return requests;
+            callback(requests);
         });
     }
 }

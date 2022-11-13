@@ -131,7 +131,7 @@ export class Utilities {
          public static getFilesByFileNames(directory: string, arrayOfNames: string[], callback: any) {
             // setup
             const list: string[] = [];
-            var patternToExtractName = /(?!\\)\w+(?=.json))/;
+            const patternToExtractName = /(?!\\)\w+(?=.json)/;
 
             // iterate
             const getFilesFromDirectory: any = (directoryPath: any) => {
