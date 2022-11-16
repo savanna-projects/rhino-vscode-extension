@@ -34,7 +34,7 @@ export class HttpClient {
     public invokeWebRequest(httpCommand: HttpCommand, callback: any) {
         // constants
         const http = require('http');
-        console.debug(`${new Date().getTime()} - START Invoke-WebRequest -> ${httpCommand.command}`);
+        console.debug(`${new Date().getTime()} - START Invoke-WebRequest -> ${httpCommand.method} ${httpCommand.command}`);
         // setup
         let options = this.getOptions(httpCommand);
 
@@ -43,7 +43,7 @@ export class HttpClient {
             let data = '';
             response.on('data', (d: any) => data += this.onData(d));
             response.on('end', () => {
-                console.debug(`${new Date().getTime()} - END Invoke-WebRequest -> ${httpCommand.command}`);
+                console.debug(`${new Date().getTime()} - END  Invoke-WebRequest -> ${httpCommand.method} ${httpCommand.command}`);
                 return callback(data);});
         });
         request.on('error', (error: any) => this.onError(error));
