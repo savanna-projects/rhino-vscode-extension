@@ -62,6 +62,20 @@ export class AssertionsAutoCompleteProvider extends Provider {
         return this;
     }
 
+    /**
+     * Summary. Sets a collection of element special attributes.
+     * 
+     * @param attributes A collection of element special attributes.
+     * @returns Self reference.
+     */
+     public setAttributes(attributes: any): AssertionsAutoCompleteProvider {
+        // setup
+        this.attributes = attributes;
+
+        // get
+        return this;
+    }
+
     /*┌─[ ABSTRACT IMPLEMENTATION ]────────────────────────────
       │
       │ A collection of functions to factor auto-complete items.
@@ -74,6 +88,7 @@ export class AssertionsAutoCompleteProvider extends Provider {
         let instance = new AssertionsAutoCompleteProvider()
             .setManifests(this.manifests)
             .setAnnotations(this.annotations)
+            .setAttributes(this.attributes)
             .setOperators(this.operators)
             .setLocators(this.locators);
 

@@ -328,8 +328,7 @@ export class ActionsAutoCompleteProvider extends Provider {
         }
 
         // get
-        let items = this.getParametersBehaviors(manifest, document, position);
-        return [...new Map(items.map(item => [item.label, item])).values()];
+        return this.getParametersBehaviors(manifest, document, position);
     }
 
     private getParametersBehaviors(manifest: any, document: vscode.TextDocument, position: vscode.Position)
@@ -337,7 +336,6 @@ export class ActionsAutoCompleteProvider extends Provider {
         // setup
         let items: vscode.CompletionItem[] = [];
         let keys = Object.keys(manifest.entity.cliArguments);
-
         // build: list
         for (const key of keys) {
             let item = this.getParametersBehavior(manifest, key, document, position);
