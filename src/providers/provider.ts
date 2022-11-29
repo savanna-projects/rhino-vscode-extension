@@ -105,29 +105,14 @@ export abstract class Provider {
             return [];
         }
     }
-
+    
     /**
      * Summary. Returns true if the currnet cursor position in the current line is inside a CLI wrapper.
      */
-    // 
     public isCli(line: string, index: number): boolean {
         // setup
         index = index < 0 ? 0 : index;
-
-        // build
-        while (index > 0) {
-            if (index - 1 < 0) {
-                return false;
-            }
-
-            let _isCli = line.substring(index - 1, 3) === '{{$';
-            if (_isCli) {
-                return true;
-            }
-            index = index - 1;
-        }
-
-        // get
-        return false;
+        let cliStartIndex = line.indexOf('{{$');
+        return cliStartIndex > 0 && index > cliStartIndex;
     }
 }
