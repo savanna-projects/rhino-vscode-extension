@@ -55,48 +55,72 @@ export class RegisterEnvironmentCommand extends Command {
         };
 
         vscode.window.showInputBox(options).then((value) => {
-            // setup
-            let request = RegisterEnvironmentCommand.GetEnvironment(value);
+            RegisterEnvironmentCommand.getEnvironments(value, (requests:JSON[]) =>{
 
-            // bad request
-            if (Utilities.isNullOrUndefined(request)) {
-                vscode.window.setStatusBarMessage('$(testing-error-icon) Environment file not found or not valid.');
-                return;
-            }
+                // setup
+                let mergedJson:JSON = requests[0];
+            
+                // merge requests
+                for (let request of requests) {
+                    mergedJson = {...mergedJson, ...request};
+                }
+                
+                // bad request
+                if (Utilities.isNullOrUndefined(mergedJson)) {
+                    vscode.window.setStatusBarMessage('$(testing-error-icon) Environment file not found or not valid.');
+                    return;
+                }
 
-            // user interface
-            vscode.window.setStatusBarMessage('$(sync~spin) Registering environment...');
+                // user interface
+                vscode.window.setStatusBarMessage('$(sync~spin) Registering environment...');
 
-            // get
-            client.addEnvironment(request, () => {
-                client.syncEnvironment((response: any) => {
-                    vscode.window.setStatusBarMessage('$(testing-passed-icon) Environment registered');
-                    callback(response);
-                });
-            });
+                // get
+                client.addEnvironment(mergedJson, () => {
+                    client.syncEnvironment((response: any) => {
+                        vscode.window.setStatusBarMessage('$(testing-passed-icon) Environment registered');
+                        callback(response);
+                    });
+                }); 
+            }); 
         });
     }
 
-    private static GetEnvironment(environment: string | undefined): any {
+    private static getEnvironments(environment: string | undefined, callback: any) {
+        // setup
+        let listOfEnviorments = environment?.split(/\s*,\s*/);
+        
+        // check if undefined 
+        if(!listOfEnviorments) {
+            vscode.window.setStatusBarMessage('$(testing-error-icon) Environment file not found or not valid.');
+            return;
+        }
+
         // setup
         let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
-        let environmentFile = path.join(workspace, "Environments", environment + '.json');
-        environmentFile = environmentFile.startsWith('\\')
-            ? environmentFile.substring(1, environmentFile.length)
-            : environmentFile;
+        let environmetsFolder = path.join(workspace, 'Environments');
+        environmetsFolder = environmetsFolder.startsWith('\\')
+            ? environmetsFolder.substring(1, environmetsFolder.length)
+            : environmetsFolder;
 
-        // build
-        let data = "{}";
-        const fs = require('fs');
-        try {
-            data = fs.readFileSync(environmentFile, 'utf8');
-            return JSON.parse(data);
-        } catch (e: any) {
-            console.log('Error:', e.stack);
-        }
+        Utilities.getFilesByFileNames(environmetsFolder, listOfEnviorments, (listOfPaths: string[]) => {
+            
+            // setup 
+            let requests:JSON[] = []; 
 
-        // default
-        return JSON.parse(data);
+            for (let curPath of listOfPaths) {
+                // build
+                let data = "{}";
+                const fs = require('fs');
+                try {
+                    data = fs.readFileSync(curPath, 'utf8');
+                    requests.push(JSON.parse(data));
+                } catch (e: any) {
+                    console.log('Error:', e.stack);
+                    return;
+                }
+            }
+            callback(requests);
+        });
     }
 }
