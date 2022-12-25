@@ -183,27 +183,31 @@ export class ConnectServerCommand extends Command {
         // build
         client.getAnnotations((annotations: any) => {
             client.getAssertions((assertions: any) => {
-                client.getLocators((locators: any) => {
-                    client.getOperators((operators: any) => {
-                        let manifests = JSON.parse(assertions);
-                        let _annotations = JSON.parse(annotations);
-                        let _locators = JSON.parse(locators);
-                        let _operators = JSON.parse(operators);
-                        new AssertionsAutoCompleteProvider()
-                            .setManifests(manifests)
-                            .setAnnotations(_annotations)
-                            .setLocators(_locators)
-                            .setOperators(_operators)
-                            .register(context);
+                client.getAttributes((attributes: any) => {
+                    client.getLocators((locators: any) => {
+                        client.getOperators((operators: any) => {
+                            let manifests = JSON.parse(assertions);
+                            let _annotations = JSON.parse(annotations);
+                            let _locators = JSON.parse(locators);
+                            let _operators = JSON.parse(operators);
+                            let _attributes = JSON.parse(attributes);
+                            new AssertionsAutoCompleteProvider()
+                                .setManifests(manifests)
+                                .setAnnotations(_annotations)
+                                .setAttributes(_attributes)
+                                .setLocators(_locators)
+                                .setOperators(_operators)
+                                .register(context);
 
-                        console.info('Get-Plugins -Type AssertionMethod = (OK, ' + manifests.length + ')');
-                        let message = '$(testing-passed-icon) Total of ' + manifests.length + ' assertion method(s) loaded';
-                        vscode.window.setStatusBarMessage(message);
+                            console.info('Get-Plugins -Type AssertionMethod = (OK, ' + manifests.length + ')');
+                            let message = '$(testing-passed-icon) Total of ' + manifests.length + ' assertion method(s) loaded';
+                            vscode.window.setStatusBarMessage(message);
 
-                        if (callback === null) {
-                            return;
-                        }
-                        callback(client, context);
+                            if (callback === null) {
+                                return;
+                            }
+                            callback(client, context);
+                        });
                     });
                 });
             });

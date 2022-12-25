@@ -11,7 +11,7 @@ import path = require('path');
 import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
 import { Command } from "./command";
-import { RegisterRhinoCommand } from './register-rhino';
+import { ConnectServerCommand } from './connect-server';
 
 export class RegisterPluginsCommand extends Command {
     /**
@@ -107,7 +107,7 @@ export class RegisterPluginsCommand extends Command {
             vscode.window.setStatusBarMessage('$(testing-passed-icon) Total of ' + total + ' plugin(s) registered');
 
             // register
-            new RegisterRhinoCommand(this.getContext()).invokeCommand();
+            new ConnectServerCommand(this.getContext()).invokeCommand();
 
             // callback
             if (callback !== undefined) {
