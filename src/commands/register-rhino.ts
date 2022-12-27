@@ -85,32 +85,48 @@ export class RegisterRhinoCommand extends Command {
         let subscriptions = context.subscriptions;
 
         // clear
-        for (let i = 1; i < subscriptions.length; i++) {
+        for (let i = 0; i < subscriptions.length; i++) {
             subscriptions[i].dispose();
         }
-        subscriptions.splice(1, subscriptions.length);
+        subscriptions.splice(0, subscriptions.length);
 
-        // register providers: explorer views
-        new DocumentsProvider(context).register();
-        new PipelinesProvider(context).register();
-        new ScriptsProvider(context).register();
+        // TODO: get by reflection
+        // commands list
+        let commands = [
+            // main command (must be first)
+            new RegisterRhinoCommand(context),
 
-        // register providers: symbols
-        new RhinoDocumentSymbolProvider(context).register();
+            // explorer views
+            new DocumentsProvider(context),
+            new PipelinesProvider(context),
+            new ScriptsProvider(context),
 
-        // register providers: context
-        new RhinoDefinitionProvider(context).register();
+            // symbols
+            new RhinoDocumentSymbolProvider(context),
 
-        // register commands
-        new RegisterTestCaseCommand(context).register();
-        new InvokeTestCaseCommand(context).register();
-        new InvokeAllTestCasesCommand(context).register();
-        new RegisterPluginsCommand(context).register();
-        new RegisterModelsCommand(context).register();
-        new GetTestCaseCommand(context).register();
-        new RegisterEnvironmentCommand(context).register();
-        new GetDocumentationCommand(context).register();
-        new UpdateSymbolsCommand(context).register();
-        new ConnectServerCommand(context).register();
+            // context
+            new RhinoDefinitionProvider(context),
+
+            // commands
+            new GetDocumentationCommand(context),
+            new GetTestCaseCommand(context),
+            new InvokeAllTestCasesCommand(context),
+            new InvokeTestCaseCommand(context),
+            new RegisterEnvironmentCommand(context),
+            new RegisterModelsCommand(context),
+            new RegisterPluginsCommand(context),
+            new RegisterTestCaseCommand(context),
+            new UpdateSymbolsCommand(context),
+            new ConnectServerCommand(context)
+        ];
+
+        // register
+        commands.forEach(element => {
+            try {
+                element.register();   
+            } catch (error) {
+                console.warn(error);
+            }
+        });
     }
 }

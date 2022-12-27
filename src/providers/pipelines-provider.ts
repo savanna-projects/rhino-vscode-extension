@@ -84,9 +84,14 @@ export class PipelinesProvider implements vscode.TreeDataProvider<TreeItem> {
 
         // build
         vscode.window.registerTreeDataProvider('rhinoPipelines', this);
-        vscode.commands.registerCommand('Update-Pipelines', () => {
-            this.refresh();
-        });
+
+        vscode.commands.getCommands().then((commands) => {
+            if(!commands.includes('Update-Pipelines')){
+                vscode.commands.registerCommand('Update-Pipelines', () => {
+                    this.refresh();
+                });
+            }
+        })
 
         // register
         const tree = vscode.window.createTreeView('rhinoPipelines', options);
