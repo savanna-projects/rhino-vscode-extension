@@ -256,7 +256,7 @@ export class ReportManager {
     }
 
     buildEnvironmentElement(name: string, content: string) : string {
-        let htmlContentTag = this.getHtmlTag(content);
+        let htmlContentTag = this.getHtmlTag(content.toString());
 
         let collpasibleHtmlContent = 
                             `${htmlContentTag}` +
@@ -271,7 +271,7 @@ export class ReportManager {
     }
 
     private getHtmlTag(content: string) {
-        return content.includes('xmlns=') ? '<xmp>' : '<pre>';
+        return content.includes('xmlns') ? '<xmp>' : '<pre>';
     }
 
     private formatEnvironment(jsonObject: any): string {
@@ -299,7 +299,6 @@ export class ReportManager {
 
             let environment = '';
             try {
-                this.formatEnvironment(testCase.environment);
                 environment =
                     '<h4>Environment</h4>' + this.formatEnvironment(testCase.environment) +
                     '</div>';

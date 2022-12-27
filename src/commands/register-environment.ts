@@ -46,7 +46,9 @@ export class RegisterEnvironmentCommand extends Command {
     public invokeCommand(callback: any) {
         this.invoke(callback);
     }
-
+    isFunction(functionToCheck: any): boolean {
+        return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+    }
     private invoke(callback: any) {
         // setup
         let client = this.getRhinoClient();
@@ -78,7 +80,9 @@ export class RegisterEnvironmentCommand extends Command {
                 client.addEnvironment(mergedJson, () => {
                     client.syncEnvironment((response: any) => {
                         vscode.window.setStatusBarMessage('$(testing-passed-icon) Environment registered');
-                        callback(response);
+                        if(this.isFunction(callback)){
+                            callback(response);
+                        }
                     });
                 }); 
             }); 
