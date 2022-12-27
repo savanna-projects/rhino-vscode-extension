@@ -83,8 +83,12 @@ export class ScriptsProvider implements vscode.TreeDataProvider<TreeItem> {
 
         // build
         vscode.window.registerTreeDataProvider('rhinoScripts', this);
-        vscode.commands.registerCommand('Update-Scripts', () => {
-            this.refresh();
+        vscode.commands.getCommands().then((commands) => {
+            if(!commands.includes('Update-Scripts')){
+                vscode.commands.registerCommand('Update-Scripts', () => {
+                    this.refresh();
+                });
+            }
         });
 
         // register
