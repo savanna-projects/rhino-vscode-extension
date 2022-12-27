@@ -25,7 +25,9 @@ export class HttpClient {
     constructor(baseUrl: string) {
         this.baseUrl = baseUrl;
     }
-
+    isFunction(functionToCheck: any): boolean {
+        return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+    }
     /**
      * Summary. Send an HTTP request as an asynchronous operation.
      * 
@@ -42,7 +44,18 @@ export class HttpClient {
         const request = http.request(options, (response: any) => {
             let data = '';
             response.on('data', (d: any) => data += this.onData(d));
-            response.on('end', () => callback(data));
+            response.on('end', () => {
+                console.debug(`${new Date().getTime()} - END  Invoke-WebRequest -> ${httpCommand.method} ${httpCommand.command}`);
+                if (!response?.statusCode || response.statusCode < 200 || response.statusCode > 299) {
+                    var errorMessage = JSON.parse(data);
+                    var error = new Error();
+                    error.message = `${errorMessage?.statusCode} - ${errorMessage?.message}`;
+                    this.onError(error);
+                }
+                if(this.isFunction(callback)){
+                    return callback(data);
+                }
+            });
         });
         request.on('error', (error: any) => this.onError(error));
 
@@ -92,6 +105,7 @@ export class HttpClient {
     }
 
     private onError(error: any) {
+        vscode.window.showErrorMessage(error.message);
         vscode.window.setStatusBarMessage("$(testing-error-icon) " + error.message);
         if(`${error.message}`.match('ECONNREFUSED')) {
             return;
