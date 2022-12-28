@@ -52,7 +52,7 @@ export class HttpClient {
                 if (!response?.statusCode || response.statusCode < 200 || response.statusCode > 299) {
                     var errorMessage = JSON.parse(data);
                     var error = new Error();
-                    error.message = `${errorMessage?.statusCode} - ${errorMessage?.message}`;
+                    error.message = `${errorMessage?.statusCode ?? response.statusCode} - ${errorMessage?.message ?? response.statusMessage}`;
                     this.onError(error);
                 }
                 if(this.isFunction(callback)){
@@ -109,9 +109,9 @@ export class HttpClient {
     }
 
     private onError(error: any) {
-        vscode.window.showErrorMessage(error.message);
-        vscode.window.setStatusBarMessage("$(testing-error-icon) " + error.message);
-        if(`${error.message}`.match('ECONNREFUSED')) {
+        let errorMessage: string = error.message;
+        vscode.window.setStatusBarMessage("$(testing-error-icon) " + errorMessage);
+        if(`${errorMessage}`.match('ECONNREFUSED')) {
             return;
         }
         console.error(error);
