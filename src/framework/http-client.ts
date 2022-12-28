@@ -106,6 +106,7 @@ export class HttpClient {
     }
 
     private onError(error: any) {
+        vscode.window.showErrorMessage(error.message);
         vscode.window.setStatusBarMessage("$(testing-error-icon) " + error.message);
         if(`${error.message}`.match('ECONNREFUSED')) {
             return;
