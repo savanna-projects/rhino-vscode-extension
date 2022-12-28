@@ -55,7 +55,10 @@ export class HttpClient {
                     error.message = `${errorMessage?.statusCode} - ${errorMessage?.message}`;
                     this.onError(error);
                 }
-                return callback(data);
+                if(this.isFunction(callback)){
+                    return callback(data);
+                }
+                
             });
         });
         clientRequest.on('error', (error: any) => this.onError(error));
