@@ -204,13 +204,20 @@ export class Utilities {
                 return 0;
             });
         };
+        
+        //bad request
+        let folders: string[] = [];
+        let files: string[] = [];
+        if(!fs.existsSync(folderPath)){
+            return [...folders, ...files];
+        }
 
         // setup
         excludeFolders = excludeFolders.map(i => i.toUpperCase());
         includeFiles = includeFiles.map(i => i.toUpperCase());
+        
         let unsorted = fs.readdirSync(folderPath);
-        let folders: string[] = [];
-        let files: string[] = [];
+        
 
         // sort o-n
         for (let item of unsorted) {
