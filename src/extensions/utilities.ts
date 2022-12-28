@@ -8,6 +8,12 @@ import path = require('path');
 import fs = require('fs');
 import { TreeItem } from '../contracts/tree-item';
 
+export interface RhinoServerConfig {
+    schema: string;
+    host: string;
+    port: string;
+}
+
 export class Utilities {
     /**
      * Summary. Gets a pattern to identify all available plugins in a single text line.
@@ -92,6 +98,20 @@ export class Utilities {
 
         // get
         return server.schema + '://' + server.host + ':' + server.port;
+    }
+    /**
+
+     * Summary. Gets RhinoServer configuration from the project manifest.
+     * 
+     * @returns RhinoServer endpoint.
+     */
+    public static getRhinoServer(): RhinoServerConfig {
+        // setup
+        let projectManifest = this.invokeGetProjectManifest();
+        let serverConfig: RhinoServerConfig = projectManifest.rhinoServer;
+
+        // get
+        return serverConfig;
     }
 
     /**

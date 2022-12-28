@@ -26,7 +26,12 @@ export class HttpClient {
     constructor(baseUrl: string) {
         this.baseUrl = baseUrl;
     }
+    isFunction(functionToCheck: any): boolean {
+        // Possibly won't work for async functions - needs further testing
+        return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
 
+        // return functionToCheck instanceof Function;
+    }
     /**
      * Summary. Send an HTTP request as an asynchronous operation.
      * 
