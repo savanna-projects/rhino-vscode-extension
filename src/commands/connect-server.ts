@@ -20,6 +20,7 @@ import { ModelsAutoCompleteProvider } from '../providers/models-auto-complete-pr
 import { ParametersAutoCompleteProvider } from '../providers/parameters-auto-complete-provider';
 import { Command } from "./command";
 import { CreateTm } from './create-tm';
+import { RegisterRhinoCommand } from './register-rhino';
 
 export class ConnectServerCommand extends Command {
     /**
@@ -66,6 +67,10 @@ export class ConnectServerCommand extends Command {
         let client = this.getRhinoClient();
         let context = this.getContext();
 
+        // clean
+        new RegisterRhinoCommand(context).invokeCommand();
+
+        // TODO: optimize calls to run in parallel and create TM when all complete
         // build
         try {
             this.registerActions(client, context, (client: any, context: any) => {
