@@ -8,6 +8,7 @@
  * https://code.visualstudio.com/api/extension-guides/webview
  */
 import * as vscode from 'vscode';
+import { RhinoLogsService } from '../extensions/rhino-logs-service';
 import { Utilities } from '../extensions/utilities';
 import { ReportManager } from '../rhino/report-manager';
 import { Command } from "./command";
@@ -15,7 +16,7 @@ import { Command } from "./command";
 export class InvokeTestCaseCommand extends Command {
     // members
     private testCases: string[];
-
+    
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
@@ -102,6 +103,56 @@ export class InvokeTestCaseCommand extends Command {
 
         // notification
         vscode.window.setStatusBarMessage('$(sync~spin) Invoking test case(s)...');
+
+        let runEnded = false;
+        const displayRunLog = async () => {
+            let logger = this.getRhinoLogger();
+
+            let logParser = new RhinoLogsService(this.getRhinoClient());
+
+            let logMessages: Set<string> = new Set<string>();
+            let logging = () => {
+                let numberOfLines = 200;
+                logParser.getLatestLog(numberOfLines)
+                    .then((log) => {
+                        let messagesToLog = logParser.parseLog(log);
+                        // logger.append(messagesToLog);
+                        messagesToLog.forEach((message) => {
+                            // logMessages.add(message);
+                            logger.append(message.formattedMessage ?? "");
+                        });
+                    })
+                    .catch((error) => console.debug(`Failed to retrieve log - ${error}`));
+                
+            };
+
+            // let log_id: string = await logParser.getLatestLogId();
+            // let logMessages: Set<string> = new Set<string>();
+            // let logging = () => {
+            //     let numberOfLines = 200;
+            //     if (log_id) {
+            //         // console.debug(`Getting last ${numberOfLines} log lines`);
+            //         logParser.getLog(log_id, numberOfLines)
+            //             .then((log) => {
+            //                 let messagesToLog = logParser.parseLogToMessages(log, logMessages);
+            //                 messagesToLog.forEach((message) => {
+            //                     logMessages.add(message);
+            //                     logger.append(message);
+            //                 });
+            //                 // logger.append(messagesToLog.entries);
+            //             })
+            //             .catch((error) => console.debug(`Failed to retrieve log - ${error}`));
+            //     }
+            // };
+            
+            let condition = () => runEnded;
+
+            Utilities.poll(logging, condition, 1000);
+        }
+        if(Utilities.getRhinoServer().host == 'localhost'){
+            displayRunLog();
+        }
+        
         
         // invoke
         this.getRhinoClient().invokeConfiguration(this.getConfiguration(), (testRun: any) => {
@@ -118,8 +169,13 @@ export class InvokeTestCaseCommand extends Command {
             } catch (error) {
                 console.error(error);
                 vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke was not completed");
+            } finally {
+                runEnded = true;
             }
         });
+        
+
+        
     }
 
     // creates default configuration with text connector
