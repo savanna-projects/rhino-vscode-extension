@@ -14,7 +14,6 @@ import { ActionsAutoCompleteProvider } from '../providers/actions-auto-complete-
 import { AnnotationsAutoCompleteProvider } from '../providers/annotations-auto-complete-provider';
 import { AssertionsAutoCompleteProvider } from '../providers/assertions-auto-complete-provider';
 import { DataAutoCompleteProvider } from '../providers/data-auto-complete-provider';
-import { RhinoDefinitionProvider } from '../providers/rhino-definition-provider';
 import { MacrosAutoCompleteProvider } from '../providers/macros-auto-complete-provider';
 import { ModelsAutoCompleteProvider } from '../providers/models-auto-complete-provider';
 import { ParametersAutoCompleteProvider } from '../providers/parameters-auto-complete-provider';
@@ -30,7 +29,6 @@ export class ConnectServerCommand extends Command {
      */
     constructor(context: vscode.ExtensionContext) {
         super(context);
-
         // build
         this.setCommandName('Connect-Server');
     }
@@ -63,6 +61,8 @@ export class ConnectServerCommand extends Command {
 
     // invocation routine
     private invoke() {
+        this.getRhinoLogger().appendLine(`${Utilities.getTimestamp()} - Initiating connection to Rhino server.`);
+
         // setup
         let client = this.getRhinoClient();
         let context = this.getContext();
@@ -100,7 +100,7 @@ export class ConnectServerCommand extends Command {
         console.log(`${new Date().getTime()} - Start loading actions`);
         // setup
         let configuration = Utilities.getConfigurationByManifest();
-
+        
         // build
         client.createConfiguration(configuration, (data: any) => {
             console.log(`${new Date().getTime()} - Start register actions create config`,configuration, data);
