@@ -8,11 +8,7 @@ import path = require('path');
 import fs = require('fs');
 import { TreeItem } from '../contracts/tree-item';
 
-export interface RhinoServerConfig {
-    schema: string;
-    host: string;
-    port: string;
-}
+
 
 export class Utilities {
     /**
@@ -39,6 +35,18 @@ export class Utilities {
 
         // get
         return patterns.join('|');
+    }
+    /**
+     * Summary. Gets the current timestamp formatted as yy/MM/dd, HH:mm:ss.SSS.
+     * 
+     * @returns Timestamp as a string.
+     */
+    public static getTimestamp(): string{
+        
+        // return date.toLocaleTimeString(undefined,  'yy-MM-dd HH:mm:ss,SSS');
+        var date = new Date();
+        var options: Intl.DateTimeFormatOptions = { year:'2-digit', month: '2-digit', day: '2-digit' ,hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false };
+        return `${date.toLocaleString('en-GB',  options)}.${date.getMilliseconds()}`;
     }
 
     /**
@@ -93,14 +101,12 @@ export class Utilities {
      */
     public static getRhinoEndpoint(): string {
         // setup
-        let projectManifest = this.invokeGetProjectManifest();
-        let server = projectManifest.rhinoServer;
+        let server = this.getRhinoServer();
 
         // get
         return server.schema + '://' + server.host + ':' + server.port;
     }
     /**
-
      * Summary. Gets RhinoServer configuration from the project manifest.
      * 
      * @returns RhinoServer endpoint.
@@ -114,6 +120,30 @@ export class Utilities {
         return serverConfig;
     }
 
+    /**
+     * Summary. Generic polling by a set interval (in milliseconds) until the condition is met.
+     * @param polledFunction 
+     * @param stopCondition 
+     * @param interval 
+     * @returns 
+     */
+    public static async poll(polledFunction: () => any, stopCondition: (...args: any) => boolean, interval: number | undefined) {
+        let result;
+        do{
+            if(stopCondition(result)){
+                break;
+            }
+            result = await polledFunction();
+            await this.wait(interval);
+        }while(!stopCondition(result));
+    }
+      
+    public static wait(ms = 1000) {
+        return new Promise(resolve => {
+            setTimeout(resolve, ms);
+        });
+    }
+    
     /**
      * Summary. Get a flat list of all files under a directory including all sub-directories.
      */
