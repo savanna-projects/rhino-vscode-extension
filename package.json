@@ -214,7 +214,7 @@
 	},
 	"dependencies": {
 		"npm": "^8.18.0",
-		"vsce": "^2.11.0"
+		"vsce": "^2.15.0"
 	},
 	"extensionDependencies": [
 		"humao.rest-client",
