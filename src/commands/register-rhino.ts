@@ -24,6 +24,7 @@ import { ScriptsProvider } from '../providers/scripts-provider';
 import { RhinoDocumentSymbolProvider } from '../providers/rhino-symbol-provider';
 import { RhinoDefinitionProvider } from '../providers/rhino-definition-provider';
 import { UpdateSymbolsCommand } from './update-symbols';
+import { CreateProjectCommand } from './create-project';
 
 export class RegisterRhinoCommand extends Command {
     /**
@@ -94,6 +95,7 @@ export class RegisterRhinoCommand extends Command {
         // commands list
         let commands = [
             // main command (must be first)
+            new CreateProjectCommand(context),
             new RegisterRhinoCommand(context),
 
             // explorer views

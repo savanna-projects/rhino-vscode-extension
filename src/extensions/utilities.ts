@@ -287,6 +287,9 @@ export class Utilities {
     public static getConfigurationByManifest(): any {
         // setup
         let projectManifest = this.getProjectManifest();
+        let integration = !this.invokeIsNullOrUndefined(projectManifest.integration)
+            ? projectManifest.integration
+            : null;
 
         // build
         let engineConfiguration = !this.invokeIsNullOrUndefined(projectManifest.engineConfiguration)
@@ -326,6 +329,7 @@ export class Utilities {
         return {
             name: "VS Code - Standalone Test Run",
             testsRepository: [],
+            integration: integration,
             driverParameters: projectManifest.driverParameters,
             authentication: projectManifest.authentication,
             screenshotsConfiguration: screenshotsConfiguration,
