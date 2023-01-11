@@ -8,10 +8,12 @@
  * https://code.visualstudio.com/api/extension-guides/webview
  */
 import * as vscode from 'vscode';
-import { RhinoLogsService } from '../extensions/rhino-logs-service';
+import { RhinoLogsService } from '../logging/rhino-logs-service';
 import { Utilities } from '../extensions/utilities';
 import { ReportManager } from '../rhino/report-manager';
 import { Command } from "./command";
+import { RhinoLogger } from '../framework/rhino-logger';
+import { LoggerOptions } from '../logging/logger-options';
 
 export class InvokeTestCaseCommand extends Command {
     // members
@@ -105,45 +107,23 @@ export class InvokeTestCaseCommand extends Command {
         vscode.window.setStatusBarMessage('$(sync~spin) Invoking test case(s)...');
 
         let runEnded = false;
+        
         const displayRunLog = async () => {
-            let logger = this.getRhinoLogger();
-
+            let loggerOptions = new LoggerOptions({ sourceOptions: 
+                {sourcesFilterLogic: 'Include', 
+                sources: ['Rhino.Agent', 'RhinoApi.RhinoRepository', 'RhinoApi.TextConnector', 'RhinoApi.TextAutomationProvider']}});
+            let logger = new RhinoLogger('Test Run Log', loggerOptions);
+            logger.show();
             let logParser = new RhinoLogsService(this.getRhinoClient());
-
-            let logMessages: Set<string> = new Set<string>();
-            let logging = () => {
-                let numberOfLines = 200;
-                logParser.getLatestLog(numberOfLines)
-                    .then((log) => {
-                        let messagesToLog = logParser.parseLog(log);
-                        // logger.append(messagesToLog);
-                        messagesToLog.forEach((message) => {
-                            // logMessages.add(message);
-                            logger.append(message.formattedMessage ?? "");
-                        });
-                    })
-                    .catch((error) => console.debug(`Failed to retrieve log - ${error}`));
-                
+            let numberOfLines = 50;
+            let latestLogId = await logParser.getLatestLogId();
+            let logging = async () => {
+                let log = await logParser.getLog(latestLogId, numberOfLines);
+                let messagesToLog = logParser.parseLog(log ?? "");
+                messagesToLog.forEach((message) => {
+                    logger.append(message);
+                });
             };
-
-            // let log_id: string = await logParser.getLatestLogId();
-            // let logMessages: Set<string> = new Set<string>();
-            // let logging = () => {
-            //     let numberOfLines = 200;
-            //     if (log_id) {
-            //         // console.debug(`Getting last ${numberOfLines} log lines`);
-            //         logParser.getLog(log_id, numberOfLines)
-            //             .then((log) => {
-            //                 let messagesToLog = logParser.parseLogToMessages(log, logMessages);
-            //                 messagesToLog.forEach((message) => {
-            //                     logMessages.add(message);
-            //                     logger.append(message);
-            //                 });
-            //                 // logger.append(messagesToLog.entries);
-            //             })
-            //             .catch((error) => console.debug(`Failed to retrieve log - ${error}`));
-            //     }
-            // };
             
             let condition = () => runEnded;
 
@@ -160,17 +140,16 @@ export class InvokeTestCaseCommand extends Command {
             _testRun.actual === true
                 ? vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke completed w/o test(s) failures")
                 : vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke completed, w/ test(s) failures");
-
+            runEnded = true;
             console.info(testRun);
             try {
                 let htmlReport = new ReportManager(_testRun).getHtmlReport();
                 const panel = vscode.window.createWebviewPanel("RhinoReport", "Rhino Report", vscode.ViewColumn.One);
                 panel.webview.html = htmlReport;
+                
             } catch (error) {
                 console.error(error);
                 vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke was not completed");
-            } finally {
-                runEnded = true;
             }
         });
         

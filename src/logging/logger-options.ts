@@ -5,36 +5,20 @@ interface SourceOptions {
     sourcesFilterLogic: 'Include' | 'Exclude';
     sources: string[];
 }
-
+/**
+ * Options for determining which source and log levels to write to channel output.
+ */
 export class LoggerOptions{
     public logLevel:LogLevelName = 'TRACE';
-    public sourceOptions?: SourceOptions;
+    public sourceOptions: SourceOptions = {sourcesFilterLogic: 'Exclude', sources: []};
 
     /**
-     *
+     * 
      */
     constructor(init? : Partial<LoggerOptions>) {
         Object.assign(this, init);
         
     }
-    // public isTraceEnabled(): boolean {
-    //     return LogLevel[this.logLevel] >= LogLevel.TRACE;
-    // }
-    // public isDebugEnabled(): boolean {
-    //     return LogLevel[this.logLevel] >= LogLevel.DEBUG;
-    // }
-    // public isInfoEnabled(): boolean {
-    //     return LogLevel[this.logLevel] >= LogLevel.INFORMATION;
-    // }
-    // public isWarningEnabled(): boolean {
-    //     return LogLevel[this.logLevel] >= LogLevel.WARNING;
-    // }
-    // public isErrorEnabled(): boolean {
-    //     return LogLevel[this.logLevel] >= LogLevel.ERROR;
-    // }
-    // public isFatalEnabled(): boolean {
-    //     return LogLevel[this.logLevel] >= LogLevel.FATAL;
-    // }
 
     public isLogLevelEnabled(logLevel: LogLevelName):boolean{
         return LogLevel[this.logLevel] <= LogLevel[logLevel];
