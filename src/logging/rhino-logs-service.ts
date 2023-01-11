@@ -1,12 +1,10 @@
 import { RhinoClient } from "../framework/rhino-client";
-import * as os from 'os';
-import { GravityLogMessage, RhinoLogMessage } from "./log-messages";
-import { ServerLogParser } from "../Formatters/server-log-parser";
+import { GravityLogMessage, LogMessage, RhinoLogMessage } from "./log-models";
+import { ServerLogParser } from "./server-log-parser";
 
 export class RhinoLogsService{
-    startLogList = ['DBG', 'ERR', 'FTL', 'INF', 'TRC', 'WRN', 'Rhino.Agent'];
     private rhinoClient:RhinoClient;
-    private messagesCache : Set<GravityLogMessage | RhinoLogMessage> = new Set<GravityLogMessage | RhinoLogMessage>();
+    private messagesCache : Map<string, LogMessage> = new Map<string, LogMessage>();
 
     /**
      *
@@ -34,7 +32,7 @@ export class RhinoLogsService{
         }
     }
 
-    public async getLog(log_id: string, numberOfLines?: number): Promise<any>{
+    public async getLog(log_id: string, numberOfLines?: number): Promise<string | undefined>{
         return await this.rhinoClient.getServerLog(log_id, numberOfLines).then((result) => {
             if(typeof result == 'string'){
                 return result;
@@ -42,7 +40,7 @@ export class RhinoLogsService{
         });
     }
 
-    public async getLatestLog(numberOfLines?: number): Promise<any>{
+    public async getLatestLog(numberOfLines?: number): Promise<string | undefined>{
         let log_id: string = await this.getLatestLogId();
         return await this.rhinoClient.getServerLog(log_id, numberOfLines).then((result) => {
             if(typeof result == 'string'){
@@ -58,35 +56,21 @@ export class RhinoLogsService{
         return logFileName.substring(start, end);
     }
 
-    public parseLog(log: string): Set<GravityLogMessage | RhinoLogMessage>{
-        let logMessages = new Set<GravityLogMessage | RhinoLogMessage>();
-        ServerLogParser.parseServerLog(log).forEach((logMessage) => {
-            if(!this.messagesCache.has(logMessage)){
-                logMessages.add(logMessage);
-                this.messagesCache.add(logMessage);
+    public parseLog(log: string): LogMessage[]{
+        let logMessages: LogMessage[] = [];
+        let messages = ServerLogParser.parseServerLog(log);
+        for(let logMessage of messages){
+            if(!this.messagesCache.has(logMessage.timeStamp)){
+                logMessages.push(logMessage);
+                this.messagesCache.set(logMessage.timeStamp, logMessage);
             }
-        });
-        return logMessages;
-    }
-
-    public parseLogToMessages(serverLog: string, messages? : Set<string>): Set<string>{
-        let logMessages: Set<string> = new Set<string>();
-        let logMessage: string;
-        let lines = serverLog.split(/\r\n|\r|\n/);
-        lines.forEach((line) => {
-            let isMessageStart = this.startLogList.some(element => {
-                return line.startsWith(element);
-            });
-            if(isMessageStart){
-                if(logMessage && !messages?.has(logMessage)){
-                    logMessages.add(logMessage + os.EOL);
-                }
-                logMessage = line;
+            else if(this.messagesCache.get(logMessage.timeStamp)?.message != logMessage.message){
+                console.info(`Found different messages with identical timestamp:\nMessage1:\n${JSON.stringify(logMessage)}\n\n\nMessage2:\n${JSON.stringify(this.messagesCache.get(logMessage.timeStamp))}`);
+                logMessage.timeStamp += "0";
+                logMessages.push(logMessage);
+                this.messagesCache.set(logMessage.timeStamp, logMessage);
             }
-            else if(logMessage){
-                logMessage += line + os.EOL;
-            }
-        });
+        }
         return logMessages;
     }
 }
