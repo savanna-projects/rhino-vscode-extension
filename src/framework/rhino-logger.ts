@@ -7,6 +7,8 @@
  * TODO: Implement log levels.
  */
 import * as vscode from 'vscode';
+import { isLogMessage, LogMessage } from '../logging/log-models';
+import { LoggerOptions } from '../logging/logger-options';
 
 export interface IRhinoLogger {
     appendLine(log: string | object): void
@@ -21,29 +23,60 @@ var logger: RhinoLogger;
 export class RhinoLogger implements IRhinoLogger {
     // members
     private outputChannel: vscode.OutputChannel;
-    
+    private loggerOptions: LoggerOptions;
     /**
      *
      */
-    constructor(channelName: string) {
+    constructor(channelName: string, loggerOptions?: LoggerOptions) {
         this.outputChannel = vscode.window.createOutputChannel(channelName);
+        this.loggerOptions = loggerOptions ?? new LoggerOptions();
         
-    }
-    /**
-     * Append the given value and a line feed character to the channel.
-     */
-    appendLine(log: string | object): void {
-        var logMessage = typeof log == 'object' ? JSON.stringify(log) : log;
-        this.outputChannel.appendLine(logMessage);
     }
 
     /**
-     * Append the given value to the channel.
+     * Append the given value and a line feed character to the channel.
      */
-    append(log: string | object): void {
-        var logMessage = typeof log == 'object' ? JSON.stringify(log) : log;
-        // `${Utilities.getTimestamp()} - ${logMessage}`
+    appendLine(log: string): void {
+        this.outputChannel.appendLine(log);
+    }
+
+    /**
+     * Appends the given value to the channel, if it complies with the {@link loggerOptions logger options} criteria.
+     */
+    //TODO: 
+    append(log: LogMessage): void
+    append(log: string): void
+    append(log: object): void
+    append(log: any): void {
+        let logMessage: string;
+        if(typeof log == 'object'){
+            if(isLogMessage(log)){
+                if(this.isLogCompliant(log)){
+                    logMessage = log.formattedMessage;
+                }
+                else{
+                    return;
+                }
+            }
+            else{
+                logMessage = JSON.stringify(log);
+            }
+        }
+        else{
+            logMessage = log;
+        }
+        
         this.outputChannel.append(logMessage);
+    }
+
+    private isLogCompliant(logMessage: LogMessage): boolean{
+        if(!this.loggerOptions.isLogLevelEnabled(logMessage.level)){
+            return false;
+        }
+        let sourceOptions = this.loggerOptions?.sourceOptions ?? {};
+        return sourceOptions?.sourcesFilterLogic == 'Exclude' ? 
+                !sourceOptions.sources.includes(logMessage.source) :
+                sourceOptions.sources.includes(logMessage.source);
     }
 
     // info(log: string | object): void {
