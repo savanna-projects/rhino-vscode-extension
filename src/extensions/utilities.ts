@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import path = require('path');
 import fs = require('fs');
 import { TreeItem } from '../contracts/tree-item';
+import { LoggerConfig, RhinoServerConfig } from '../rhino/manifest-models';
 
 
 
@@ -36,6 +37,15 @@ export class Utilities {
         // get
         return patterns.join('|');
     }
+    /**
+     * Gets the first result from the RegExPMatchArray if exists, otherwise returns an empty string.
+     * @param regexMatch The regular expressions match array.
+     * @returns First element of the array.
+    */
+    public static getFirstRegexMatch(regexMatch: RegExpMatchArray | null): string{
+        return regexMatch ? regexMatch[0] : "";
+    }
+
     /**
      * Summary. Gets the current timestamp formatted as yy/MM/dd, HH:mm:ss.SSS.
      * 
@@ -121,13 +131,27 @@ export class Utilities {
     }
 
     /**
+     * Summary. Gets RhinoServer configuration from the project manifest.
+     * 
+     * @returns RhinoServer endpoint.
+     */
+    public static getLoggerConfig(name: string): LoggerConfig | undefined{
+        // setup
+        let projectManifest = this.invokeGetProjectManifest();
+        let loggerConfig: LoggerConfig[] = projectManifest.logConfiguration;
+
+        // get
+        return loggerConfig.find(loggerConfig => loggerConfig.name == name);
+    }
+
+    /**
      * Summary. Generic polling by a set interval (in milliseconds) until the condition is met.
      * @param polledFunction 
      * @param stopCondition 
      * @param interval 
      * @returns 
      */
-    public static async poll(polledFunction: () => any, stopCondition: (...args: any) => boolean, interval: number | undefined) {
+    public static async poll(polledFunction: (...args: any) => any, stopCondition: (...args: any) => boolean, interval: number | undefined) {
         let result;
         do{
             if(stopCondition(result)){
