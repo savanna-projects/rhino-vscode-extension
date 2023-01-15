@@ -8,8 +8,8 @@
 import * as vscode from 'vscode';
 import { HttpCommand } from './http-command';
 import { URL } from "url";
-import { ClientRequest, IncomingMessage, request, RequestOptions} from 'http';
-import * as http from 'http';
+import { IncomingMessage, request, RequestOptions} from 'http';
+import { Utilities } from '../extensions/utilities';
 
 /**
  * Provides a base class for sending HTTP requests and receiving HTTP responses
@@ -92,9 +92,9 @@ export class HttpClient {
     public async invokeAsyncWebRequest(httpCommand: HttpCommand): Promise<unknown> {
         // constants
         return new Promise((resolve, reject) => {
-            console.debug(`${new Date().getTime()} - START Invoke-AsyncWebRequest -> ${httpCommand.method} ${httpCommand.command}`);
+            console.debug(`${Utilities.getTimestamp()} - START Invoke-AsyncWebRequest -> ${httpCommand.method} ${httpCommand.command}`);
             let options = this.getOptions(httpCommand);
-            options.timeout = 5000;
+            options.timeout = 60000;
             const clientRequest = request(options, (response) => {
                 let data = '';
 
@@ -102,9 +102,8 @@ export class HttpClient {
 
                 response.on('error', (error) =>
                     reject(this.onError(error)));
-
                 response.on('end', () => {
-                    console.debug(`${new Date().getTime()} - END  Invoke-AsyncWebRequest -> ${httpCommand.method} ${httpCommand.command}`);
+                    console.debug(`${Utilities.getTimestamp()} - END  Invoke-AsyncWebRequest -> ${httpCommand.method} ${httpCommand.command}`);
                     if (response?.statusCode && response.statusCode >= 200 && response.statusCode <= 299) {
                     // resolve({statusCode: response.statusCode, headers: response.headers, body: data});
                     resolve(data);
@@ -117,7 +116,13 @@ export class HttpClient {
                     }
                 });
             });
+            clientRequest.setTimeout(options.timeout, () => {
+                let error: Error = new Error(`Request timed out after ${options.timeout} milliseconds`);
+                this.onError(error);
+                clientRequest.destroy();
+            });
             clientRequest.on('error', (error: any) => this.onError(error));
+            
             // send
             let isBody = httpCommand.body !== null && httpCommand.body !== undefined;
             let isJson = 'Content-Type' in httpCommand.headers && httpCommand.headers['Content-Type'] === 'application/json';
@@ -159,7 +164,7 @@ export class HttpClient {
 
     private onData(data: any) {
         // log
-        console.log(`${new Date().getTime()} - Invoke-WebRequest -> Processing data`);
+        console.log(`${Utilities.getTimestamp()} - Invoke-WebRequest -> Processing data`);
         // get
         return data;
     }
