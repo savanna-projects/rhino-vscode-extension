@@ -8,8 +8,8 @@ export enum LogLevel {
 }
 
 export type LogLevelName = keyof typeof LogLevel;
-export const gravityLogStartText = ['Rhino.Agent'] as const;
-export const rhinoLogStartText = ['DBG', 'ERR', 'FTL', 'INF', 'TRC', 'WRN'] as const;
+
+
 
 /**
  * Custom type guard to assert whether an unknown object is a LogLevelName.
