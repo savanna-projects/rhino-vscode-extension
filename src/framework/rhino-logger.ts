@@ -7,7 +7,7 @@
  * TODO: Implement log levels.
  */
 import * as vscode from 'vscode';
-import { isLogMessage, LogMessage } from '../logging/log-models';
+import { isLogMessage, LogLevel, LogLevelName, LogMessage } from '../logging/log-models';
 import { LoggerOptions } from '../logging/logger-options';
 
 export interface IRhinoLogger {
@@ -30,9 +30,11 @@ export class RhinoLogger implements IRhinoLogger {
     constructor(channelName: string, loggerOptions?: LoggerOptions) {
         this.outputChannel = vscode.window.createOutputChannel(channelName);
         this.loggerOptions = loggerOptions ?? new LoggerOptions();
-        
     }
 
+    public setLoggerOptions(loggerOptions: LoggerOptions){
+        this.loggerOptions = loggerOptions;
+    }
     /**
      * Append the given value and a line feed character to the channel.
      */
@@ -65,19 +67,24 @@ export class RhinoLogger implements IRhinoLogger {
         else{
             logMessage = log;
         }
-        
         this.outputChannel.append(logMessage);
     }
 
     private isLogCompliant(logMessage: LogMessage): boolean{
-        if(!this.loggerOptions.isLogLevelEnabled(logMessage.level)){
-            return false;
-        }
-        let sourceOptions = this.loggerOptions?.sourceOptions ?? {};
-        return sourceOptions?.sourcesFilterLogic == 'Exclude' ? 
-                !sourceOptions.sources.includes(logMessage.source) :
-                sourceOptions.sources.includes(logMessage.source);
+        return this.isLogLevelEnabled(logMessage.level) && this.isLogSourceCompliant(logMessage.source);
+
     }
+    private isLogSourceCompliant(logSource: string): boolean{
+        let sourceOptions = this.loggerOptions.sourceOptions;
+        return sourceOptions?.sourcesFilterLogic == 'Exclude' ? 
+                !sourceOptions.sources.includes(logSource) :
+                sourceOptions.sources.includes(logSource);
+    }
+
+    public isLogLevelEnabled(logLevel: LogLevelName):boolean{
+        return LogLevel[this.loggerOptions.logLevel] <= LogLevel[logLevel];
+    }
+
 
     // info(log: string | object): void {
     //     this.outputChannel.appendLine(`${this.getTimestamp()} - ${JSON.stringify(log)}`);

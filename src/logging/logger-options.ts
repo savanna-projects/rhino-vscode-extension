@@ -1,7 +1,7 @@
-import { LogLevel, LogLevelName } from "./log-models";
+import { LogLevelName } from "./log-models";
 
 
-interface SourceOptions {
+export interface SourceOptions {
     sourcesFilterLogic: 'Include' | 'Exclude';
     sources: string[];
 }
@@ -9,7 +9,14 @@ interface SourceOptions {
  * Options for determining which source and log levels to write to channel output.
  */
 export class LoggerOptions{
-    public logLevel:LogLevelName = 'TRACE';
+    /**
+     * The minimum log level to write, filtering out everything below it. Default is 'INFORMATION'.
+     */
+    public logLevel:LogLevelName = 'INFORMATION';
+
+    /**
+     * Exclude or include an array of server log sources.
+     */
     public sourceOptions: SourceOptions = {sourcesFilterLogic: 'Exclude', sources: []};
 
     /**
@@ -17,11 +24,6 @@ export class LoggerOptions{
      */
     constructor(init? : Partial<LoggerOptions>) {
         Object.assign(this, init);
-        
-    }
-
-    public isLogLevelEnabled(logLevel: LogLevelName):boolean{
-        return LogLevel[this.logLevel] <= LogLevel[logLevel];
     }
 
 }
