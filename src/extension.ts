@@ -17,5 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate(context: vscode.ExtensionContext) {
-	context.subscriptions.splice(0, context.subscriptions.length);
+	if(context?.subscriptions){
+		context.subscriptions.splice(0, context.subscriptions.length);
+	}
 }
