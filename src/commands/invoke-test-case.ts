@@ -8,17 +8,19 @@
  * https://code.visualstudio.com/api/extension-guides/webview
  */
 import * as vscode from 'vscode';
-import { RhinoLogsService } from '../logging/rhino-logs-service';
+import { ServerLogService } from '../logging/server-log-service';
 import { Utilities } from '../extensions/utilities';
 import { ReportManager } from '../rhino/report-manager';
 import { Command } from "./command";
 import { RhinoLogger } from '../framework/rhino-logger';
 import { LoggerOptions } from '../logging/logger-options';
+import { LoggerConfig } from '../rhino/manifest-models';
 
 export class InvokeTestCaseCommand extends Command {
     // members
     private testCases: string[];
-    
+    private loggerConfig: LoggerConfig | undefined;
+    private readonly testRunLogger!: RhinoLogger;
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
@@ -30,6 +32,19 @@ export class InvokeTestCaseCommand extends Command {
         // setup
         this.testCases = [];
         this.setCommandName('Invoke-TestCase');
+
+        //logger setup
+        this.setLoggerConfig();
+        let loggerOptions = this.extractLoggerOptions();
+        this.testRunLogger = new RhinoLogger("Test Run Log", loggerOptions);
+    }
+
+    private extractLoggerOptions() : LoggerOptions {
+        return new LoggerOptions(this.loggerConfig?.loggerOptions);
+    }
+
+    private setLoggerConfig(): void {
+        this.loggerConfig = Utilities.getLoggerConfig(this.getCommandName());
     }
 
     /*┌─[ SETTERS ]────────────────────────────────────────────
@@ -106,33 +121,36 @@ export class InvokeTestCaseCommand extends Command {
         // notification
         vscode.window.setStatusBarMessage('$(sync~spin) Invoking test case(s)...');
 
-        let runEnded = false;
-        
+        var runEnded = false;
+        var stopCondition = () => runEnded;
+
         const displayRunLog = async () => {
-            let loggerOptions = new LoggerOptions({ sourceOptions: 
-                {sourcesFilterLogic: 'Include', 
-                sources: ['Rhino.Agent', 'RhinoApi.RhinoRepository', 'RhinoApi.TextConnector', 'RhinoApi.TextAutomationProvider']}});
-            let logger = new RhinoLogger('Test Run Log', loggerOptions);
+            this.setLoggerConfig();
+            this.testRunLogger.setLoggerOptions(this.extractLoggerOptions());
+            let logger = this.testRunLogger;
             logger.show();
-            let logParser = new RhinoLogsService(this.getRhinoClient());
-            let numberOfLines = 50;
+            
+            let logParser = new ServerLogService(this.getRhinoClient());
+            let numberOfLines = 200;
             let latestLogId = await logParser.getLatestLogId();
+
             let logging = async () => {
                 let log = await logParser.getLog(latestLogId, numberOfLines);
                 let messagesToLog = logParser.parseLog(log ?? "");
-                messagesToLog.forEach((message) => {
+                for(let message of messagesToLog){
                     logger.append(message);
-                });
+                    
+                    //Wait to slightly stagger writing of logs to channel, allowing easier reading of log continuously.
+                    await Utilities.wait(100);
+                }
             };
             
-            let condition = () => runEnded;
-
-            Utilities.poll(logging, condition, 1000);
+            Utilities.poll(logging, stopCondition, 1000). then(() => logger.appendLine(`${Utilities.getTimestamp()} - Test run ended.`));
         }
-        if(Utilities.getRhinoServer().host == 'localhost'){
+
+        if(this.loggerConfig?.enableClientSideLogging){
             displayRunLog();
         }
-        
         
         // invoke
         this.getRhinoClient().invokeConfiguration(this.getConfiguration(), (testRun: any) => {
@@ -152,9 +170,6 @@ export class InvokeTestCaseCommand extends Command {
                 vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke was not completed");
             }
         });
-        
-
-        
     }
 
     // creates default configuration with text connector
