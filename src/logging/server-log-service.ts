@@ -1,8 +1,8 @@
 import { RhinoClient } from "../framework/rhino-client";
-import { GravityLogMessage, LogMessage, RhinoLogMessage } from "./log-models";
+import { LogMessage } from "./log-models";
 import { ServerLogParser } from "./server-log-parser";
 
-export class RhinoLogsService{
+export class ServerLogService{
     private rhinoClient:RhinoClient;
     private messagesCache : Map<string, LogMessage> = new Map<string, LogMessage>();
 
@@ -28,7 +28,7 @@ export class RhinoLogsService{
             return '';
         } else {
             let latestLog = logFileNames[logFileNames.length - 1];
-            return RhinoLogsService.extractServerLogId(latestLog);
+            return ServerLogService.extractServerLogId(latestLog);
         }
     }
 
@@ -61,14 +61,8 @@ export class RhinoLogsService{
         let messages = ServerLogParser.parseServerLog(log);
         for(let logMessage of messages){
             if(!this.messagesCache.has(logMessage.timeStamp)){
-                logMessages.push(logMessage);
                 this.messagesCache.set(logMessage.timeStamp, logMessage);
-            }
-            else if(this.messagesCache.get(logMessage.timeStamp)?.message != logMessage.message){
-                console.info(`Found different messages with identical timestamp:\nMessage1:\n${JSON.stringify(logMessage)}\n\n\nMessage2:\n${JSON.stringify(this.messagesCache.get(logMessage.timeStamp))}`);
-                logMessage.timeStamp += "0";
                 logMessages.push(logMessage);
-                this.messagesCache.set(logMessage.timeStamp, logMessage);
             }
         }
         return logMessages;
