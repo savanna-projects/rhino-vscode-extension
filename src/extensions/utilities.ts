@@ -8,6 +8,12 @@ import path = require('path');
 import fs = require('fs');
 import { TreeItem } from '../contracts/tree-item';
 
+export interface RhinoServerConfig {
+    schema: string;
+    host: string;
+    port: string;
+}
+
 export class Utilities {
     /**
      * Summary. Gets a pattern to identify all available plugins in a single text line.
@@ -92,6 +98,20 @@ export class Utilities {
 
         // get
         return server.schema + '://' + server.host + ':' + server.port;
+    }
+    /**
+
+     * Summary. Gets RhinoServer configuration from the project manifest.
+     * 
+     * @returns RhinoServer endpoint.
+     */
+    public static getRhinoServer(): RhinoServerConfig {
+        // setup
+        let projectManifest = this.invokeGetProjectManifest();
+        let serverConfig: RhinoServerConfig = projectManifest.rhinoServer;
+
+        // get
+        return serverConfig;
     }
 
     /**
@@ -184,13 +204,20 @@ export class Utilities {
                 return 0;
             });
         };
+        
+        //bad request
+        let folders: string[] = [];
+        let files: string[] = [];
+        if(!fs.existsSync(folderPath)){
+            return [...folders, ...files];
+        }
 
         // setup
         excludeFolders = excludeFolders.map(i => i.toUpperCase());
         includeFiles = includeFiles.map(i => i.toUpperCase());
+        
         let unsorted = fs.readdirSync(folderPath);
-        let folders: string[] = [];
-        let files: string[] = [];
+        
 
         // sort o-n
         for (let item of unsorted) {
