@@ -43,6 +43,7 @@ export class HttpCommand {
     public setBody(body: any) {
         // build
         this.body = body;
+        console.log(JSON.stringify(body));
 
         // get
         return this;

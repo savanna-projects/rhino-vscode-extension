@@ -128,48 +128,6 @@ export class InvokeTestCaseCommand extends Command {
         // notification
         vscode.window.setStatusBarMessage('$(sync~spin) Invoking test case(s)...');
 
-        var runEnded = false;
-        var stopCondition = () => runEnded;
-
-        const displayRunLog = async () => {
-            this.createLogger();
-            if(!this.testRunLogger){
-                throw new Error(`No test run logger created!`);
-            }
-            let logger = this.testRunLogger;
-            logger.show();
-            
-            let logParser = new ServerLogService(this.getRhinoClient());
-            let numberOfLines = 200;
-            let latestLogId = await logParser.getLatestLogId();
-            let runStartTime = new Date();
-            let isAfterRunStart = false;
-
-            let logging = async () => {
-                let log = await logParser.getLog(latestLogId, numberOfLines);
-                let messagesToLog = logParser.parseLog(log ?? "");
-                for(let message of messagesToLog){
-                    if(!isAfterRunStart){
-                        let logDate = ServerLogParser.parseLogTimestamp(message);
-                        isAfterRunStart = logDate > runStartTime
-                    }
-
-                    if(isAfterRunStart){
-                        logger.append(message);
-                    }
-                    
-                    //Wait to slightly stagger writing of logs to channel, allowing easier reading of log continuously.
-                    await Utilities.wait(100);
-                }
-            };
-            
-            Utilities.poll(logging, stopCondition, 1000). then(() => logger.appendLine(`${Utilities.getTimestamp()} - Test run ended.`));
-        }
-
-        if(this.loggerConfig?.enableClientSideLogging){
-            displayRunLog();
-        }
-        
         // invoke
         this.getRhinoClient().invokeConfiguration(this.getConfiguration(), (testRun: any) => {
             let _testRun = JSON.parse(testRun);
@@ -216,9 +174,9 @@ export class InvokeTestCaseCommand extends Command {
         }
 
         // clean
-        let text = editor.document.getText().split('\n').map(i => i.replace(/^\d+\.\s+/, '')).join('\n');
+        let text = Utilities.buildRhinoSpec(editor.document.getText());
 
         // get
-        return text.split('>>>');
+        return text.split('>>>').map(i => i.trim());
     }
 }
