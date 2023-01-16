@@ -50,7 +50,7 @@ export class ServerLogParser{
             console.warn('Warning - Log is null or empty!');
             return separatedMessages;
         }
-        let logMessage: SplitLogLine;
+        let logMessage: SplitLogLine = {} as any;
         let logLines = log.split(/\r\n|\r|\n/);
 
         logLines.forEach((line) => {
@@ -69,7 +69,9 @@ export class ServerLogParser{
                 logMessage.message += line + os.EOL;
             }          
         });
-
+        if(logMessage?.message){
+            separatedMessages.push(logMessage);
+        }
         return separatedMessages;
     }
 
