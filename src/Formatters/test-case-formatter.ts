@@ -165,7 +165,7 @@ export class TestCaseFormatter extends Formatter {
             // build
             let actionsSection = actions
                 .section
-                .map((i: any) => i.action)
+                .map((i: any) => i.type === 'multiline' ? `\t\t${i.action}` : i.action)
                 .filter((i: any) => i !== null && i !== undefined);
             let assertionsSection = this.buildExpectedSection(expected);
 
@@ -193,6 +193,7 @@ export class TestCaseFormatter extends Formatter {
         // setup
         const commentRegex = /^((\W+)?\d+\.?)?(\s+)?\/\*{2}/g;
         const indexRegex = /^((\s+)?(\d+(\.+)?))+(\s+)?/g;
+        const multilineRegex = /\s`$/g;
         let map: any[] = [];
 
         // build
@@ -200,21 +201,32 @@ export class TestCaseFormatter extends Formatter {
             .getSection(testCase, 'test-actions', annotations)
             .lines
             .map((i: string) => i.trim());
-        let totalActions = actions.filter((i: string) => i !== '' && i.match(commentRegex) === null).length - 1;
+        let totalActions = this.getActionsCount(actions);
         map.push({ type: "annotation", action: actions[0], index: -1 });
 
         // iterate
         let index = 1;
         for (let i = 1; i < actions.length; i++) {
             const action = actions[i];
+
             let isComment = action.match(commentRegex) !== null;
             let isEmpty = action === '';
+
+            // multiline
+            let previousLine = actions[(i - 1 < 0 ? 0 : i - 1)];
+            let isMatch = action.trim().match(multilineRegex) !== null;
+            let isPreviousMatch = previousLine.trim().match(multilineRegex) !== null;
+            let isMultiline = isMatch && isPreviousMatch || (!isMatch && isPreviousMatch);
 
             if (isEmpty) {
                 continue;
             }
             if (isComment) {
-                map.push({ type: "comment", action: action, index: index });
+                map.push({ type: "comment", action: action, index: i });
+                continue;
+            }
+            if (isMultiline) {
+                map.push({ type: "multiline", action: action, index: i });
                 continue;
             }
 
@@ -222,8 +234,9 @@ export class TestCaseFormatter extends Formatter {
             let _action = action.replace(indexRegex, '');
             let indent = totalActions.toString().length - _index.length;
             _action = _index + '. ' + ' '.repeat(indent) + _action;
+            index++;
 
-            map.push({ type: "action", action: _action, index: index++ });
+            map.push({ type: "action", action: _action, index: i });
         }
 
         // get
@@ -231,6 +244,33 @@ export class TestCaseFormatter extends Formatter {
             section: [...map].sort((a, b) => (a.index < b.index ? -1 : 1)),
             total: totalActions
         };
+    }
+
+    private getActionsCount(actions: any): number {
+        // setup
+        const commentRegex = /^((\W+)?\d+\.?)?(\s+)?\/\*{2}/g;
+        const multilineRegex = /\s`$/g;
+        let counter = 0;
+
+        // count
+        for (let i = 1; i < actions.length; i++) {
+            const action = actions[i];
+            let isComment = action.match(commentRegex) !== null;
+            let isEmpty = action === '';
+
+            // multiline
+            let previousLine = actions[(i - 1 < 0 ? 0 : i - 1)];
+            let isMatch = action.trim().match(multilineRegex) !== null;
+            let isPreviousMatch = previousLine.trim().match(multilineRegex) !== null;
+            let isMultiline = isMatch && isPreviousMatch || (!isMatch && isPreviousMatch);
+
+            if (!isComment && !isEmpty && !isMultiline) {
+                counter++;
+            }
+        }
+
+        // get
+        return counter;
     }
 
     private getAssertions(testCase: string[], annotations: string[], totalActions: number): any {

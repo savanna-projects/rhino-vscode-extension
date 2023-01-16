@@ -434,7 +434,7 @@ export class Utilities {
      */
     public static buildRhinoSpec(spec: String): string {
         // constants
-        const multilinePattern = /\s`$/g;
+        const multilineRegex = /\s`$/g;
 
         // setup
         let rawLines = spec.split('\n');
@@ -444,8 +444,8 @@ export class Utilities {
         for (let i = 0; i < rawLines.length; i++) {
             let line = rawLines[i];
             let previousLine = rawLines[(i - 1 < 0 ? 0 : i - 1)];
-            let isMatch = line.trim().match(multilinePattern);
-            let isPreviousMatch = previousLine.trim().match(multilinePattern);
+            let isMatch = line.trim().match(multilineRegex) !== null;
+            let isPreviousMatch = previousLine.trim().match(multilineRegex) !== null;
 
             if (!isMatch && !isPreviousMatch || (isMatch && !isPreviousMatch)) {
                 lines.push(line);
@@ -455,8 +455,8 @@ export class Utilities {
             let index: number = lines.length - 1;
             let multiline: string = lines[index];
 
-            line = ' ' + line.trim().replace(multilinePattern, '');
-            multiline = multiline.trim().replace(multilinePattern, '') + line;
+            line = ' ' + line.trim().replace(multilineRegex, '');
+            multiline = multiline.trim().replace(multilineRegex, '') + line;
 
             lines[index] = multiline;
         }
