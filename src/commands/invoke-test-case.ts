@@ -21,7 +21,7 @@ export class InvokeTestCaseCommand extends Command {
     // members
     private testCases: string[];
     private loggerConfig: LoggerConfig | undefined;
-    private readonly testRunLogger!: RhinoLogger;
+    private testRunLogger: RhinoLogger | undefined;
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
@@ -36,8 +36,6 @@ export class InvokeTestCaseCommand extends Command {
 
         //logger setup
         this.setLoggerConfig();
-        let loggerOptions = this.extractLoggerOptions();
-        this.testRunLogger = new RhinoLogger("Test Run Log", loggerOptions);
     }
 
     private extractLoggerOptions() : LoggerOptions {
@@ -46,6 +44,14 @@ export class InvokeTestCaseCommand extends Command {
 
     private setLoggerConfig(): void {
         this.loggerConfig = Utilities.getLoggerConfig(this.getCommandName());
+    }
+
+    private createLogger(){
+        if(!this.testRunLogger){
+            this.setLoggerConfig();
+            let loggerOptions = this.extractLoggerOptions();
+            this.testRunLogger =  new RhinoLogger("Test Run Log", loggerOptions);
+        }
     }
 
     /*┌─[ SETTERS ]────────────────────────────────────────────
@@ -126,8 +132,10 @@ export class InvokeTestCaseCommand extends Command {
         var stopCondition = () => runEnded;
 
         const displayRunLog = async () => {
-            this.setLoggerConfig();
-            this.testRunLogger.setLoggerOptions(this.extractLoggerOptions());
+            this.createLogger();
+            if(!this.testRunLogger){
+                throw new Error(`No test run logger created!`);
+            }
             let logger = this.testRunLogger;
             logger.show();
             
