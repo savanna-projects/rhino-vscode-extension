@@ -21,6 +21,7 @@ export class ServerLogService{
             }
         });
     }
+    
     public async getLatestLogId() {
         let logFileNames = await this.getLogsList();
         if(!logFileNames){

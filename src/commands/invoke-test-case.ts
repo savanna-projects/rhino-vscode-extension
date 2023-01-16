@@ -15,6 +15,7 @@ import { Command } from "./command";
 import { RhinoLogger } from '../framework/rhino-logger';
 import { LoggerOptions } from '../logging/logger-options';
 import { LoggerConfig } from '../rhino/manifest-models';
+import { ServerLogParser } from '../logging/server-log-parser';
 
 export class InvokeTestCaseCommand extends Command {
     // members
@@ -133,12 +134,21 @@ export class InvokeTestCaseCommand extends Command {
             let logParser = new ServerLogService(this.getRhinoClient());
             let numberOfLines = 200;
             let latestLogId = await logParser.getLatestLogId();
+            let runStartTime = new Date();
+            let isAfterRunStart = false;
 
             let logging = async () => {
                 let log = await logParser.getLog(latestLogId, numberOfLines);
                 let messagesToLog = logParser.parseLog(log ?? "");
                 for(let message of messagesToLog){
-                    logger.append(message);
+                    if(!isAfterRunStart){
+                        let logDate = ServerLogParser.parseLogTimestamp(message);
+                        isAfterRunStart = logDate > runStartTime
+                    }
+
+                    if(isAfterRunStart){
+                        logger.append(message);
+                    }
                     
                     //Wait to slightly stagger writing of logs to channel, allowing easier reading of log continuously.
                     await Utilities.wait(100);

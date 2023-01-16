@@ -4,10 +4,11 @@
  * RESOURCES
  * 
  * WORK ITEMS
- * TODO: Implement log levels.
+ * TODO: Implement appending to specific log levels.
  */
 import * as vscode from 'vscode';
-import { isLogMessage, LogLevel, LogLevelName, LogMessage } from '../logging/log-models';
+import { LogLevel, LogLevelName, LogMessage } from '../logging/log-models';
+import { isLogMessage } from '../logging/log-models-typeguards';
 import { LoggerOptions } from '../logging/logger-options';
 
 export interface IRhinoLogger {
@@ -35,6 +36,7 @@ export class RhinoLogger implements IRhinoLogger {
     public setLoggerOptions(loggerOptions: LoggerOptions){
         this.loggerOptions = loggerOptions;
     }
+
     /**
      * Append the given value and a line feed character to the channel.
      */
@@ -74,6 +76,7 @@ export class RhinoLogger implements IRhinoLogger {
         return this.isLogLevelEnabled(logMessage.level) && this.isLogSourceCompliant(logMessage.source);
 
     }
+
     private isLogSourceCompliant(logSource: string): boolean{
         let sourceOptions = this.loggerOptions.sourceOptions;
         return sourceOptions?.sourcesFilterLogic == 'Exclude' ? 
