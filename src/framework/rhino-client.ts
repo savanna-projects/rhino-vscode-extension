@@ -100,6 +100,33 @@ export class RhinoClient {
     }
 
     /**
+     * Summary. Returns the list of available Rhino log files.
+     * 
+     */
+    public async getServerLogs() {
+        // setup
+        let httpCommand = new HttpCommand();
+        httpCommand.command = '/api/v3/logs';
+
+        // get
+        return await this.httpClient.invokeAsyncWebRequest(httpCommand);
+    }
+
+    /**
+     * Summary. Returns a Rhino log.
+     * @param log_id        The unique identifier by which to find the requested log.
+     * @param numberOfLines An optional value to limit the number of lines returned.
+     */
+    public async getServerLog(log_id: string, numberOfLines?: number) {
+        // setup
+        let httpCommand = new HttpCommand();
+        httpCommand.command = numberOfLines ? `/api/v3/logs/${log_id}/size/${numberOfLines}` : `/api/v3/logs/${log_id}`;
+
+        // get
+        return await this.httpClient.invokeAsyncWebRequest(httpCommand);
+    }
+
+    /**
      * Summary. Returns a list of available test case annotations.
      * 
      * @param callback An argument, which is then invoked inside the outer function to complete some kind of routine or action.

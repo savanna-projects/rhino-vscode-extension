@@ -125,7 +125,7 @@ export class GetDocumentationCommand extends Command {
 
     private getEntityId(document: string[]): string {
         // not found
-        if (document === undefined || document === null) {
+        if (!document?.length) {
             return '';
         }
 
@@ -147,9 +147,9 @@ export class GetDocumentationCommand extends Command {
             }
 
             // get
-            return document[onLine]
+            return document[onLine] ? document[onLine]
                 .replaceAll('[test-id]', '')
-                .trim();
+                .trim() : '';
         } catch (error) {
             console.error(error);
             return '';

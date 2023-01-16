@@ -8,14 +8,20 @@
  * https://code.visualstudio.com/api/extension-guides/webview
  */
 import * as vscode from 'vscode';
+import { ServerLogService } from '../logging/server-log-service';
 import { Utilities } from '../extensions/utilities';
 import { ReportManager } from '../rhino/report-manager';
 import { Command } from "./command";
+import { RhinoLogger } from '../framework/rhino-logger';
+import { LoggerOptions } from '../logging/logger-options';
+import { LoggerConfig } from '../rhino/manifest-models';
+import { ServerLogParser } from '../logging/server-log-parser';
 
 export class InvokeTestCaseCommand extends Command {
     // members
     private testCases: string[];
-
+    private loggerConfig: LoggerConfig | undefined;
+    private testRunLogger: RhinoLogger | undefined;
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
@@ -27,6 +33,25 @@ export class InvokeTestCaseCommand extends Command {
         // setup
         this.testCases = [];
         this.setCommandName('Invoke-TestCase');
+
+        //logger setup
+        this.setLoggerConfig();
+    }
+
+    private extractLoggerOptions() : LoggerOptions {
+        return new LoggerOptions(this.loggerConfig?.loggerOptions);
+    }
+
+    private setLoggerConfig(): void {
+        this.loggerConfig = Utilities.getLoggerConfig(this.getCommandName());
+    }
+
+    private createLogger(){
+        if(!this.testRunLogger){
+            this.setLoggerConfig();
+            let loggerOptions = this.extractLoggerOptions();
+            this.testRunLogger =  new RhinoLogger("Test Run Log", loggerOptions);
+        }
     }
 
     /*┌─[ SETTERS ]────────────────────────────────────────────
@@ -109,12 +134,13 @@ export class InvokeTestCaseCommand extends Command {
             _testRun.actual === true
                 ? vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke completed w/o test(s) failures")
                 : vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke completed, w/ test(s) failures");
-
+            runEnded = true;
             console.info(testRun);
             try {
                 let htmlReport = new ReportManager(_testRun).getHtmlReport();
                 const panel = vscode.window.createWebviewPanel("RhinoReport", "Rhino Report", vscode.ViewColumn.One);
                 panel.webview.html = htmlReport;
+                
             } catch (error) {
                 console.error(error);
                 vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke was not completed");
