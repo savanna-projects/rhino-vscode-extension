@@ -90,7 +90,7 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
                     this.refresh();
                 });
             }
-        })
+        });
         
 
         // register
