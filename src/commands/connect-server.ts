@@ -14,7 +14,6 @@ import { ActionsAutoCompleteProvider } from '../providers/actions-auto-complete-
 import { AnnotationsAutoCompleteProvider } from '../providers/annotations-auto-complete-provider';
 import { AssertionsAutoCompleteProvider } from '../providers/assertions-auto-complete-provider';
 import { DataAutoCompleteProvider } from '../providers/data-auto-complete-provider';
-import { RhinoDefinitionProvider } from '../providers/rhino-definition-provider';
 import { MacrosAutoCompleteProvider } from '../providers/macros-auto-complete-provider';
 import { ModelsAutoCompleteProvider } from '../providers/models-auto-complete-provider';
 import { ParametersAutoCompleteProvider } from '../providers/parameters-auto-complete-provider';
