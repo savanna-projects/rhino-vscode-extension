@@ -40,7 +40,8 @@ export class GravityLogParser{
             return gravityLog;
         }
         catch(error){
-            console.error(`Failed to build Gravity Log message\n${error}`);
+            throw new Error(`Failed to build Gravity Log message\n${error}`);
+            // console.error(`Failed to build Gravity Log message\n${error}`);
         }
 
         

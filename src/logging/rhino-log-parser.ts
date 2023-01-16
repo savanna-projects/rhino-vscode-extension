@@ -2,7 +2,9 @@ import { Utilities } from "../extensions/utilities";
 import { isLogLevelName, RhinoLogMessage } from "./log-models";
 
 
-
+/**
+ * Class to handle parsing of a log message to a RhinoLogMessage
+ */
 export class RhinoLogParser{
 
     public static readonly rhinoLogStartText = ['DBG', 'ERR', 'FTL', 'INF', 'TRC', 'WRN'] as const;
@@ -18,7 +20,6 @@ export class RhinoLogParser{
     }
     public static buildRhinoLog(logMessage: string): RhinoLogMessage | undefined {
         try{
-            let logLevel = RhinoLogParser.getRhinoLogLevel(logMessage);
             let application = RhinoLogParser.findRhinoApplication(logMessage);
             let loggerName = RhinoLogParser.findRhinoLoggerName(logMessage);
             
@@ -39,7 +40,7 @@ export class RhinoLogParser{
             return rhinoLog;
         }
         catch(error){
-            console.error(`Failed to build Rhino Log message\n${error}`);
+            throw new Error(`Failed to build Rhino Log message\n${error}`)
         }
         
     }
