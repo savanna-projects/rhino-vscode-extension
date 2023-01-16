@@ -10,6 +10,7 @@ import { HttpCommand } from './http-command';
 import { URL } from "url";
 import { IncomingMessage, request, RequestOptions} from 'http';
 import { Utilities } from '../extensions/utilities';
+import { log } from 'console';
 
 /**
  * Provides a base class for sending HTTP requests and receiving HTTP responses
@@ -40,7 +41,7 @@ export class HttpClient {
      */
     public invokeWebRequest(httpCommand: HttpCommand, callback: any) {
         // constants
-        console.debug(`${new Date().getTime()} - START Invoke-WebRequest -> ${httpCommand.method} ${httpCommand.command}`);
+        log(`${Utilities.getTimestamp()} - START Invoke-WebRequest -> ${httpCommand.method} ${httpCommand.command}`);
 
         // setup
         let options = this.getOptions(httpCommand);
@@ -53,9 +54,9 @@ export class HttpClient {
 
             // response.on('error', 
             //     (error: any) => this.onError(error));
-
+            
             response.on('end', () => {
-                console.debug(`${new Date().getTime()} - END  Invoke-WebRequest -> ${httpCommand.method} ${httpCommand.command}`);
+                log(`${Utilities.getTimestamp()} - END  Invoke-WebRequest -> ${httpCommand.method} ${httpCommand.command}`);
                 if (!response?.statusCode || response.statusCode < 200 || response.statusCode > 299) {
                     var errorMessage = JSON.parse(data);
                     var error = new Error();
@@ -78,7 +79,6 @@ export class HttpClient {
         else if (isBody && !isJson) {
             clientRequest.write(httpCommand.body.toString());
         }
-        
         clientRequest.end(); 
     }
 
@@ -92,7 +92,7 @@ export class HttpClient {
     public async invokeAsyncWebRequest(httpCommand: HttpCommand): Promise<unknown> {
         // constants
         return new Promise((resolve, reject) => {
-            console.debug(`${Utilities.getTimestamp()} - START Invoke-AsyncWebRequest -> ${httpCommand.method} ${httpCommand.command}`);
+            log(`${Utilities.getTimestamp()} - START Invoke-AsyncWebRequest -> ${httpCommand.method} ${httpCommand.command}`);
             let options = this.getOptions(httpCommand);
             options.timeout = 60000;
             const clientRequest = request(options, (response) => {
@@ -102,17 +102,18 @@ export class HttpClient {
 
                 response.on('error', (error) =>
                     reject(this.onError(error)));
-                response.on('end', () => {
-                    console.debug(`${Utilities.getTimestamp()} - END  Invoke-AsyncWebRequest -> ${httpCommand.method} ${httpCommand.command}`);
-                    if (response?.statusCode && response.statusCode >= 200 && response.statusCode <= 299) {
-                    // resolve({statusCode: response.statusCode, headers: response.headers, body: data});
-                    resolve(data);
 
-                    } else {
-                    var errorMessage = JSON.parse(data);
-                    var error = new Error(`${errorMessage?.statusCode ?? response.statusCode} - ${errorMessage?.message ?? response.statusMessage}`);
-                    reject(this.onError(error));
-                    // reject('Request failed. status: ' + response.statusCode + ', body: ' + data);
+                response.on('end', () => {
+                    log(`${Utilities.getTimestamp()} - END  Invoke-AsyncWebRequest -> ${httpCommand.method} ${httpCommand.command}`);
+                    if (response?.statusCode && response.statusCode >= 200 && response.statusCode <= 299) {
+                        // resolve({statusCode: response.statusCode, headers: response.headers, body: data});
+                        resolve(data);
+                    } 
+                    else {
+                        var errorMessage = JSON.parse(data);
+                        var error = new Error(`${errorMessage?.statusCode ?? response.statusCode} - ${errorMessage?.message ?? response.statusMessage}`);
+                        reject(this.onError(error));
+                        // reject('Request failed. status: ' + response.statusCode + ', body: ' + data);
                     }
                 });
             });
@@ -163,8 +164,6 @@ export class HttpClient {
     }
 
     private onData(data: any) {
-        // log
-        console.log(`${Utilities.getTimestamp()} - Invoke-WebRequest -> Processing data`);
         // get
         return data;
     }
