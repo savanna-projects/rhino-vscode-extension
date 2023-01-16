@@ -1,5 +1,6 @@
 import { Utilities } from "../extensions/utilities";
-import { isLogLevelName, RhinoLogMessage } from "./log-models";
+import { RhinoLogMessage } from "./log-models";
+import { isLogLevelName } from "./log-models-typeguards";
 
 
 /**
@@ -80,6 +81,22 @@ export class RhinoLogParser{
 
     public static isRhinoLogStart(logLine: string): boolean{
         return RhinoLogParser.rhinoLogStartText.some(element => logLine.startsWith(element));
+    }
+
+    public static parseRhinoTimestamp(timestamp: string){
+        let elements = timestamp.split(/[-\s:.]/g);
+        if(!elements.every(x=> x != '')){
+            console.warn(`Empty strings while splitting '${timestamp}'`);
+        }
+        let years = Number.parseInt(elements[0]);
+        let months = Number.parseInt(elements[1]);
+        // months = months > 0 ? months - 1 : months;
+        let days = Number.parseInt(elements[2]);
+        let hours = Number.parseInt(elements[3]);
+        let minutes = Number.parseInt(elements[4]);
+        let seconds = Number.parseInt(elements[5]);
+        let milliseconds = Number.parseInt(elements[6]);
+        return new Date(years, months - 1, days, hours, minutes, seconds, milliseconds);
     }
 
 }

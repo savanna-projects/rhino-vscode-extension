@@ -2,6 +2,7 @@ import { GravityLogMessage, LogMessage, RhinoLogMessage } from "./log-models";
 import * as os from 'os';
 import { RhinoLogParser } from "./rhino-log-parser";
 import { GravityLogParser } from "./gravity-log-parser";
+import { isRhinoLog } from "./log-models-typeguards";
 
 
 type LogType = 'Gravity' | 'Rhino';
@@ -83,8 +84,11 @@ export class ServerLogParser{
             return 'Gravity';
         }
     }
-    
-    
 
-    
+    public static parseLogTimestamp(message: LogMessage): Date{
+        return isRhinoLog(message) 
+            ? RhinoLogParser.parseRhinoTimestamp(message.timeStamp) 
+            : GravityLogParser.parseGravityTimestamp(message.timeStamp);
+    }
+
 }
