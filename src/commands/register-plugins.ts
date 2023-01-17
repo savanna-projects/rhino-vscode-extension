@@ -69,6 +69,8 @@ export class RegisterPluginsCommand extends Command {
 
             for (const file of files) {
                 let plugin = this.getPluginsFromFile(file);
+                plugin = Utilities.buildRhinoSpec(plugin);
+                console.log(plugin);
                 plugins.push(plugin);
             }
 

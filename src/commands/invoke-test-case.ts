@@ -219,9 +219,9 @@ export class InvokeTestCaseCommand extends Command {
         }
 
         // clean
-        let text = editor.document.getText().split('\n').map(i => i.replace(/^\d+\.\s+/, '')).join('\n');
+        let text = Utilities.buildRhinoSpec(editor.document.getText());
 
         // get
-        return text.split('>>>');
+        return text.split('>>>').map(i => i.trim());
     }
 }

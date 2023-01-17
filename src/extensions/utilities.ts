@@ -202,42 +202,41 @@ export class Utilities {
     /**
      * Summary. Get a flat list of all files under a directory including all sub-directories by file names.
      */
-         public static getFilesByFileNames(directory: string, arrayOfNames: string[], callback: any) {
-            // setup
-            const list: string[] = [];
-            const patternToExtractName = /(?!\\)\w+(?=.json)/;
+    public static getFilesByFileNames(directory: string, arrayOfNames: string[], callback: any) {
+        // setup
+        const list: string[] = [];
+        const patternToExtractName = /(?!\\)\w+(?=.json)/;
 
-            // iterate
-            const getFilesFromDirectory: any = (directoryPath: any) => {
-                const files = fs.readdirSync(directoryPath);
-    
-                for (const file of files) {
-                    const filePath = path.join(directoryPath, file);
-                    const stats = fs.statSync(filePath);
-    
-                    if (stats.isDirectory()) {
-                        getFilesFromDirectory(filePath);
-                    }
-                    else {
+        // iterate
+        const getFilesFromDirectory: any = (directoryPath: any) => {
+            const files = fs.readdirSync(directoryPath);
 
-                        for (const name of arrayOfNames) {
-                            var matches = filePath.match(patternToExtractName);
-                            
-                            if(matches !== null && matches[0] === name)
-                            {
-                                list.push(filePath);
-                            }
+            for (const file of files) {
+                const filePath = path.join(directoryPath, file);
+                const stats = fs.statSync(filePath);
+
+                if (stats.isDirectory()) {
+                    getFilesFromDirectory(filePath);
+                }
+                else {
+
+                    for (const name of arrayOfNames) {
+                        var matches = filePath.match(patternToExtractName);
+
+                        if (matches !== null && matches[0] === name) {
+                            list.push(filePath);
                         }
                     }
                 }
-            };
-    
-            // build
-            getFilesFromDirectory(directory);
-    
-            // callback
-            callback(list);
-        }
+            }
+        };
+
+        // build
+        getFilesFromDirectory(directory);
+
+        // callback
+        callback(list);
+    }
 
     /**
      * Summary. Get a flat list of all files and folders sorted by folders > a-z > files a-z.
@@ -258,20 +257,20 @@ export class Utilities {
                 return 0;
             });
         };
-        
+
         //bad request
         let folders: string[] = [];
         let files: string[] = [];
-        if(!fs.existsSync(folderPath)){
+        if (!fs.existsSync(folderPath)) {
             return [...folders, ...files];
         }
 
         // setup
         excludeFolders = excludeFolders.map(i => i.toUpperCase());
         includeFiles = includeFiles.map(i => i.toUpperCase());
-        
+
         let unsorted = fs.readdirSync(folderPath);
-        
+
 
         // sort o-n
         for (let item of unsorted) {
@@ -370,6 +369,12 @@ export class Utilities {
         let projectManifest = this.getProjectManifest();
 
         // build
+        let integration = !this.invokeIsNullOrUndefined(projectManifest.integration)
+            ? projectManifest.integration
+            : null;
+        let attempts = !this.invokeIsNullOrUndefined(projectManifest.attempts)
+            ? projectManifest.attempts
+            : 1;
         let engineConfiguration = !this.invokeIsNullOrUndefined(projectManifest.engineConfiguration)
             ? projectManifest.engineConfiguration
             : {
@@ -407,6 +412,8 @@ export class Utilities {
         return {
             name: "VS Code - Standalone Test Run",
             testsRepository: [],
+            attempts: attempts,
+            integration: integration,
             driverParameters: projectManifest.driverParameters,
             authentication: projectManifest.authentication,
             screenshotsConfiguration: screenshotsConfiguration,
@@ -474,5 +481,41 @@ export class Utilities {
         } catch {
             return true;
         }
+    }
+
+    /**
+     * Summary. Normalize a test case document before sending it for invocation.
+     */
+    public static buildRhinoSpec(spec: String): string {
+        // constants
+        const multilineRegex = /\s`$/g;
+
+        // setup
+        let rawLines = spec.split('\n');
+        let lines = [];
+
+        // normalize
+        for (let i = 0; i < rawLines.length; i++) {
+            let line = rawLines[i];
+            let previousLine = rawLines[(i - 1 < 0 ? 0 : i - 1)];
+            let isMatch = line.trim().match(multilineRegex) !== null;
+            let isPreviousMatch = previousLine.trim().match(multilineRegex) !== null;
+
+            if (!isMatch && !isPreviousMatch || (isMatch && !isPreviousMatch)) {
+                lines.push(line);
+                continue;
+            }
+
+            let index: number = lines.length - 1;
+            let multiline: string = lines[index];
+
+            line = ' ' + line.trim().replace(multilineRegex, '');
+            multiline = multiline.trim().replace(multilineRegex, '') + line;
+
+            lines[index] = multiline;
+        }
+
+        // get
+        return lines.map(i => i.trim().replace(/^\d+\.\s+/, '')).join('\n');
     }
 }
