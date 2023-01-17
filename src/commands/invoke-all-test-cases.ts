@@ -53,9 +53,6 @@ export class InvokeAllTestCasesCommand extends Command {
     }
 
     private invoke() {
-        // setup
-        let context = this.getContext();
-
         // notification
         vscode.window.setStatusBarMessage('$(sync~spin) Invoking test case(s)...');
 
@@ -133,7 +130,7 @@ export class InvokeAllTestCasesCommand extends Command {
                         continue;
                     }
 
-                    let spec = testCase.split('\n').map((i: string) => i.replace(/^\d+\.\s+/, '')).join('\n');
+                    let spec = Utilities.buildRhinoSpec(testCase);
                     testCases.push(spec);
                 } catch (e) {
                     console.log('Error:', e);
