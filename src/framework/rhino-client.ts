@@ -363,6 +363,23 @@ export class RhinoClient {
     }
 
     /**
+     * Summary. Creates a collection of Rhino Resources using Rhino Resources spec.
+     * 
+     * @param createModel Rhino Resources spec.
+     */
+    public async createResources(createModel: any[]) {
+        // setup
+        let httpCommand = new HttpCommand()
+            .setMethod('POST')
+            .setBody(createModel)
+            .setCommand('/api/v3/resources')
+            .addHeader('Content-Type', 'application/json');
+
+        // get
+        return await this.httpClient.invokeAsyncWebRequest(httpCommand);
+    }
+
+    /**
      * Summary. Creates a collection of Rhino Models.
      * 
      * @param createModel Rhino models request (an array of models).

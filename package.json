@@ -64,6 +64,11 @@
 				"title": "Register all the plugins under 'Plugins' folder"
 			},
 			{
+				"command": "Register-Resources",
+				"category": "Rhino",
+				"title": "Register all the resources under 'Resources' folder"
+			},
+			{
 				"command": "Connect-Server",
 				"category": "Rhino",
 				"title": "Connect to Rhino, fetch Metadata & activate commands"
