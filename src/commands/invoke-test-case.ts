@@ -126,54 +126,10 @@ export class InvokeTestCaseCommand extends Command {
         var runEnded = false;
         var stopCondition = () => runEnded;
 
-<<<<<<< HEAD
         if(this.loggerConfig?.enableClientSideLogging){
             this.displayRunLog(stopCondition, 1000);
         }
         
-=======
-        const displayRunLog = async () => {
-            this.createLogger();
-            if (!this.testRunLogger) {
-                throw new Error(`No test run logger created!`);
-            }
-            let logger = this.testRunLogger;
-            logger.show();
-
-            let logParser = new ServerLogService(this.getRhinoClient());
-            let numberOfLines = 200;
-            let latestLogId = await logParser.getLatestLogId();
-            let runStartTime = new Date();
-            let isAfterRunStart = false;
-
-            let logging = async () => {
-                let log = await logParser.getLog(latestLogId, numberOfLines);
-                let messagesToLog = logParser.parseLog(log ?? "");
-                for (let message of messagesToLog) {
-                    if (!isAfterRunStart) {
-                        let logDate = ServerLogParser.parseLogTimestamp(message);
-                        isAfterRunStart = logDate > runStartTime;
-                    }
-
-                    if (isAfterRunStart) {
-                        logger.append(message);
-                    }
-
-                    // wait to slightly stagger writing of logs to channel, allowing easier reading of log continuously.
-                    await Utilities.wait(100);
-                }
-            };
-
-            Utilities
-                .poll(logging, stopCondition, 1000)
-                .then(() => logger.appendLine(`${Utilities.getTimestamp()} - Test run ended.`));
-        };
-
-        if (this.loggerConfig?.enableClientSideLogging) {
-            displayRunLog();
-        }
-
->>>>>>> dc2b7bde1f6c96530a461f3ac64453f443d26e9c
         // invoke
         this.getRhinoClient().invokeConfiguration(this.getConfiguration(), (testRun: any) => {
             let _testRun = JSON.parse(testRun);
