@@ -100,6 +100,33 @@ export class RhinoClient {
     }
 
     /**
+     * Summary. Returns the list of available Rhino log files.
+     * 
+     */
+    public async getServerLogs() {
+        // setup
+        let httpCommand = new HttpCommand();
+        httpCommand.command = '/api/v3/logs';
+
+        // get
+        return await this.httpClient.invokeAsyncWebRequest(httpCommand);
+    }
+
+    /**
+     * Summary. Returns a Rhino log.
+     * @param logId        The unique identifier by which to find the requested log.
+     * @param numberOfLines An optional value to limit the number of lines returned.
+     */
+    public async getServerLog(logId: string, numberOfLines?: number) {
+        // setup
+        let httpCommand = new HttpCommand();
+        httpCommand.command = numberOfLines ? `/api/v3/logs/${logId}/size/${numberOfLines}` : `/api/v3/logs/${logId}`;
+
+        // get
+        return await this.httpClient.invokeAsyncWebRequest(httpCommand);
+    }
+
+    /**
      * Summary. Returns a list of available test case annotations.
      * 
      * @param callback An argument, which is then invoked inside the outer function to complete some kind of routine or action.
@@ -189,7 +216,7 @@ export class RhinoClient {
      * 
      * @param callback An argument, which is then invoked inside the outer function to complete some kind of routine or action.
      */
-     public getSymbols(input: string, callback: any) {
+    public getSymbols(input: string, callback: any) {
         // setup
         let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/Meta/tests/symbols';
@@ -440,7 +467,7 @@ export class RhinoClient {
         this.httpClient.invokeWebRequest(httpCommand, callback);
     }
 
-    public getStatus(callback: any){
+    public getStatus(callback: any) {
         // setup
         let httpCommand = new HttpCommand()
             .setMethod('GET')

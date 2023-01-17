@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
 import { RhinoClient } from '../framework/rhino-client';
+import { IRhinoLogger, getRhinoLogger } from '../framework/rhino-logger';
 
 export abstract class Command {
     // members:
@@ -14,6 +15,7 @@ export abstract class Command {
     private context: vscode.ExtensionContext;
     private projectManifest: any;
     private client: RhinoClient;
+    // private logger: IRhinoLogger;
 
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
@@ -29,6 +31,7 @@ export abstract class Command {
         // build
         this.projectManifest = Utilities.getProjectManifest();
         this.client = new RhinoClient(Utilities.getRhinoEndpoint());
+        
     }
 
     /*┌─[ SETTERS ]────────────────────────────────────────────
@@ -107,6 +110,15 @@ export abstract class Command {
      */
     public getRhinoClient(): RhinoClient {
         return this.client;
+    }
+
+    /**
+     * Summary. Gets the Rhino API client to use with the command.
+     * 
+     * @returns The Rhino API client. 
+     */
+    public getRhinoLogger(): IRhinoLogger {
+        return getRhinoLogger();
     }
 
     /**

@@ -163,6 +163,10 @@ export class CreateTm extends Command {
                             "match": "(\\})"
                         },
                         {
+                            "name": "string.quoted.double",
+                            "match": "\\s`$"
+                        },
+                        {
                             "name": "markup.heading",
                             "match": "(?<=^\\[).*?(?=])|\\{|}"
                         },

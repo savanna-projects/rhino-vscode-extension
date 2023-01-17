@@ -47,7 +47,10 @@ export class RegisterEnvironmentCommand extends Command {
         this.invoke(callback);
     }
     isFunction(functionToCheck: any): boolean {
+        // Possibly won't work for async functions - needs further testing
         return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+
+        // return functionToCheck instanceof Function;
     }
     private invoke(callback: any) {
         // setup
