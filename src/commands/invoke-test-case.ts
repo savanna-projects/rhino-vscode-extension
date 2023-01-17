@@ -146,7 +146,7 @@ export class InvokeTestCaseCommand extends Command {
                 for (let message of messagesToLog) {
                     if (!isAfterRunStart) {
                         let logDate = ServerLogParser.parseLogTimestamp(message);
-                        isAfterRunStart = logDate > runStartTime
+                        isAfterRunStart = logDate > runStartTime;
                     }
 
                     if (isAfterRunStart) {
