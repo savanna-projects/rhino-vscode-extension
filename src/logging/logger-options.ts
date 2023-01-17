@@ -1,10 +1,10 @@
 import { LogLevelName } from "./log-models";
 
-
 export interface SourceOptions {
     sourcesFilterLogic: 'Include' | 'Exclude';
     sources: string[];
 }
+
 /**
  * Options for determining which source and log levels to write to channel output.
  */
@@ -19,11 +19,7 @@ export class LoggerOptions {
      */
     public sourceOptions: SourceOptions = { sourcesFilterLogic: 'Exclude', sources: [] };
 
-    /**
-     * 
-     */
     constructor(init?: Partial<LoggerOptions>) {
         Object.assign(this, init);
     }
-
 }
