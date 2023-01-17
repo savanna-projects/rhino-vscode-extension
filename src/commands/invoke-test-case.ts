@@ -34,9 +34,10 @@ export class InvokeTestCaseCommand extends Command {
         // setup
         this.testCases = [];
         this.setCommandName('Invoke-TestCase');
+        this.setLoggerConfig();
     }
 
-    private extractLoggerOptions() : LoggerOptions {
+    private extractLoggerOptions(): LoggerOptions {
         return new LoggerOptions(this.loggerConfig?.loggerOptions);
     }
 
@@ -44,11 +45,11 @@ export class InvokeTestCaseCommand extends Command {
         this.loggerConfig = Utilities.getLoggerConfig(this.getCommandName());
     }
 
-    private createLogger(){
-        if(!this.testRunLogger){
+    private createLogger() {
+        if (!this.testRunLogger) {
             this.setLoggerConfig();
             let loggerOptions = this.extractLoggerOptions();
-            this.testRunLogger =  new RhinoLogger("Test Run Log", loggerOptions);
+            this.testRunLogger = new RhinoLogger("Test Run Log", loggerOptions);
         }
     }
 
@@ -126,10 +127,10 @@ export class InvokeTestCaseCommand extends Command {
         var runEnded = false;
         var stopCondition = () => runEnded;
 
-        if(this.loggerConfig?.enableClientSideLogging){
+        if (this.loggerConfig?.enableClientSideLogging) {
             this.displayRunLog(stopCondition, 1000);
         }
-        
+
         // invoke
         this.getRhinoClient().invokeConfiguration(this.getConfiguration(), (testRun: any) => {
             let _testRun = JSON.parse(testRun);
@@ -153,14 +154,14 @@ export class InvokeTestCaseCommand extends Command {
      * @param stopCondition The condition after which
      * @param interval Interval, in milliseconds, to get the log. Default is 1000ms
      */
-    private async displayRunLog(stopCondition: (...args: any) => boolean, interval?: number): Promise<void>{
+    private async displayRunLog(stopCondition: (...args: any) => boolean, interval?: number): Promise<void> {
         this.createLogger();
-        if(!this.testRunLogger){
+        if (!this.testRunLogger) {
             throw new Error(`No test run logger created!`);
         }
         let logger = this.testRunLogger;
         logger.show();
-        
+
         let logParser = new ServerLogService(this.getRhinoClient());
         let numberOfLines = 200;
         let latestLogId = await logParser.getLatestLogId();
@@ -170,22 +171,22 @@ export class InvokeTestCaseCommand extends Command {
         let logging = async () => {
             let log = await logParser.getLog(latestLogId, numberOfLines);
             let messagesToLog = logParser.parseLog(log ?? "");
-            for(let message of messagesToLog){
-                if(!isAfterRunStart){
+            for (let message of messagesToLog) {
+                if (!isAfterRunStart) {
                     let logDate = ServerLogParser.parseLogTimestamp(message);
-                    isAfterRunStart = logDate > runStartTime
+                    isAfterRunStart = logDate > runStartTime;
                 }
 
-                if(isAfterRunStart){
+                if (isAfterRunStart) {
                     logger.append(message);
                 }
-                
+
                 //Wait to slightly stagger writing of logs to channel, allowing easier reading of log continuously.
                 await Utilities.wait(100);
             }
         };
-        
-        Utilities.poll(logging, stopCondition, interval ?? 1000). then(() => logger.appendLine(`${Utilities.getTimestamp()} - Test run ended.`));
+
+        Utilities.poll(logging, stopCondition, interval ?? 1000).then(() => logger.appendLine(`${Utilities.getTimestamp()} - Test run ended.`));
     }
     // creates default configuration with text connector
     private getConfiguration() {

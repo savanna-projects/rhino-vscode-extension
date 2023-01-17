@@ -19,13 +19,13 @@ export function isGravityLog(logMessage: LogMessage): logMessage is GravityLogMe
         && Object.prototype.hasOwnProperty.call(logMessage, "source")
         && Object.prototype.hasOwnProperty.call(logMessage, "level")
         && Object.prototype.hasOwnProperty.call(logMessage, "message")
-        && Object.prototype.hasOwnProperty.call(logMessage, "formattedMessage")
+        && Object.prototype.hasOwnProperty.call(logMessage, "formattedMessage");
 }
 
-export function isLogMessage(object: any): object is LogMessage{
+export function isLogMessage(object: any): object is LogMessage {
     return Object.prototype.hasOwnProperty.call(object, "source")
-    && Object.prototype.hasOwnProperty.call(object, "level") 
-    && Object.prototype.hasOwnProperty.call(object, "message")
-    && Object.prototype.hasOwnProperty.call(object, "formattedMessage");
+        && Object.prototype.hasOwnProperty.call(object, "level")
+        && Object.prototype.hasOwnProperty.call(object, "message")
+        && Object.prototype.hasOwnProperty.call(object, "formattedMessage");
 }
 

@@ -114,13 +114,13 @@ export class RhinoClient {
 
     /**
      * Summary. Returns a Rhino log.
-     * @param log_id        The unique identifier by which to find the requested log.
+     * @param logId        The unique identifier by which to find the requested log.
      * @param numberOfLines An optional value to limit the number of lines returned.
      */
-    public async getServerLog(log_id: string, numberOfLines?: number) {
+    public async getServerLog(logId: string, numberOfLines?: number) {
         // setup
         let httpCommand = new HttpCommand();
-        httpCommand.command = numberOfLines ? `/api/v3/logs/${log_id}/size/${numberOfLines}` : `/api/v3/logs/${log_id}`;
+        httpCommand.command = numberOfLines ? `/api/v3/logs/${logId}/size/${numberOfLines}` : `/api/v3/logs/${logId}`;
 
         // get
         return await this.httpClient.invokeAsyncWebRequest(httpCommand);
@@ -216,7 +216,7 @@ export class RhinoClient {
      * 
      * @param callback An argument, which is then invoked inside the outer function to complete some kind of routine or action.
      */
-     public getSymbols(input: string, callback: any) {
+    public getSymbols(input: string, callback: any) {
         // setup
         let httpCommand = new HttpCommand();
         httpCommand.command = '/api/v3/Meta/tests/symbols';
@@ -484,7 +484,7 @@ export class RhinoClient {
         this.httpClient.invokeWebRequest(httpCommand, callback);
     }
 
-    public getStatus(callback: any){
+    public getStatus(callback: any) {
         // setup
         let httpCommand = new HttpCommand()
             .setMethod('GET')

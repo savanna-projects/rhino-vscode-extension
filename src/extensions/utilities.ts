@@ -138,10 +138,10 @@ export class Utilities {
     public static getLoggerConfig(name: string): LoggerConfig | undefined{
         // setup
         let projectManifest = this.invokeGetProjectManifest();
-        let loggerConfig: LoggerConfig[] = projectManifest.logConfiguration;
+        let loggerConfig: LoggerConfig[] = projectManifest?.logConfiguration;
 
         // get
-        return loggerConfig.find(loggerConfig => loggerConfig.name === name);
+        return loggerConfig?.find(loggerConfig => loggerConfig.name === name);
     }
 
     /**

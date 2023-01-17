@@ -33,7 +33,7 @@ export class RhinoLogger implements IRhinoLogger {
         this.loggerOptions = loggerOptions ?? new LoggerOptions();
     }
 
-    public setLoggerOptions(loggerOptions: LoggerOptions){
+    public setLoggerOptions(loggerOptions: LoggerOptions) {
         this.loggerOptions = loggerOptions;
     }
 
@@ -53,38 +53,38 @@ export class RhinoLogger implements IRhinoLogger {
     append(log: object): void
     append(log: any): void {
         let logMessage: string;
-        if(typeof log == 'object'){
-            if(isLogMessage(log)){
-                if(this.isLogCompliant(log)){
+        if (typeof log === 'object') {
+            if (isLogMessage(log)) {
+                if (this.isLogCompliant(log)) {
                     logMessage = log.formattedMessage;
                 }
-                else{
+                else {
                     return;
                 }
             }
-            else{
+            else {
                 logMessage = JSON.stringify(log);
             }
         }
-        else{
+        else {
             logMessage = log;
         }
         this.outputChannel.append(logMessage);
     }
 
-    private isLogCompliant(logMessage: LogMessage): boolean{
+    private isLogCompliant(logMessage: LogMessage): boolean {
         return this.isLogLevelEnabled(logMessage.level) && this.isLogSourceCompliant(logMessage.source);
 
     }
 
-    private isLogSourceCompliant(logSource: string): boolean{
+    private isLogSourceCompliant(logSource: string): boolean {
         let sourceOptions = this.loggerOptions.sourceOptions;
-        return sourceOptions?.sourcesFilterLogic == 'Exclude' ? 
-                !sourceOptions.sources.includes(logSource) :
-                sourceOptions.sources.includes(logSource);
+        return sourceOptions?.sourcesFilterLogic === 'Exclude' ?
+            !sourceOptions.sources.includes(logSource) :
+            sourceOptions.sources.includes(logSource);
     }
 
-    public isLogLevelEnabled(logLevel: LogLevelName):boolean{
+    public isLogLevelEnabled(logLevel: LogLevelName): boolean {
         return LogLevel[this.loggerOptions.logLevel] <= LogLevel[logLevel];
     }
 
@@ -101,29 +101,29 @@ export class RhinoLogger implements IRhinoLogger {
     // fatal(log: string | object): void {
     //     this.outputChannel.appendLine(`${this.getTimestamp()} - ${JSON.stringify(log)}`);
     // }
-    
-    
+
+
     replace(value: string): void {
         this.outputChannel.replace(value);
     }
     clear(): void {
         this.outputChannel.clear();
     }
-    show(preserveFocus?: boolean | undefined): void{
+    show(preserveFocus?: boolean | undefined): void {
         this.outputChannel.show(preserveFocus);
     }
     hide(): void {
         this.outputChannel.hide();
     }
 
-    public getOutputChannel(): vscode.OutputChannel{
+    public getOutputChannel(): vscode.OutputChannel {
         return this.outputChannel;
     }
 
 }
 
-export function getRhinoLogger(){
-    if(!logger){
+export function getRhinoLogger() {
+    if (!logger) {
         logger = new RhinoLogger('rhino-language-support');
     }
     return logger;
