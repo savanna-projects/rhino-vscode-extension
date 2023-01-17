@@ -141,7 +141,7 @@ export class Utilities {
         let loggerConfig: LoggerConfig[] = projectManifest.logConfiguration;
 
         // get
-        return loggerConfig.find(loggerConfig => loggerConfig.name == name);
+        return loggerConfig.find(loggerConfig => loggerConfig.name === name);
     }
 
     /**
