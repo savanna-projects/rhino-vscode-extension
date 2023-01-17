@@ -1,34 +1,30 @@
 export enum LogLevel {
-    TRACE,
-    DEBUG,
-    INFORMATION,
-    WARNING,
-    ERROR,
-    FATAL
+    trace,
+    debug,
+    information,
+    warning,
+    error,
+    fatal
 }
 
 export type LogLevelName = keyof typeof LogLevel;
 
-
-
-
-
-export const GravityLogLevelNames: Record<LogLevelName, string> = {
-    DEBUG: "Debug",
-    TRACE: "Trace",
-    INFORMATION: "Information",
-    WARNING: "Warning",
-    ERROR: "Error",
-    FATAL: "Fatal"
+export const gravityLogLevelNames: Record<LogLevelName, string> = {
+    debug: "Debug",
+    trace: "Trace",
+    information: "Information",
+    warning: "Warning",
+    error: "Error",
+    fatal: "Fatal"
 } as const;
 
-export const RhinoLogLevelNames: Record<LogLevelName, string> = {
-    DEBUG: "DBG",
-    TRACE: "TRC",
-    INFORMATION: "INF",
-    WARNING: "WRN",
-    ERROR: "ERR",
-    FATAL: "FTL"
+export const rhinoLogLevelNames: Record<LogLevelName, string> = {
+    debug: "DBG",
+    trace: "TRC",
+    information: "INF",
+    warning: "WRN",
+    error: "ERR",
+    fatal: "FTL"
 } as const;
 
 
@@ -40,10 +36,10 @@ export interface LogMessage {
     formattedMessage: string;
 }
 
-export interface GravityLogMessage extends LogMessage{
+export interface GravityLogMessage extends LogMessage {
 }
 
-export interface RhinoLogMessage extends LogMessage{
+export interface RhinoLogMessage extends LogMessage {
     /**
      * If loggerName exists, is {application}.{loggerName}, otherwise equals to {application}.
      */
@@ -53,7 +49,7 @@ export interface RhinoLogMessage extends LogMessage{
      */
     loggerName?: string;
     application: string;
-    
+
     /**
      * MachineName
      */

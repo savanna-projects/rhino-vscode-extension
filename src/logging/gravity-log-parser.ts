@@ -1,76 +1,71 @@
 import { Utilities } from "../extensions/utilities";
-import { GravityLogMessage} from "./log-models";
+import { GravityLogMessage } from "./log-models";
 import { isLogLevelName } from "./log-models-typeguards";
 
-export class GravityLogParser{
+export class GravityLogParser {
 
-    
+
     public static readonly gravityLogStartText = ['Rhino.Agent'] as const;
 
     private static readonly gravityLogTokens = {
-        SourceToken: /^([^\s]+)/g,
-        LogLevelToken: /(?<=(\s))\w+(?=:)/gm,
-        MessageToken: /(?<=( - )).*/gs,
-        TimestampToken: /(?<=(: ))[0-9.]+(?=( -))/g
-    }
-
-    public static buildGravityLog(logMessage: string): GravityLogMessage | undefined{
-        
+        sourceToken: /^([^\s]+)/g,
+        logLevelToken: /(?<=(\s))\w+(?=:)/gm,
+        messageToken: /(?<=( - )).*/gs,
         //Timestamp and Message tokens are still pending possible changes due changes Roei does on Gravity side.
-        const gravityLogTokens = {
-            SourceToken: /^([^\s]+)/g,
-            LogLevelToken: /(?<=(\s))\w+(?=:)/gm,
-            MessageToken: /(?<=( - )).*/gs,
-            TimestampToken: /(?<=(: ))[0-9.]+(?=( -))/g
-        }
-        try{
-            let source = GravityLogParser.findGravitySource(logMessage, gravityLogTokens);
-            if(!GravityLogParser.gravityLogStartText.some(element => source == element)){
+        timestampToken: /(?<=(: ))[0-9.]+(?=( -))/g
+    };
+
+    public static buildGravityLog(logMessage: string): GravityLogMessage | undefined {
+
+
+        try {
+            let source = GravityLogParser.findGravitySource(logMessage);
+            if (!GravityLogParser.gravityLogStartText.some(element => source === element)) {
                 console.warn(`${source} is an unrecognized Gravity Log Source`);
             }
-            let level = GravityLogParser.findGravityLogLevel(logMessage, gravityLogTokens);
-            let timeStamp = GravityLogParser.findGravityTimestamp(logMessage, gravityLogTokens);
-            let message = GravityLogParser.findGravityMessage(logMessage, gravityLogTokens);
+            let level = GravityLogParser.findGravityLogLevel(logMessage);
+            let timeStamp = GravityLogParser.findGravityTimestamp(logMessage);
+            let message = GravityLogParser.findGravityMessage(logMessage);
 
             let gravityLog: GravityLogMessage = {
                 source: source,
                 timeStamp: timeStamp,
-                level: isLogLevelName(level) ? level : 'TRACE',
+                level: isLogLevelName(level) ? level : 'trace',
                 message: message,
                 formattedMessage: logMessage
             };
             return gravityLog;
         }
-        catch(error){
+        catch (error) {
             throw new Error(`Failed to build Gravity Log message\n${error}`);
         }
 
-        
+
     }
 
-    public static findGravitySource(logMessage: string, gravityLogTokens: { SourceToken: RegExp; LogLevelToken: RegExp; MessageToken: RegExp; TimestampToken: RegExp; }) {
-        return Utilities.getFirstRegexMatch(logMessage.match(gravityLogTokens.SourceToken));
+    public static findGravitySource(logMessage: string) {
+        return Utilities.getFirstRegexMatch(logMessage.match(GravityLogParser.gravityLogTokens.sourceToken));
     }
 
-    public static findGravityMessage(logMessage: string, gravityLogTokens: { SourceToken: RegExp; LogLevelToken: RegExp; MessageToken: RegExp; TimestampToken: RegExp; }) {
-        return Utilities.getFirstRegexMatch(logMessage.match(gravityLogTokens.MessageToken));
+    public static findGravityMessage(logMessage: string) {
+        return Utilities.getFirstRegexMatch(logMessage.match(GravityLogParser.gravityLogTokens.messageToken));
     }
 
-    public static findGravityTimestamp(logMessage: string, gravityLogTokens: { SourceToken: RegExp; LogLevelToken: RegExp; MessageToken: RegExp; TimestampToken: RegExp; }) {
-        return Utilities.getFirstRegexMatch(logMessage.match(gravityLogTokens.TimestampToken));
+    public static findGravityTimestamp(logMessage: string) {
+        return Utilities.getFirstRegexMatch(logMessage.match(GravityLogParser.gravityLogTokens.timestampToken));
     }
 
-    public static findGravityLogLevel(logMessage: string, gravityLogTokens: { SourceToken: RegExp; LogLevelToken: RegExp; MessageToken: RegExp; TimestampToken: RegExp; }) {
-        return Utilities.getFirstRegexMatch(logMessage.match(gravityLogTokens.LogLevelToken)).toUpperCase();
+    public static findGravityLogLevel(logMessage: string) {
+        return Utilities.getFirstRegexMatch(logMessage.match(GravityLogParser.gravityLogTokens.logLevelToken)).toLowerCase();
     }
 
-    public static isGravityLogStart(logLine: string): boolean{
+    public static isGravityLogStart(logLine: string): boolean {
         return GravityLogParser.gravityLogStartText.some(element => logLine.startsWith(element));
     }
 
-    public static parseGravityTimestamp(timestamp: string){
+    public static parseGravityTimestamp(timestamp: string) {
         let elements = timestamp.split('.');
-        if(!elements.every(x=> x != '')){
+        if (!elements.every(x => x !== '')) {
             console.warn(`Empty strings while splitting '${timestamp}'`);
         }
         let years = Number.parseInt(elements[0]);

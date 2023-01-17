@@ -244,30 +244,28 @@ export class ReportManager {
         </table>`;
     }
 
-    private buildCollapsibleElement(name: string, htmlContent: string): string{
+    private buildCollapsibleElement(name: string, htmlContent: string): string {
         let html =
-            '<pre>'  +
-                '<details>' +
-                    `<summary>${name}</summary>` +
-                    `${htmlContent}`+
-                '</details>'+
+            '<pre>' +
+            '<details>' +
+            `<summary>${name}</summary>` +
+            `${htmlContent}` +
+            '</details>' +
             '</pre>';
         return html;
     }
 
-    buildEnvironmentElement(name: string, content: string) : string {
+    buildEnvironmentElement(name: string, content: string): string {
         let htmlContentTag = this.getHtmlTag(content.toString());
 
-        let collpasibleHtmlContent = 
-                            `${htmlContentTag}` +
-                                `${content}` +
-                            `${htmlContentTag.replace('<', '</')}`;
+        let collpasibleHtmlContent =
+            `${htmlContentTag}` +
+            `${content}` +
+            `${htmlContentTag.replace('<', '</')}`;
 
-        return content.length < 30 ?
-                `${htmlContentTag}` +
-                    `${name}: ${content}` +
-                `${htmlContentTag.replace('<', '</')}` : 
-                this.buildCollapsibleElement(name, collpasibleHtmlContent);
+        return content.length < 30
+            ? `${htmlContentTag}` + `${name}: ${content}` + `${htmlContentTag.replace('<', '</')}`
+            : this.buildCollapsibleElement(name, collpasibleHtmlContent);
     }
 
     private getHtmlTag(content: string) {
@@ -277,10 +275,10 @@ export class ReportManager {
     private formatEnvironment(jsonObject: any): string {
         let result = '';
         for (let prop in jsonObject) {
-            if(typeof(jsonObject[prop]) === 'object'){
+            if (typeof (jsonObject[prop]) === 'object') {
                 result += this.formatEnvironment(jsonObject[prop]);
             }
-            else{
+            else {
                 result += this.buildEnvironmentElement(prop, jsonObject[prop]);
             }
         }
@@ -297,14 +295,14 @@ export class ReportManager {
             '<br/>Run Time    : <span style="color: #3498db">' + testCase.runTime.substr(0, 11) + '</span>' +
             '<br/>On Attempt  : ' + testCase.passedOnAttempt + '</pre>';
 
-            let environment = '';
-            try {
-                environment =
-                    '<h4>Environment</h4>' + this.formatEnvironment(testCase.environment) +
-                    '</div>';
-            } catch (error) {
-                console.warn(error);
-            }
+        let environment = '';
+        try {
+            environment =
+                '<h4>Environment</h4>' + this.formatEnvironment(testCase.environment) +
+                '</div>';
+        } catch (error) {
+            console.warn(error);
+        }
 
         // build
         let steps = [];
@@ -366,7 +364,7 @@ export class ReportManager {
         const pattern = '(?<=\\{).*(?=\\})';
         const match = testStep.action.match(pattern);
         let action = match === null || match === undefined ? testStep.action : match[0];
-        
+
         // get
         return `
         <tr>
