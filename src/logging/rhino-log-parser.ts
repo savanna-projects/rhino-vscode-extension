@@ -7,6 +7,7 @@ import { isLogLevelName } from "./log-models-typeguards";
  * Class to handle parsing of a log message to a RhinoLogMessage
  */
 export class RhinoLogParser {
+
     public static readonly rhinoLogStartText = ['DBG', 'ERR', 'FTL', 'INF', 'TRC', 'WRN'] as const;
 
     private static readonly rhinoLogTokens = {
@@ -15,7 +16,7 @@ export class RhinoLogParser {
         timestampToken: /(?<=TimeStamp(\s)*: ).*$/gm,
         logLevelToken: /(?<=LogLevel(\s)*: ).*$/gm,
         messageToken: /(?<=Message(\s)*: ).*$/gm,
-        exceptionToken: /(?<=-{16}\n-\s(Exception\(s\))\s-\n-{16}\n).*$/gs,
+        exceptionToken: /(?<=----------------\n- (Exception\(s\)) -\n----------------\n).*$/gs,
         machineNameToken: /(?<=MachineName(\s)*: ).*$/gm
     };
 
@@ -34,17 +35,16 @@ export class RhinoLogParser {
                 message: RhinoLogParser.findRhinoMessage(logMessage),
                 formattedMessage: logMessage
             };
-
             let exception = RhinoLogParser.findRhinoException(logMessage);
             if (exception !== '') {
                 rhinoLog.exception = exception;
             }
-
             return rhinoLog;
         }
         catch (error) {
-            console.log(`Failed to build Rhino Log message\n${error}`);
+            throw new Error(`Failed to build Rhino Log message\n${error}`);
         }
+
     }
 
     private static findRhinoException(logMessage: string) {
@@ -72,9 +72,9 @@ export class RhinoLogParser {
     }
 
     /**
-     * Attempts to find the Rhino Log Level from the log message. If successful, returns it, otherwise returns 'TRACE'.
-     * 
+     * Attempts to find the Rhino Log Level from the log message. If successful, returns it, otherwise returns 'TRACE'
      * @param logMessage 
+     * @returns 
      */
     public static getRhinoLogLevel(logMessage: string) {
         let logLevel = Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.logLevelToken)).toLowerCase();
@@ -87,11 +87,9 @@ export class RhinoLogParser {
 
     public static parseRhinoTimestamp(timestamp: string) {
         let elements = timestamp.split(/[-\s:.]/g);
-        
         if (!elements.every(x => x !== '')) {
             console.warn(`Empty strings while splitting '${timestamp}'`);
         }
-
         let years = Number.parseInt(elements[0]);
         let months = Number.parseInt(elements[1]);
         // months = months > 0 ? months - 1 : months;
@@ -100,7 +98,7 @@ export class RhinoLogParser {
         let minutes = Number.parseInt(elements[4]);
         let seconds = Number.parseInt(elements[5]);
         let milliseconds = Number.parseInt(elements[6]);
-        
         return new Date(years, months - 1, days, hours, minutes, seconds, milliseconds);
     }
+
 }

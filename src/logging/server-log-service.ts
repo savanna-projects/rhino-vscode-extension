@@ -6,6 +6,9 @@ export class ServerLogService {
     private rhinoClient: RhinoClient;
     private messagesCache: Map<string, LogMessage> = new Map<string, LogMessage>();
 
+    /**
+     *
+     */
     constructor(rhinoClient: RhinoClient) {
         this.rhinoClient = rhinoClient;
     }
@@ -21,7 +24,6 @@ export class ServerLogService {
 
     public async getLatestLogId() {
         let logFileNames = await this.getLogsList();
-
         if (!logFileNames) {
             console.error('Rhino Logs list empty | not found');
             return '';
@@ -48,6 +50,7 @@ export class ServerLogService {
         });
     }
 
+
     public static extractServerLogId(logFileName: string) {
         let start = logFileName.indexOf('-') + 1;
         let end = logFileName.indexOf('.');
@@ -57,14 +60,12 @@ export class ServerLogService {
     public parseLog(log: string): LogMessage[] {
         let logMessages: LogMessage[] = [];
         let messages = ServerLogParser.parseServerLog(log);
-
         for (let logMessage of messages) {
             if (!this.messagesCache.has(logMessage.timeStamp)) {
                 this.messagesCache.set(logMessage.timeStamp, logMessage);
                 logMessages.push(logMessage);
             }
         }
-
         return logMessages;
     }
 }
