@@ -28,4 +28,3 @@ export function isLogMessage(object: any): object is LogMessage {
         && Object.prototype.hasOwnProperty.call(object, "message")
         && Object.prototype.hasOwnProperty.call(object, "formattedMessage");
 }
-
