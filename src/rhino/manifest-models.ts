@@ -1,4 +1,4 @@
-import { LoggerOptions } from "../logging/logger-options"
+import { LoggerOptions } from "../logging/logger-options";
 
 export interface LoggerConfig {
     name: string;

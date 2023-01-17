@@ -12,31 +12,31 @@ interface SplitLogLine {
     message: string;
 }
 
-export class ServerLogParser{
+export class ServerLogParser {
 
-    
-    public static parseServerLog(log: string): LogMessage[]{
+
+    public static parseServerLog(log: string): LogMessage[] {
         let messages: LogMessage[] = [];
-        if(!log){
+        if (!log) {
             console.warn('Warning - Log is null or empty!');
             return messages;
         }
-        
+
         let splitLogLines = this.splitServerLog(log);
 
         splitLogLines.forEach(splitLogLine => {
             let messageObject = this.buildLogMessage(splitLogLine);
-            if(messageObject){
+            if (messageObject) {
                 messages.push(messageObject);
             }
         });
-    
-    
+
+
         return messages;
     }
 
-    private static buildLogMessage(splitLogLine: SplitLogLine) : RhinoLogMessage | GravityLogMessage | undefined{
-        switch(splitLogLine.logType){
+    private static buildLogMessage(splitLogLine: SplitLogLine): RhinoLogMessage | GravityLogMessage | undefined {
+        switch (splitLogLine.logType) {
             case 'Gravity':
                 return GravityLogParser.buildGravityLog(splitLogLine.message);
             case 'Rhino':
@@ -44,10 +44,10 @@ export class ServerLogParser{
         }
     }
 
-    private static splitServerLog(log: string): SplitLogLine[]{
+    private static splitServerLog(log: string): SplitLogLine[] {
         let separatedMessages: SplitLogLine[] = [];
-        
-        if(!log){
+
+        if (!log) {
             console.warn('Warning - Log is null or empty!');
             return separatedMessages;
         }
@@ -56,38 +56,38 @@ export class ServerLogParser{
 
         logLines.forEach((line) => {
             let logType = this.findLogType(line);
-            if(logType){
-                if(logMessage?.message && logMessage?.logType){
+            if (logType) {
+                if (logMessage?.message && logMessage?.logType) {
                     separatedMessages.push(logMessage);
                 }
-                logMessage = {logType: logType, message: line + os.EOL};
+                logMessage = { logType: logType, message: line + os.EOL };
             }
-            else if(logMessage?.message){
+            else if (logMessage?.message) {
                 //Temp workaround due to formatting inconsistencies of custom backend plugin logs.
-                if(logMessage.logType != 'Rhino' && RhinoLogParser.findRhinoApplication(line)){
+                if (logMessage.logType !== 'Rhino' && RhinoLogParser.findRhinoApplication(line)) {
                     logMessage.logType = 'Rhino';
                 }
                 logMessage.message += line + os.EOL;
-            }          
+            }
         });
-        if(logMessage?.message){
+        if (logMessage?.message) {
             separatedMessages.push(logMessage);
         }
         return separatedMessages;
     }
 
-    private static findLogType(logLine: string) : LogType | undefined{
-        if(RhinoLogParser.isRhinoLogStart(logLine)){
+    private static findLogType(logLine: string): LogType | undefined {
+        if (RhinoLogParser.isRhinoLogStart(logLine)) {
             return 'Rhino';
         }
-        else if(GravityLogParser.isGravityLogStart(logLine)){
+        else if (GravityLogParser.isGravityLogStart(logLine)) {
             return 'Gravity';
         }
     }
 
-    public static parseLogTimestamp(message: LogMessage): Date{
-        return isRhinoLog(message) 
-            ? RhinoLogParser.parseRhinoTimestamp(message.timeStamp) 
+    public static parseLogTimestamp(message: LogMessage): Date {
+        return isRhinoLog(message)
+            ? RhinoLogParser.parseRhinoTimestamp(message.timeStamp)
             : GravityLogParser.parseGravityTimestamp(message.timeStamp);
     }
 

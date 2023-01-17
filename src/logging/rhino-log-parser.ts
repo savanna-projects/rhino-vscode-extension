@@ -6,86 +6,88 @@ import { isLogLevelName } from "./log-models-typeguards";
 /**
  * Class to handle parsing of a log message to a RhinoLogMessage
  */
-export class RhinoLogParser{
+export class RhinoLogParser {
 
     public static readonly rhinoLogStartText = ['DBG', 'ERR', 'FTL', 'INF', 'TRC', 'WRN'] as const;
 
     private static readonly rhinoLogTokens = {
-        ApplicationToken: /(?<=Application(\s)*: ).*$/gm,
-        LoggerNameToken: /(?<=Logger(\s)*: ).*$/gm,
-        TimestampToken: /(?<=TimeStamp(\s)*: ).*$/gm,
-        LogLevelToken: /(?<=LogLevel(\s)*: ).*$/gm,
-        MessageToken: /(?<=Message(\s)*: ).*$/gm,
-        ExceptionToken: /(?<=----------------\n- (Exception\(s\)) -\n----------------\n).*$/gs,
-        MachineNameToken: /(?<=MachineName(\s)*: ).*$/gm
-    }
+        applicationToken: /(?<=Application(\s)*: ).*$/gm,
+        loggerNameToken: /(?<=Logger(\s)*: ).*$/gm,
+        timestampToken: /(?<=TimeStamp(\s)*: ).*$/gm,
+        logLevelToken: /(?<=LogLevel(\s)*: ).*$/gm,
+        messageToken: /(?<=Message(\s)*: ).*$/gm,
+        exceptionToken: /(?<=----------------\n- (Exception\(s\)) -\n----------------\n).*$/gs,
+        machineNameToken: /(?<=MachineName(\s)*: ).*$/gm
+    };
+
     public static buildRhinoLog(logMessage: string): RhinoLogMessage | undefined {
-        try{
+        try {
             let application = RhinoLogParser.findRhinoApplication(logMessage);
             let loggerName = RhinoLogParser.findRhinoLoggerName(logMessage);
-            
+
             let rhinoLog: RhinoLogMessage = {
-                loggerName: loggerName != '' ? loggerName : undefined,
+                loggerName: loggerName !== '' ? loggerName : undefined,
                 timeStamp: RhinoLogParser.findRhinoTimestamp(logMessage),
                 machineName: RhinoLogParser.findRhinoMachineName(logMessage),
                 application: application,
-                source: `${application}` + (loggerName  ? `.${loggerName}` : ''),
+                source: `${application}` + (loggerName ? `.${loggerName}` : ''),
                 level: RhinoLogParser.getRhinoLogLevel(logMessage),
                 message: RhinoLogParser.findRhinoMessage(logMessage),
                 formattedMessage: logMessage
             };
             let exception = RhinoLogParser.findRhinoException(logMessage);
-            if(exception != ''){
+            if (exception !== '') {
                 rhinoLog.exception = exception;
             }
             return rhinoLog;
         }
-        catch(error){
-            throw new Error(`Failed to build Rhino Log message\n${error}`)
+        catch (error) {
+            throw new Error(`Failed to build Rhino Log message\n${error}`);
         }
-        
+
     }
 
     private static findRhinoException(logMessage: string) {
-        return Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.ExceptionToken));
+        return Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.exceptionToken));
     }
 
     public static findRhinoMessage(logMessage: string): string {
-        return Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.MessageToken));
+        return Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.messageToken));
     }
 
     public static findRhinoMachineName(logMessage: string): string {
-        return Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.MachineNameToken));
+        return Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.machineNameToken));
     }
 
     public static findRhinoTimestamp(logMessage: string): string {
-        return Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.TimestampToken));
+        return Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.timestampToken));
     }
 
     public static findRhinoLoggerName(logMessage: string) {
-        return Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.LoggerNameToken));
+        return Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.loggerNameToken));
     }
 
     public static findRhinoApplication(logMessage: string) {
-        return Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.ApplicationToken));
+        return Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.applicationToken));
     }
+
     /**
      * Attempts to find the Rhino Log Level from the log message. If successful, returns it, otherwise returns 'TRACE'
      * @param logMessage 
      * @returns 
      */
     public static getRhinoLogLevel(logMessage: string) {
-        let logLevel = Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.LogLevelToken)).toUpperCase();
-        return isLogLevelName(logLevel) ? logLevel : 'TRACE'
+        let logLevel = Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.logLevelToken)).toLowerCase();
+        return isLogLevelName(logLevel) ? logLevel : 'trace';
     }
 
-    public static isRhinoLogStart(logLine: string): boolean{
+    public static isRhinoLogStart(logLine: string): boolean {
         return RhinoLogParser.rhinoLogStartText.some(element => logLine.startsWith(element));
     }
 
-    public static parseRhinoTimestamp(timestamp: string){
+    public static parseRhinoTimestamp(timestamp: string) {
         let elements = timestamp.split(/[-\s:.]/g);
-        if(!elements.every(x=> x != '')){
+        if (!elements.every(x => x !== '')) {
             console.warn(`Empty strings while splitting '${timestamp}'`);
         }
         let years = Number.parseInt(elements[0]);
