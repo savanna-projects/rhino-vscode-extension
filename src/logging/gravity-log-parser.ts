@@ -3,21 +3,17 @@ import { GravityLogMessage } from "./log-models";
 import { isLogLevelName } from "./log-models-typeguards";
 
 export class GravityLogParser {
-
-
     public static readonly gravityLogStartText = ['Rhino.Agent'] as const;
 
     private static readonly gravityLogTokens = {
         sourceToken: /^([^\s]+)/g,
         logLevelToken: /(?<=(\s))\w+(?=:)/gm,
         messageToken: /(?<=( - )).*/gs,
-        //Timestamp and Message tokens are still pending possible changes due changes Roei does on Gravity side.
+        // TODO: Timestamp and Message tokens are still pending possible changes.
         timestampToken: /(?<=(: ))[0-9.]+(?=( -))/g
     };
 
     public static buildGravityLog(logMessage: string): GravityLogMessage | undefined {
-
-
         try {
             let source = GravityLogParser.findGravitySource(logMessage);
             if (!GravityLogParser.gravityLogStartText.some(element => source === element)) {
@@ -39,8 +35,6 @@ export class GravityLogParser {
         catch (error) {
             throw new Error(`Failed to build Gravity Log message\n${error}`);
         }
-
-
     }
 
     public static findGravitySource(logMessage: string) {
@@ -65,9 +59,11 @@ export class GravityLogParser {
 
     public static parseGravityTimestamp(timestamp: string) {
         let elements = timestamp.split('.');
+        
         if (!elements.every(x => x !== '')) {
             console.warn(`Empty strings while splitting '${timestamp}'`);
         }
+
         let years = Number.parseInt(elements[0]);
         let months = Number.parseInt(elements[1]);
         let days = Number.parseInt(elements[2]);
@@ -75,6 +71,7 @@ export class GravityLogParser {
         let minutes = Number.parseInt(elements[4]);
         let seconds = Number.parseInt(elements[5]);
         let milliseconds = Number.parseInt(elements[6]);
+
         return new Date(years, months - 1, days, hours, minutes, seconds, milliseconds);
     }
 }
