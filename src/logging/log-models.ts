@@ -56,3 +56,10 @@ export interface RhinoLogMessage extends LogMessage {
     machineName: string;
     exception?: string;
 }
+
+    /**
+     * MachineName
+     */
+    machineName: string;
+    exception?: string;
+}

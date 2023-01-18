@@ -51,6 +51,7 @@ export class InvokeTestCaseCommand extends Command {
             let loggerOptions = this.extractLoggerOptions();
             this.testRunLogger = new RhinoLogger("Test Run Log", loggerOptions);
         }
+        this.setLoggerConfig();
     }
 
     /*┌─[ SETTERS ]────────────────────────────────────────────
