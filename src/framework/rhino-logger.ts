@@ -48,9 +48,9 @@ export class RhinoLogger implements IRhinoLogger {
      * Appends the given value to the channel, if it complies with the {@link loggerOptions logger options} criteria.
      */
     //TODO: 
-    append(log: LogMessage): void
-    append(log: string): void
-    append(log: object): void
+    append(log: LogMessage): void;
+    append(log: string): void;
+    append(log: object): void;
     append(log: any): void {
         let logMessage: string;
         if (typeof log === 'object') {
