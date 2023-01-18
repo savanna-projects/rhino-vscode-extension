@@ -81,7 +81,8 @@ export class RegisterResourcesCommand extends Command {
 
             for (const [key, value] of resourcesMap) {
                 resources.push({
-                    name: key,
+                    fileName: key.replace(/^.*[\\\/]/, ''),
+                    path: key,
                     content: value
                 });
             }
