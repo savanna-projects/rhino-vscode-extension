@@ -42,7 +42,7 @@ export class Utilities {
      * @param regexMatch The regular expressions match array.
      * @returns First element of the array.
     */
-    public static getFirstRegexMatch(regexMatch: RegExpMatchArray | null): string{
+    public static getFirstRegexMatch(regexMatch: RegExpMatchArray | null): string {
         return regexMatch ? regexMatch[0] : "";
     }
 
@@ -51,12 +51,12 @@ export class Utilities {
      * 
      * @returns Timestamp as a string.
      */
-    public static getTimestamp(): string{
-        
+    public static getTimestamp(): string {
+
         // return date.toLocaleTimeString(undefined,  'yy-MM-dd HH:mm:ss,SSS');
         var date = new Date();
-        var options: Intl.DateTimeFormatOptions = { year:'2-digit', month: '2-digit', day: '2-digit' ,hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false };
-        return `${date.toLocaleString('en-GB',  options)}.${date.getMilliseconds()}`;
+        var options: Intl.DateTimeFormatOptions = { year: '2-digit', month: '2-digit', day: '2-digit', hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false };
+        return `${date.toLocaleString('en-GB', options)}.${date.getMilliseconds()}`;
     }
 
     /**
@@ -135,7 +135,7 @@ export class Utilities {
      * 
      * @returns RhinoServer endpoint.
      */
-    public static getLoggerConfig(name: string): LoggerConfig | undefined{
+    public static getLoggerConfig(name: string): LoggerConfig | undefined {
         // setup
         let projectManifest = this.invokeGetProjectManifest();
         let loggerConfig: LoggerConfig[] = projectManifest?.logConfiguration;
@@ -153,21 +153,21 @@ export class Utilities {
      */
     public static async poll(polledFunction: (...args: any) => any, stopCondition: (...args: any) => boolean, interval: number | undefined) {
         let result;
-        do{
-            if(stopCondition(result)){
+        do {
+            if (stopCondition(result)) {
                 break;
             }
             result = await polledFunction();
             await this.wait(interval);
-        }while(!stopCondition(result));
+        } while (!stopCondition(result));
     }
-      
+
     public static wait(ms = 1000) {
         return new Promise(resolve => {
             setTimeout(resolve, ms);
         });
     }
-    
+
     /**
      * Summary. Get a flat list of all files under a directory including all sub-directories.
      */

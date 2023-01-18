@@ -27,7 +27,7 @@ export class LoggerOptions {
      * 
      */
     constructor(init?: Partial<LoggerOptions>) {
-        if(init?.logLevel){
+        if (init?.logLevel) {
             let logLevelName = init.logLevel.toLowerCase();
             init.logLevel = isLogLevelName(logLevelName) ? logLevelName : this.defaultLogLevel;
         }

@@ -153,6 +153,9 @@ export class InvokeTestCaseCommand extends Command {
                 console.error(error);
                 vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke was not completed");
             }
+            finally{
+                runEnded = true;
+            }
         });
     }
     /**
@@ -168,7 +171,7 @@ export class InvokeTestCaseCommand extends Command {
         let logger = this.testRunLogger;
         logger.show();
 
-        logger.appendLine(`\n-----------------------------------\n${Utilities.getTimestamp()} - ${testId}: Test run started.\n-----------------------------------\n`)
+        logger.appendLine(`\n----------------------------------------\n${Utilities.getTimestamp()} - ${testId}: Test run started.\n----------------------------------------\n`)
 
 
         let logParser = new ServerLogService(this.getRhinoClient());
@@ -229,7 +232,7 @@ export class InvokeTestCaseCommand extends Command {
         return text.split('>>>').map(i => i.trim());
     }
 
-    private extractTestId(test: string): string{
+    private extractTestId(test: string): string {
         let matches = test.match(/(?<=\[test-id\](\s)*)\S+(?=\\n|\n)/g);
         return matches ? matches[0] : '';
     }

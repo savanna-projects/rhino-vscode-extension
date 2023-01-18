@@ -59,7 +59,7 @@ export class GravityLogParser {
 
     public static parseGravityTimestamp(timestamp: string) {
         let elements = timestamp.split('.');
-        
+
         if (!elements.every(x => x !== '')) {
             console.warn(`Empty strings while splitting '${timestamp}'`);
         }

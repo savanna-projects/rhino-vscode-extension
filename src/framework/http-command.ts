@@ -30,7 +30,7 @@ export class HttpCommand {
     public setCommand(command: string) {
         // build
         this.command = command;
-        
+
         // get
         return this;
     }
@@ -105,7 +105,7 @@ export class HttpCommand {
      */
     public addDefaultHeaders() {
         // build
-        this.headers["Content-Type"] ="application/json";
+        this.headers["Content-Type"] = "application/json";
 
         // get
         return this;
