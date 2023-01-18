@@ -1,6 +1,5 @@
 import { LogLevelName } from "./log-models";
 
-
 export interface SourceOptions {
     sourcesFilterLogic: 'Include' | 'Exclude';
     sources: string[];
@@ -19,11 +18,7 @@ export class LoggerOptions {
      */
     public sourceOptions: SourceOptions = { sourcesFilterLogic: 'Exclude', sources: [] };
 
-    /**
-     * 
-     */
     constructor(init?: Partial<LoggerOptions>) {
         Object.assign(this, init);
     }
-
 }

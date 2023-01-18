@@ -4,7 +4,6 @@ import { RhinoLogParser } from "./rhino-log-parser";
 import { GravityLogParser } from "./gravity-log-parser";
 import { isRhinoLog } from "./log-models-typeguards";
 
-
 type LogType = 'Gravity' | 'Rhino';
 
 interface SplitLogLine {
@@ -13,8 +12,6 @@ interface SplitLogLine {
 }
 
 export class ServerLogParser {
-
-
     public static parseServerLog(log: string): LogMessage[] {
         let messages: LogMessage[] = [];
         if (!log) {
@@ -30,7 +27,6 @@ export class ServerLogParser {
                 messages.push(messageObject);
             }
         });
-
 
         return messages;
     }
@@ -70,9 +66,11 @@ export class ServerLogParser {
                 logMessage.message += line + os.EOL;
             }
         });
+
         if (logMessage?.message) {
             separatedMessages.push(logMessage);
         }
+
         return separatedMessages;
     }
 
@@ -90,5 +88,4 @@ export class ServerLogParser {
             ? RhinoLogParser.parseRhinoTimestamp(message.timeStamp)
             : GravityLogParser.parseGravityTimestamp(message.timeStamp);
     }
-
 }
