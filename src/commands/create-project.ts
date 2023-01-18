@@ -72,6 +72,7 @@ export class CreateProjectCommand extends Command {
             CreateProjectCommand.createSamplePipelines(folderUri);
             CreateProjectCommand.createSampleModels(folderUri);
             CreateProjectCommand.createSampleEnvironment(folderUri);
+            CreateProjectCommand.createSampleResource(folderUri);
             // user switch ends
             CreateProjectCommand.openFolder(folderUri);
         });
@@ -98,7 +99,9 @@ export class CreateProjectCommand extends Command {
             ph.join(path, 'src/Plugins'),
             ph.join(path, 'src/Plugins/Examples'),
             ph.join(path, 'src/Tests'),
-            ph.join(path, 'src/Tests/Examples')
+            ph.join(path, 'src/Tests/Examples'),
+            ph.join(path, 'src/Resources'),
+            ph.join(path, 'src/Resources/Examples')
         ];
         for (const folder of folders) {
             if (!fs.existsSync(folder)) {
@@ -624,6 +627,17 @@ export class CreateProjectCommand extends Command {
 
         // write
         this.writeFile(path, 'GoogleSearchEnvironment.json', content);
+    }
+
+    private static createSampleResource(userPath: any) {
+        // setup
+        let content = `Demo Resource File.`;
+
+        // set content
+        let path = ph.join(this.getPath(userPath), 'src', 'Resources', 'Examples');
+
+        // write
+        this.writeFile(path, 'DemoResource.txt', content);
     }
 
     // open a folder in VS Code workspace

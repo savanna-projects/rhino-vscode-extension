@@ -6,6 +6,9 @@ export class ServerLogService {
     private rhinoClient: RhinoClient;
     private messagesCache: Map<string, LogMessage> = new Map<string, LogMessage>();
 
+    /**
+     *
+     */
     constructor(rhinoClient: RhinoClient) {
         this.rhinoClient = rhinoClient;
     }
@@ -47,6 +50,7 @@ export class ServerLogService {
         });
     }
 
+
     public static extractServerLogId(logFileName: string) {
         let start = logFileName.indexOf('-') + 1;
         let end = logFileName.indexOf('.');
@@ -62,7 +66,6 @@ export class ServerLogService {
                 logMessages.push(logMessage);
             }
         }
-
         return logMessages;
     }
 }

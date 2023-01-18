@@ -59,7 +59,7 @@ export class GravityLogParser {
 
     public static parseGravityTimestamp(timestamp: string) {
         let elements = timestamp.split('.');
-        
+
         if (!elements.every(x => x !== '')) {
             console.warn(`Empty strings while splitting '${timestamp}'`);
         }
@@ -71,6 +71,7 @@ export class GravityLogParser {
         let minutes = Number.parseInt(elements[4]);
         let seconds = Number.parseInt(elements[5]);
         let milliseconds = Number.parseInt(elements[6]);
+
         return new Date(years, months - 1, days, hours, minutes, seconds, milliseconds);
     }
 }

@@ -70,7 +70,7 @@ export class RegisterResourcesCommand extends Command {
             for (const resourceFile of resourcesFiles) {
                 let resourceContent = this.getResourceFromFile(resourceFile);
 
-                if (resourceContent === '') {
+                if (!resourceContent) {
                     continue;
                 }
 
@@ -81,7 +81,7 @@ export class RegisterResourcesCommand extends Command {
 
             for (const [key, value] of resourcesMap) {
                 resources.push({
-                    fileName: key.replace(/^.*[\\\/]/, ''),
+                    fileName: path.basename(key),
                     path: key,
                     content: value
                 });
