@@ -8,7 +8,7 @@
 import * as vscode from 'vscode';
 import { HttpCommand } from './http-command';
 import { URL } from "url";
-import { IncomingMessage, request, RequestOptions} from 'http';
+import { IncomingMessage, request, RequestOptions } from 'http';
 import { Utilities } from '../extensions/utilities';
 import { log } from 'console';
 
@@ -49,12 +49,12 @@ export class HttpClient {
         // build
         const clientRequest = request(options, (response: IncomingMessage) => {
             let data = '';
-            response.on('data', 
+            response.on('data',
                 (d: any) => data += this.onData(d));
 
             // response.on('error', 
             //     (error: any) => this.onError(error));
-            
+
             response.on('end', () => {
                 log(`${Utilities.getTimestamp()} - END  Invoke-WebRequest -> ${httpCommand.method} ${httpCommand.command}`);
                 if (!response?.statusCode || response.statusCode < 200 || response.statusCode > 299) {
@@ -63,7 +63,7 @@ export class HttpClient {
                     error.message = `${errorMessage?.statusCode ?? response.statusCode} - ${errorMessage?.message ?? response.statusMessage}`;
                     this.onError(error);
                 }
-                if(this.isFunction(callback)){
+                if (this.isFunction(callback)) {
                     return callback(data);
                 }
             });
@@ -79,7 +79,7 @@ export class HttpClient {
         else if (isBody && !isJson) {
             clientRequest.write(httpCommand.body.toString());
         }
-        clientRequest.end(); 
+        clientRequest.end();
     }
 
     /**
@@ -108,7 +108,7 @@ export class HttpClient {
                     if (response?.statusCode && response.statusCode >= 200 && response.statusCode <= 299) {
                         // resolve({statusCode: response.statusCode, headers: response.headers, body: data});
                         resolve(data);
-                    } 
+                    }
                     else {
                         var errorMessage = JSON.parse(data);
                         var error = new Error(`${errorMessage?.statusCode ?? response.statusCode} - ${errorMessage?.message ?? response.statusMessage}`);
@@ -123,7 +123,7 @@ export class HttpClient {
                 clientRequest.destroy();
             });
             clientRequest.on('error', (error: any) => this.onError(error));
-            
+
             // send
             let isBody = httpCommand.body !== null && httpCommand.body !== undefined;
             let isJson = 'Content-Type' in httpCommand.headers && httpCommand.headers['Content-Type'] === 'application/json';
@@ -133,8 +133,8 @@ export class HttpClient {
             else if (isBody && !isJson) {
                 clientRequest.write(httpCommand.body.toString());
             }
-            
-            clientRequest.end(); 
+
+            clientRequest.end();
         });
     }
 
@@ -145,7 +145,7 @@ export class HttpClient {
         let uriSegments = url.host.split(':');
         let host = uriSegments[0];
         let port = uriSegments.length === 2 ? Number.parseInt(uriSegments[1].toString()) : -1;
-        
+
         // build
         let options: RequestOptions = {
             hostname: host,
@@ -171,7 +171,7 @@ export class HttpClient {
     private onError(error: any) {
         let errorMessage: string = error.message;
         vscode.window.setStatusBarMessage("$(testing-error-icon) " + errorMessage);
-        if(`${errorMessage}`.match('ECONNREFUSED')) {
+        if (`${errorMessage}`.match('ECONNREFUSED')) {
             return;
         }
         console.error(error);

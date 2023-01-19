@@ -11,6 +11,7 @@ import { Command } from "./command";
 import { ConnectServerCommand } from './connect-server';
 import { InvokeTestCaseCommand } from './invoke-test-case';
 import { RegisterPluginsCommand } from './register-plugins';
+import { RegisterResourcesCommand } from './register-resources';
 import { RegisterTestCaseCommand } from './register-test-case';
 import { RegisterModelsCommand } from './register-models';
 import { GetTestCaseCommand } from './get-test-case';
@@ -117,6 +118,7 @@ export class RegisterRhinoCommand extends Command {
             new RegisterEnvironmentCommand(context),
             new RegisterModelsCommand(context),
             new RegisterPluginsCommand(context),
+            new RegisterResourcesCommand(context),
             new RegisterTestCaseCommand(context),
             new UpdateSymbolsCommand(context),
             new ConnectServerCommand(context)

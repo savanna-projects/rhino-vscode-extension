@@ -8,6 +8,7 @@
  */
 import { HttpCommand } from "./http-command";
 import { HttpClient } from "./http-client";
+import { ResourceModel } from "../contracts/register-data-model";
 
 export class RhinoClient {
     // members
@@ -360,6 +361,23 @@ export class RhinoClient {
 
         // get
         this.httpClient.invokeWebRequest(httpCommand, callback);
+    }
+
+    /**
+     * Summary. Creates a collection of Rhino Resources using Rhino Resources spec.
+     * 
+     * @param createModel Rhino Resources spec.
+     */
+    public async createResources(createModel: ResourceModel[]) {
+        // setup
+        let httpCommand = new HttpCommand()
+            .setMethod('POST')
+            .setBody(createModel)
+            .setCommand('/api/v3/resources/bulk')
+            .addHeader('Content-Type', 'application/json');
+
+        // get
+        return await this.httpClient.invokeAsyncWebRequest(httpCommand);
     }
 
     /**

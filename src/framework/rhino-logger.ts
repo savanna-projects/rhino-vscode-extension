@@ -48,9 +48,9 @@ export class RhinoLogger implements IRhinoLogger {
      * Appends the given value to the channel, if it complies with the {@link loggerOptions logger options} criteria.
      */
     //TODO: 
-    append(log: LogMessage): void
-    append(log: string): void
-    append(log: object): void
+    append(log: LogMessage): void;
+    append(log: string): void;
+    append(log: object): void;
     append(log: any): void {
         let logMessage: string;
         if (typeof log === 'object') {
@@ -79,9 +79,9 @@ export class RhinoLogger implements IRhinoLogger {
 
     private isLogSourceCompliant(logSource: string): boolean {
         let sourceOptions = this.loggerOptions.sourceOptions;
-        return sourceOptions?.sourcesFilterLogic === 'Exclude' ?
-            !sourceOptions.sources.includes(logSource) :
-            sourceOptions.sources.includes(logSource);
+        return sourceOptions?.sourcesFilterLogic === 'Exclude'
+            ? !sourceOptions.sources.some(source => logSource.includes(source))
+            : sourceOptions.sources.some(source => logSource.includes(source));
     }
 
     public isLogLevelEnabled(logLevel: LogLevelName): boolean {

@@ -61,8 +61,6 @@ export class ConnectServerCommand extends Command {
 
     // invocation routine
     private invoke() {
-        this.getRhinoLogger().appendLine(`${Utilities.getTimestamp()} - Initiating connection to Rhino server.`);
-
         // setup
         let client = this.getRhinoClient();
         let context = this.getContext();
@@ -96,29 +94,29 @@ export class ConnectServerCommand extends Command {
     private registerActions(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
         // user interface
         vscode.window.setStatusBarMessage('$(sync~spin) Loading action(s)...');
-        
+
         console.log(`${new Date().getTime()} - Start loading actions`);
         // setup
         let configuration = Utilities.getConfigurationByManifest();
-        
+
         // build
         client.createConfiguration(configuration, (data: any) => {
-            console.log(`${new Date().getTime()} - Start register actions create config`,configuration, data);
+            console.log(`${new Date().getTime()} - Start register actions create config`, configuration, data);
             let response = JSON.parse(data);
             let configurationId = Utilities.isNullOrUndefined(response) || Utilities.isNullOrUndefined(response.id)
                 ? ''
                 : response.id;
             client.getPluginsByConfiguration(configurationId, (plugins: any) => {
-                console.log(`${new Date().getTime()} - Getting register actions plugins by config`,configurationId);
+                console.log(`${new Date().getTime()} - Getting register actions plugins by config`, configurationId);
                 let hasNoPlugins = Utilities.isNullOrUndefined(plugins) || plugins === '';
                 if (hasNoPlugins) {
                     client.getPlugins((plugins: any) => {
-                        console.log(`${new Date().getTime()} - NO PLUGINS - Getting register actions metadata by config`,configurationId);
+                        console.log(`${new Date().getTime()} - NO PLUGINS - Getting register actions metadata by config`, configurationId);
                         this.getMetadata(client, context, plugins, '', callback);
                     });
                 }
                 else {
-                    console.log(`${new Date().getTime()} - Getting register actions metadata by config`,configurationId);
+                    console.log(`${new Date().getTime()} - Getting register actions metadata by config`, configurationId);
                     this.getMetadata(client, context, plugins, configurationId, callback);
                 }
             });
