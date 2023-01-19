@@ -46,12 +46,15 @@ export class InvokeTestCaseCommand extends Command {
     }
 
     private createLogger() {
+        this.setLoggerConfig();
+        let loggerOptions = this.extractLoggerOptions();
         if (!this.testRunLogger) {
-            this.setLoggerConfig();
-            let loggerOptions = this.extractLoggerOptions();
+            
             this.testRunLogger = new RhinoLogger("Test Run Log", loggerOptions);
         }
-        this.setLoggerConfig();
+        else{
+            this.testRunLogger.setLoggerOptions(loggerOptions);
+        }
     }
 
     /*┌─[ SETTERS ]────────────────────────────────────────────
@@ -198,7 +201,7 @@ export class InvokeTestCaseCommand extends Command {
             }
         };
 
-        Utilities.poll(logging, stopCondition, interval ?? 1000).then(() => logger.appendLine(`\n-----------------------------------\n${Utilities.getTimestamp()} - ${testId}: Test run ended.\n-----------------------------------\n`));
+        Utilities.poll(logging, stopCondition, interval ?? 1000).then(() => logger.appendLine(`\n----------------------------------------\n${Utilities.getTimestamp()} - ${testId}: Test run ended.\n----------------------------------------\n`));
     }
     // creates default configuration with text connector
     private getConfiguration() {
