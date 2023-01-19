@@ -19,12 +19,12 @@ export const gravityLogLevelNames: Record<LogLevelName, string> = {
 } as const;
 
 export const rhinoLogLevelNames: Record<LogLevelName, string> = {
-    debug: "DBG",
-    trace: "TRC",
-    information: "INF",
-    warning: "WRN",
-    error: "ERR",
-    fatal: "FTL"
+    debug: "DEBUG",
+    trace: "TRACE",
+    information: "INFO",
+    warning: "WARN",
+    error: "ERROR",
+    fatal: "FATAL"
 } as const;
 
 

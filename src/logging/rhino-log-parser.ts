@@ -1,5 +1,5 @@
 import { Utilities } from "../extensions/utilities";
-import { RhinoLogMessage } from "./log-models";
+import { LogLevel, LogLevelName, rhinoLogLevelNames, RhinoLogMessage } from "./log-models";
 import { isLogLevelName } from "./log-models-typeguards";
 
 
@@ -72,12 +72,17 @@ export class RhinoLogParser {
     }
 
     /**
-     * Attempts to find the Rhino Log Level from the log message. If successful, returns it, otherwise returns 'TRACE'.
+     * Attempts to find the Rhino Log Level from the log message. If successful, returns it, otherwise returns 'trace'.
      * 
      * @param logMessage 
      */
     public static getRhinoLogLevel(logMessage: string) {
-        let logLevel = Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.logLevelToken)).toLowerCase();
+        let logLevel = Utilities.getFirstRegexMatch(logMessage.match(RhinoLogParser.rhinoLogTokens.logLevelToken));
+        logLevel = (Object.keys(rhinoLogLevelNames) as Array<LogLevelName>).find(key => rhinoLogLevelNames[key] === logLevel) ?? logLevel;
+
+        if(!isLogLevelName(logLevel)){
+            console.warn(`Unrecognized log level. ${logMessage}`);
+        }
         return isLogLevelName(logLevel) ? logLevel : 'trace';
     }
 
