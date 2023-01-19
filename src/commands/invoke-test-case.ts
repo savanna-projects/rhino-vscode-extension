@@ -139,7 +139,7 @@ export class InvokeTestCaseCommand extends Command {
         if (this.loggerConfig?.enableClientSideLogging) {
             this.displayRunLog(stopCondition, testId, 1000);
         }
-        
+
         // invoke
         this.getRhinoClient().invokeConfiguration(configuration, (testRun: any) => {
             let _testRun = JSON.parse(testRun);
@@ -156,7 +156,7 @@ export class InvokeTestCaseCommand extends Command {
                 console.error(error);
                 vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke was not completed");
             }
-            finally{
+            finally {
                 runEnded = true;
             }
         });
@@ -174,7 +174,7 @@ export class InvokeTestCaseCommand extends Command {
         let logger = this.testRunLogger;
         logger.show();
 
-        logger.appendLine(`\n----------------------------------------\n${Utilities.getTimestamp()} - ${testId}: Test run started.\n----------------------------------------\n`)
+        logger.appendLine(`\n----------------------------------------\n${Utilities.getTimestamp()} - ${testId}: Test run started.\n----------------------------------------\n`);
 
 
         let logParser = new ServerLogService(this.getRhinoClient());
