@@ -8,6 +8,7 @@
  */
 import { HttpCommand } from "./http-command";
 import { HttpClient } from "./http-client";
+import { ResourceModel } from "../contracts/register-data-model";
 
 export class RhinoClient {
     // members
@@ -367,7 +368,7 @@ export class RhinoClient {
      * 
      * @param createModel Rhino Resources spec.
      */
-    public async createResources(createModel: any[]) {
+    public async createResources(createModel: ResourceModel[]) {
         // setup
         let httpCommand = new HttpCommand()
             .setMethod('POST')

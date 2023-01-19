@@ -12,6 +12,7 @@ import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
 import { Command } from "./command";
 import { ConnectServerCommand } from './connect-server';
+import { ResourceModel } from '../contracts/register-data-model';
 
 export class RegisterResourcesCommand extends Command {
     /**
@@ -77,7 +78,7 @@ export class RegisterResourcesCommand extends Command {
                 resourcesMap.set(resourceFile, resourceContent);
             }
 
-            const resources = [];
+            const resources: ResourceModel[] = [];
 
             for (const [key, value] of resourcesMap) {
                 resources.push({
@@ -106,7 +107,7 @@ export class RegisterResourcesCommand extends Command {
         return '';
     }
 
-    private registerResources(createModel: any[]) {
+    private registerResources(createModel: ResourceModel[]) {
         this.getRhinoClient().createResources(createModel).then(() => {
             // setup
             let total = createModel.length;
