@@ -1,11 +1,11 @@
 import { LogLevelName } from "./log-models";
 import { isLogLevelName } from "./log-models-typeguards";
 
-
 export interface SourceOptions {
     sourcesFilterLogic: 'Include' | 'Exclude';
     sources: string[];
 }
+
 /**
  * Options for determining which source and log levels to write to channel output.
  */
@@ -23,9 +23,6 @@ export class LoggerOptions {
      */
     public sourceOptions: SourceOptions = { sourcesFilterLogic: 'Exclude', sources: [] };
 
-    /**
-     * 
-     */
     constructor(init?: Partial<LoggerOptions>) {
         if (init?.logLevel) {
             let logLevelName = init.logLevel.toLowerCase();
@@ -33,5 +30,4 @@ export class LoggerOptions {
         }
         Object.assign(this, init);
     }
-
 }
