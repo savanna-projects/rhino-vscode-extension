@@ -40,13 +40,12 @@
 			{
 				"command": "Invoke-TestCase -All",
 				"category": "Rhino",
-				"title": "Runs all the automation test(s) under this projects"
+				"title": "Runs all the automation test under the project"
 			},
 			{
 				"command": "Invoke-TestCase -Folder",
 				"category": "Rhino",
-				"title": "Runs the automation test(s) from the currently selected folder",
-				"icon": "$(testing-run-all-icon)"
+				"title": "Invoke Tests"
 			},
 			{
 				"command": "Register-Environment",
@@ -141,11 +140,28 @@
 			}
 		],
 		"menus": {
+			"commandPalette": [
+				{
+					"command": "Invoke-TestCase -Folder",
+					"when": "false"
+				}
+			],
 			"editor/context": [
 				{
 					"command": "Get-Documentation",
 					"when": "resourceLangId == rhino",
 					"group": "navigation"
+				},
+				{
+					"command": "Invoke-TestCase",
+					"when": "resourceLangId == rhino",
+					"group": "navigation"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "Invoke-TestCase -Folder",
+					"when": "explorerResourceIsFolder"
 				}
 			],
 			"view/title": [
