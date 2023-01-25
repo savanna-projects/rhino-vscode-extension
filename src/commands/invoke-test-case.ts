@@ -46,10 +46,14 @@ export class InvokeTestCaseCommand extends Command {
     }
 
     private createLogger() {
+        this.setLoggerConfig();
+        let loggerOptions = this.extractLoggerOptions();
         if (!this.testRunLogger) {
-            this.setLoggerConfig();
-            let loggerOptions = this.extractLoggerOptions();
+            
             this.testRunLogger = new RhinoLogger("Test Run Log", loggerOptions);
+        }
+        else{
+            this.testRunLogger.setLoggerOptions(loggerOptions);
         }
     }
 
@@ -124,15 +128,20 @@ export class InvokeTestCaseCommand extends Command {
         // notification
         vscode.window.setStatusBarMessage('$(sync~spin) Invoking test case(s)...');
 
-        var runEnded = false;
-        var stopCondition = () => runEnded;
+        let runEnded = false;
+        let stopCondition = () => runEnded;
+
+        let configuration = this.getConfiguration();
+        let invokedTest: string = configuration.testsRepository[0];
+
+        let testId = this.extractTestId(invokedTest);
 
         if (this.loggerConfig?.enableClientSideLogging) {
-            this.displayRunLog(stopCondition, 1000);
+            this.displayRunLog(stopCondition, testId, 1000);
         }
 
         // invoke
-        this.getRhinoClient().invokeConfiguration(this.getConfiguration(), (testRun: any) => {
+        this.getRhinoClient().invokeConfiguration(configuration, (testRun: any) => {
             let _testRun = JSON.parse(testRun);
             _testRun.actual === true
                 ? vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke completed w/o test(s) failures")
@@ -147,6 +156,9 @@ export class InvokeTestCaseCommand extends Command {
                 console.error(error);
                 vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke was not completed");
             }
+            finally {
+                runEnded = true;
+            }
         });
     }
     /**
@@ -154,13 +166,16 @@ export class InvokeTestCaseCommand extends Command {
      * @param stopCondition The condition after which
      * @param interval Interval, in milliseconds, to get the log. Default is 1000ms
      */
-    private async displayRunLog(stopCondition: (...args: any) => boolean, interval?: number): Promise<void> {
+    private async displayRunLog(stopCondition: (...args: any) => boolean, testId: string, interval?: number): Promise<void> {
         this.createLogger();
         if (!this.testRunLogger) {
             throw new Error(`No test run logger created!`);
         }
         let logger = this.testRunLogger;
         logger.show();
+
+        logger.appendLine(`\n----------------------------------------\n${Utilities.getTimestamp()} - ${testId}: Test run started.\n----------------------------------------\n`);
+
 
         let logParser = new ServerLogService(this.getRhinoClient());
         let numberOfLines = 200;
@@ -186,7 +201,7 @@ export class InvokeTestCaseCommand extends Command {
             }
         };
 
-        Utilities.poll(logging, stopCondition, interval ?? 1000).then(() => logger.appendLine(`${Utilities.getTimestamp()} - Test run ended.`));
+        Utilities.poll(logging, stopCondition, interval ?? 1000).then(() => logger.appendLine(`\n----------------------------------------\n${Utilities.getTimestamp()} - ${testId}: Test run ended.\n----------------------------------------\n`));
     }
     // creates default configuration with text connector
     private getConfiguration() {
@@ -218,5 +233,10 @@ export class InvokeTestCaseCommand extends Command {
 
         // get
         return text.split('>>>').map(i => i.trim());
+    }
+
+    private extractTestId(test: string): string {
+        let matches = test.match(/(?<=\[test-id\](\s)*)\S+(?=\\n|\n)/g);
+        return matches ? matches[0] : '';
     }
 }

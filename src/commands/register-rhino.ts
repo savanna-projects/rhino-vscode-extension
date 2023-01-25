@@ -11,6 +11,7 @@ import { Command } from "./command";
 import { ConnectServerCommand } from './connect-server';
 import { InvokeTestCaseCommand } from './invoke-test-case';
 import { RegisterPluginsCommand } from './register-plugins';
+import { RegisterResourcesCommand } from './register-resources';
 import { RegisterTestCaseCommand } from './register-test-case';
 import { RegisterModelsCommand } from './register-models';
 import { GetTestCaseCommand } from './get-test-case';
@@ -25,6 +26,7 @@ import { RhinoDocumentSymbolProvider } from '../providers/rhino-symbol-provider'
 import { RhinoDefinitionProvider } from '../providers/rhino-definition-provider';
 import { UpdateSymbolsCommand } from './update-symbols';
 import { CreateProjectCommand } from './create-project';
+import { InvokeTestCasesCommand } from './invoke-test-cases';
 
 export class RegisterRhinoCommand extends Command {
     /**
@@ -114,9 +116,11 @@ export class RegisterRhinoCommand extends Command {
             new GetTestCaseCommand(context),
             new InvokeAllTestCasesCommand(context),
             new InvokeTestCaseCommand(context),
+            new InvokeTestCasesCommand(context),
             new RegisterEnvironmentCommand(context),
             new RegisterModelsCommand(context),
             new RegisterPluginsCommand(context),
+            new RegisterResourcesCommand(context),
             new RegisterTestCaseCommand(context),
             new UpdateSymbolsCommand(context),
             new ConnectServerCommand(context)

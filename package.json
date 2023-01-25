@@ -3,7 +3,7 @@
 	"publisher": "RhinoAPI",
 	"displayName": "rhino-language-support",
 	"description": "",
-	"version": "2.2.16",
+	"version": "2.2.18",
 	"icon": "images/128x128.png",
 	"repository": {
 		"url": "https://github.com/savanna-projects/rhino-vscode-extension.git"
@@ -40,13 +40,12 @@
 			{
 				"command": "Invoke-TestCase -All",
 				"category": "Rhino",
-				"title": "Runs all the automation test(s) under this projects"
+				"title": "Runs all the automation test under the project"
 			},
 			{
 				"command": "Invoke-TestCase -Folder",
 				"category": "Rhino",
-				"title": "Runs the automation test(s) from the currently selected folder",
-				"icon": "$(testing-run-all-icon)"
+				"title": "Invoke Tests"
 			},
 			{
 				"command": "Register-Environment",
@@ -62,6 +61,11 @@
 				"command": "Register-Plugins",
 				"category": "Rhino",
 				"title": "Register all the plugins under 'Plugins' folder"
+			},
+			{
+				"command": "Register-Resources",
+				"category": "Rhino",
+				"title": "Register all the resources under 'Resources' folder"
 			},
 			{
 				"command": "Connect-Server",
@@ -136,11 +140,28 @@
 			}
 		],
 		"menus": {
+			"commandPalette": [
+				{
+					"command": "Invoke-TestCase -Folder",
+					"when": "false"
+				}
+			],
 			"editor/context": [
 				{
 					"command": "Get-Documentation",
 					"when": "resourceLangId == rhino",
 					"group": "navigation"
+				},
+				{
+					"command": "Invoke-TestCase",
+					"when": "resourceLangId == rhino",
+					"group": "navigation"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "Invoke-TestCase -Folder",
+					"when": "explorerResourceIsFolder"
 				}
 			],
 			"view/title": [
@@ -204,12 +225,12 @@
 		"@types/mocha": "^8.2.3",
 		"@types/node": "^12.20.47",
 		"@types/vscode": "^1.65.0",
-		"@typescript-eslint/eslint-plugin": "^4.33.0",
-		"@typescript-eslint/parser": "^4.33.0",
-		"eslint": "^7.32.0",
+		"@typescript-eslint/eslint-plugin": "^5.48.2",
+		"@typescript-eslint/parser": "^5.48.2",
+		"eslint": "^8.32.0",
 		"glob": "^7.2.0",
 		"mocha": "^9.2.2",
-		"typescript": "^4.6.2",
+		"typescript": "^4.9.4",
 		"vscode-test": "^1.6.1"
 	},
 	"dependencies": {
