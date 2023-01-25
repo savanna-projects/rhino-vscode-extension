@@ -72,7 +72,7 @@ export class RhinoLogParser {
     }
 
     /**
-     * Attempts to find the Rhino Log Level from the log message. If successful, returns it, otherwise returns 'trace'.
+     * Attempts to find the Rhino Log Level from the log message. If successful, returns it, otherwise returns 'TRACE'.
      * 
      * @param logMessage 
      */
@@ -92,7 +92,7 @@ export class RhinoLogParser {
 
     public static parseRhinoTimestamp(timestamp: string) {
         let elements = timestamp.split(/[-\s:.]/g);
-
+        
         if (!elements.every(x => x !== '')) {
             console.warn(`Empty strings while splitting '${timestamp}'`);
         }
@@ -105,7 +105,7 @@ export class RhinoLogParser {
         let minutes = Number.parseInt(elements[4]);
         let seconds = Number.parseInt(elements[5]);
         let milliseconds = Number.parseInt(elements[6]);
-
+        
         return new Date(years, months - 1, days, hours, minutes, seconds, milliseconds);
     }
 }

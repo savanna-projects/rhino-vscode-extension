@@ -4,7 +4,6 @@ import { RhinoLogParser } from "./rhino-log-parser";
 import { GravityLogParser } from "./gravity-log-parser";
 import { isRhinoLog } from "./log-models-typeguards";
 
-
 type LogType = 'Gravity' | 'Rhino';
 
 interface SplitLogLine {
@@ -13,8 +12,6 @@ interface SplitLogLine {
 }
 
 export class ServerLogParser {
-
-
     public static parseServerLog(log: string): LogMessage[] {
         let messages: LogMessage[] = [];
         if (!log) {
@@ -30,7 +27,6 @@ export class ServerLogParser {
                 messages.push(messageObject);
             }
         });
-
 
         return messages;
     }
@@ -51,17 +47,20 @@ export class ServerLogParser {
             console.warn('Warning - Log is null or empty!');
             return separatedMessages;
         }
+
         let logMessage: SplitLogLine = {} as any;
         let logLines = log.split(/\r\n|\r|\n/);
 
         logLines.forEach((line) => {
             let logType = this.findLogType(line);
+
             if (logType) {
                 if (logMessage?.message && logMessage?.logType) {
                     separatedMessages.push(logMessage);
                 }
                 logMessage = { logType: logType, message: line + os.EOL };
             }
+
             else if (logMessage?.message) {
                 //Temp workaround due to formatting inconsistencies of custom backend plugin logs.
                 if (logMessage.logType !== 'Rhino' && RhinoLogParser.findRhinoApplication(line)) {
@@ -70,9 +69,11 @@ export class ServerLogParser {
                 logMessage.message += line + os.EOL;
             }
         });
+
         if (logMessage?.message) {
             separatedMessages.push(logMessage);
         }
+
         return separatedMessages;
     }
 
@@ -90,5 +91,4 @@ export class ServerLogParser {
             ? RhinoLogParser.parseRhinoTimestamp(message.timeStamp)
             : GravityLogParser.parseGravityTimestamp(message.timeStamp);
     }
-
 }
