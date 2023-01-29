@@ -26,6 +26,7 @@ import { RhinoDocumentSymbolProvider } from '../providers/rhino-symbol-provider'
 import { RhinoDefinitionProvider } from '../providers/rhino-definition-provider';
 import { UpdateSymbolsCommand } from './update-symbols';
 import { CreateProjectCommand } from './create-project';
+import { InvokeTestCasesCommand } from './invoke-test-cases';
 
 export class RegisterRhinoCommand extends Command {
     /**
@@ -115,6 +116,7 @@ export class RegisterRhinoCommand extends Command {
             new GetTestCaseCommand(context),
             new InvokeAllTestCasesCommand(context),
             new InvokeTestCaseCommand(context),
+            new InvokeTestCasesCommand(context),
             new RegisterEnvironmentCommand(context),
             new RegisterModelsCommand(context),
             new RegisterPluginsCommand(context),
