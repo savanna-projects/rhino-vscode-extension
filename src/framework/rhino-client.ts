@@ -142,6 +142,19 @@ export class RhinoClient {
     }
 
     /**
+     * 
+     * Summary. Returns a list of available test case annotations.
+     * use with async/await
+     */
+    // public async getAnnotations(callback: any) {
+    //     // setup
+    //     let httpCommand = new HttpCommand();
+    //     httpCommand.command = '/api/v3/meta/annotations';
+
+    //     // get
+    //     return await this.httpClient.invokeAsyncWebRequest(httpCommand);
+    // }
+    /**
      * Summary. Returns a single available locator.
      * 
      * @param key      The unique identifier by which to find the requested resource.
@@ -197,7 +210,19 @@ export class RhinoClient {
         // get
         this.httpClient.invokeWebRequest(httpCommand, callback);
     }
+ /**
+     * 
+     * Summary. Returns a list of available test case annotations.
+     * use with async/await
+     */
+    // public async getOperators(callback: any) {
+    //     // setup
+    //     let httpCommand = new HttpCommand();
+    //     httpCommand.command = '/api/v3/meta/operators';
 
+    //     // get
+    //     return await this.httpClient.invokeAsyncWebRequest(httpCommand);
+    // }
     /**
      * Summary. Returns a list of available Plugins (both Rhino and Code).
      * 
