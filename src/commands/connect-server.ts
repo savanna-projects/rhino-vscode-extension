@@ -257,10 +257,10 @@ export class ConnectServerCommand extends Command {
             new DataAutoCompleteProvider().setAnnotations(_annotations).register(context);
             vscode.window.setStatusBarMessage('$(testing-passed-icon) Data-Driven snippet(s) loaded');
 
-            // if (callback === null) {
-            //     return;
-            // }
-            // callback(client, context);
+            if (callback === null) {
+                return;
+            }
+            callback(client, context);
         });
     }
 
