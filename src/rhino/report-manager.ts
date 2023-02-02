@@ -380,7 +380,7 @@ export class ReportManager {
         let actionColor = testStep.actual === true ? '#1abb9c' : '#e74c3c';
         let actionSign = testStep.actual === true ? 'P' : 'F';
 
-        let assertions: string[] = [];
+        let assertions = [];
         for (const result of testStep.expectedResults) {
             let assertion = result;
             let assertionHtml = this.buildAssertionsHtml(assertion);
