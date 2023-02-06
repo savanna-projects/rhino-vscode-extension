@@ -72,17 +72,21 @@ export class ConnectServerCommand extends Command {
         // build
         try {
             this.registerActions(client, context, (client: any, context: any) => {
-                // this.registerAnnotations(client, context, (client: any, context: any) => {
+                this.registerAnnotations(client, context, (client: any, context: any) => {
                     this.registerAssertions(client, context, (client: any, context: any) => {
                         this.registerMacros(client, context, (client: any, context: any) => {
-                            this.registerDataDrivenSnippet(client, context, (client: any, context: any) => {
+                            this.registerDataDrivenSnippet(client, context, annotations, (client: any, context: any) => {
                                 this.registerModels(client, context, () => {
+                                    let contextData = {
+                                        action: "",
+                                        annotate: ""
+                                    };
                                     new CreateTm(context).invokeCommand();
                                 });
                             });
                         });
                     });
-                // });
+                });
             });
         } catch (error) {
             console.error(error);
@@ -167,23 +171,23 @@ export class ConnectServerCommand extends Command {
         vscode.window.setStatusBarMessage('$(sync~spin) Loading annotations(s)...');
         console.log(`${new Date().getTime()} - Start loading annotations`);
 
-        // // build
-        // client.getAnnotations((annotations: any) => {
-        //     let manifests = JSON.parse(annotations);
-        //     new AnnotationsAutoCompleteProvider().setManifests(manifests).register(context);
+        // build
+        client.getAnnotations((annotations: any) => {
+            let manifests = JSON.parse(annotations);
+            new AnnotationsAutoCompleteProvider().setManifests(manifests).register(context);
 
-        //     console.info('Get-Plugins -Type Annotations = (OK, ' + manifests.length + ')');
-        //     let message = '$(testing-passed-icon) Total of ' + manifests.length + ' annotation(s) loaded';
-        //     vscode.window.setStatusBarMessage(message);
+            console.info('Get-Plugins -Type Annotations = (OK, ' + manifests.length + ')');
+            let message = '$(testing-passed-icon) Total of ' + manifests.length + ' annotation(s) loaded';
+            vscode.window.setStatusBarMessage(message);
 
-        //     // dependent providers
-        //     new ParametersAutoCompleteProvider().setManifests(manifests).register(context);
+            // dependent providers
+            new ParametersAutoCompleteProvider().setManifests(manifests).register(context);
 
-        //     if (callback === null) {
-        //         return;
-        //     }
-        //     callback(client, context);
-        // });
+            if (callback === null) {
+                return;
+            }
+            callback(client, context);
+        });
     }
 
     private registerAssertions(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
@@ -246,13 +250,13 @@ export class ConnectServerCommand extends Command {
         });
     }
 
-    private async registerDataDrivenSnippet(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
+    private async registerDataDrivenSnippet(client: RhinoClient, context: vscode.ExtensionContext, annotations: any, callback: any) {
         // user interface
         vscode.window.setStatusBarMessage('$(sync~spin) Loading data-driven snippet(s)...');
         console.log(`${new Date().getTime()} - Start loading data-driven snippet(s)`);
 
         // build
-        client.getAnnotations((annotations: any) => {
+        // client.getAnnotations((annotations: any) => {
             let _annotations = JSON.parse(annotations);
             new DataAutoCompleteProvider().setAnnotations(_annotations).register(context);
             vscode.window.setStatusBarMessage('$(testing-passed-icon) Data-Driven snippet(s) loaded');
@@ -261,7 +265,7 @@ export class ConnectServerCommand extends Command {
                 return;
             }
             callback(client, context);
-        });
+        // });
     }
 
     private registerModels(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
