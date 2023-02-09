@@ -1,7 +1,6 @@
 import { LogLevelName } from "./log-models";
 import { isLogLevelName } from "./log-models-typeguards";
 
-
 export interface SourceOptions {
     sourcesFilterLogic: 'Include' | 'Exclude';
     sources: string[];
