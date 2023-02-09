@@ -380,12 +380,10 @@ export class ReportManager {
         let actionColor = testStep.actual === true ? '#1abb9c' : '#e74c3c';
         let actionSign = testStep.actual === true ? 'P' : 'F';
 
-        // get expected results
         let assertions = [];
         for (const result of testStep.expectedResults) {
             let assertion = result;
-            let assertionColor = assertion.actual === true ? '#000000' : '#e74c3c';
-            let assertionHtml = `<pre style="color: ${assertionColor}">${assertion.expectedResult}</pre>`;
+            let assertionHtml = this.buildAssertionsHtml(assertion);
             assertions.push(assertionHtml);
         }
         let assertionsHtml = assertions.join('<br />');
@@ -399,4 +397,32 @@ export class ReportManager {
             <td style="width: 10%; vertical-align: top;"><pre style="color: #3498db">${testStep.runTime.substr(0, 11)}</pre></td>
         </tr>`;
     }
+
+    private buildAssertionsHtml(assertion: any): string {
+        let assertionHtml: string;
+        let assertionColor = '#000000';
+        if (assertion.actual === false) {
+            assertionColor = '#e74c3c';
+            let actual = this.getActualValue(assertion.reasonPhrase);
+            assertionHtml = `<pre style="color: ${assertionColor}">${assertion.expectedResult}
+                                <br />actual value:"${actual}"                                
+                                </pre>`;
+        }
+        else {
+            assertionHtml = `<pre style="color: ${assertionColor}">${assertion.expectedResult}</pre>`;
+        }
+        return assertionHtml;
+    }
+
+    private getActualValue(reasonPhrase: unknown) {
+        let actual: string = "not found";
+        if (typeof reasonPhrase === 'string') {
+            let findActual = reasonPhrase.match(new RegExp("(?<=Actual: ).*(?=)"));
+            if (findActual) {
+                actual = findActual[0];
+            }
+        }
+        return actual;
+    }
+
 }
