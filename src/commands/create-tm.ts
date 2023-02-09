@@ -11,8 +11,12 @@ import { Command } from "./command";
 import * as vscode from 'vscode';
 import { Utilities } from "../extensions/utilities";
 import { RhinoClient } from "../framework/rhino-client";
+import { LogMessage } from "../logging/log-models";
 
 export class CreateTm extends Command {
+    // private rhinoClient: RhinoClient;
+    // private messagesCache: Map<string, LogMessage> = new Map<string, LogMessage>();
+    
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
@@ -23,6 +27,8 @@ export class CreateTm extends Command {
 
         // build
         this.setCommandName('Create-TmLanguage');
+        //(in the constructure) , rhinoClient: RhinoClient
+        // this.rhinoClient = rhinoClient;
     }
 
     /*┌─[ REGISTER ]───────────────────────────────────────────
@@ -80,19 +86,28 @@ export class CreateTm extends Command {
             });
         });
     }
-
+///
+    // public async getOperators(): Promise<string[] | undefined> {
+    //     return await this.rhinoClient.getServerLogs().then((result) => {
+    //         if (typeof result === 'string') {
+    //             let logNames: string[] = JSON.parse(result);
+    //             return logNames;
+    //         }
+    //     });
+    // }
+///
     private getMetadata(client: RhinoClient, plugins: any, configurationId: string) {
         client.getOperators((operators: any) => {
             client.getVerbs((verbs: any) => {
                 client.getAssertions((assertions: any) => {
                     client.getLocators((locators: any) => {
-                        client.getAnnotations((annotations: any) => {
+                        // client.getAnnotations((annotations: any) => {
                             const _plugins = JSON.parse(plugins);
                             const _operators = JSON.parse(operators);
                             const _verbs = JSON.parse(verbs);
                             const _assertions = JSON.parse(assertions);
                             const _locators = JSON.parse(locators);
-                            const _annotations = JSON.parse(annotations).map((i: any) => i.key.trim());
+                            // const _annotations = JSON.parse(annotations).map((i: any) => i.key.trim());
 
                             // build
                             let nameClass = _plugins.map((i: any) => i.literal);
@@ -106,8 +121,8 @@ export class CreateTm extends Command {
                             functions.push(..._locators.map((i: any) => '(?<=\\{)' + i.literal + '(?=})'));
 
                             // create
-                            let tmLanguage = this.getTmConfiguration(nameClass, keywordControl, functions, _annotations);
-                            Utilities.updateTmConfiguration(this.getContext(), JSON.stringify(tmLanguage));
+                            // let tmLanguage = this.getTmConfiguration(nameClass, keywordControl, functions, _annotations);
+                            // Utilities.updateTmConfiguration(this.getContext(), JSON.stringify(tmLanguage));
                             vscode.window.setStatusBarMessage('$(testing-passed-icon) TM Language loaded');
 
                             // cleanup
@@ -118,7 +133,7 @@ export class CreateTm extends Command {
                     });
                 });
             });
-        });
+        // });
     }
 
     private getTmConfiguration(nameClass: string[], keywordControl: string[], functions: string[], annotations: string[]) {
