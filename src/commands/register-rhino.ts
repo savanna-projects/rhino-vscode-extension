@@ -7,7 +7,7 @@
  * TODO: create a register which automatically resolves all commands/providers in the domain.
  */
 import * as vscode from 'vscode';
-import { Command } from "./command";
+import { CommandBase } from "./command-base";
 import { ConnectServerCommand } from './connect-server';
 import { InvokeTestCaseCommand } from './invoke-test-case';
 import { RegisterPluginsCommand } from './register-plugins';
@@ -15,29 +15,39 @@ import { RegisterResourcesCommand } from './register-resources';
 import { RegisterTestCaseCommand } from './register-test-case';
 import { RegisterModelsCommand } from './register-models';
 import { GetTestCaseCommand } from './get-test-case';
-import { InvokeAllTestCasesCommand } from './invoke-all-test-cases';
 import { RegisterEnvironmentCommand } from './register-environment';
 import { GetDocumentationCommand } from './get-documentation';
-import { TestCaseFormatter } from '../formatters/test-case-formatter';
 import { DocumentsProvider } from '../providers/documents-provider';
 import { PipelinesProvider } from '../providers/pipelines-provider';
 import { ScriptsProvider } from '../providers/scripts-provider';
-import { RhinoDocumentSymbolProvider } from '../providers/rhino-symbol-provider';
 import { RhinoDefinitionProvider } from '../providers/rhino-definition-provider';
 import { UpdateSymbolsCommand } from './update-symbols';
 import { CreateProjectCommand } from './create-project';
+import { TmLanguageCreateModel } from '../models/tm-create-model';
+import { TestCaseFormatter } from '../formatters/test-case-formatter';
+import { Logger } from '../logging/logger';
+import { InvokeTestCasesCommand } from './invoke-test-cases';
+import { RhinoDocumentSymbolProvider } from '../providers/rhino-document-symbol-provider';
 
-export class RegisterRhinoCommand extends Command {
+export class RegisterRhinoCommand extends CommandBase {
+    // members: static
+    private readonly _logger: Logger;
+
+    // members: state
+    private readonly _createModel: TmLanguageCreateModel | Promise<TmLanguageCreateModel>;
+
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
      * @param context The context under which to register the command.
      */
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext, createModel: TmLanguageCreateModel | Promise<TmLanguageCreateModel>) {
         super(context);
 
         // build
-        this.setCommandName('Register-Rhino');
+        this._logger = super.logger?.newLogger('RegisterRhinoCommand');
+        this._createModel = createModel;
+        this.command = 'Register-Rhino';
     }
 
     /*┌─[ REGISTER & INVOKE ]──────────────────────────────────
@@ -49,42 +59,40 @@ export class RegisterRhinoCommand extends Command {
      * Summary. Register a command for connecting the Rhino Server and loading all
      *          Rhino Language metadata.
      */
-    public register(): any {
+    protected async onRegister(): Promise<any> {
+        // setup
+        const createModel = await this._createModel;
+        const logger = this._logger;
+
         // register command
-        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
-            this.invoke();
+        let command = vscode.commands.registerCommand(this.command, async () => {
+            await this.invokeCommand();
         });
 
         // register formatters
-        this.getRhinoClient().getAnnotations((annotationsResponse: any) => {
-            let annotations = JSON.parse(annotationsResponse);
-            let testCaseFormatter = new TestCaseFormatter(this.getContext(), annotations);
+        let annotations = createModel.annotations;
+        let testCaseFormatter = new TestCaseFormatter(this.context, annotations);
 
-            vscode.languages.registerDocumentFormattingEditProvider('rhino', {
-                provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.TextEdit[] {
-                    return testCaseFormatter.format(document, () => {
-                        console.log('Format-Document = OK');
-                    });
-                }
-            });
+        vscode.languages.registerDocumentFormattingEditProvider('rhino', {
+            provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.TextEdit[] {
+                return testCaseFormatter.format(document, () => {
+                    logger?.trace('Format-Document = OK');
+                });
+            }
         });
 
         // set
-        this.getContext().subscriptions.push(command);
+        this.context.subscriptions.push(command);
     }
 
     /**
      * Summary. Implement the command invoke pipeline.
      */
-    public invokeCommand() {
-        this.invoke();
-    }
-
-    // invocation routine
-    private invoke() {
+    protected async onInvokeCommand(): Promise<any> {
         // setup
-        let context = this.getContext();
-        let subscriptions = context.subscriptions;
+        const createModel = await this._createModel;
+        const context = this.context;
+        const subscriptions = context.subscriptions;
 
         // clear
         for (let i = 0; i < subscriptions.length; i++) {
@@ -94,10 +102,11 @@ export class RegisterRhinoCommand extends Command {
 
         // TODO: get by reflection
         // commands list
+        let connectCommand = new ConnectServerCommand(context, createModel);
         let commands = [
             // main command (must be first)
             new CreateProjectCommand(context),
-            new RegisterRhinoCommand(context),
+            new RegisterRhinoCommand(context, Promise.resolve(createModel)),
 
             // explorer views
             new DocumentsProvider(context),
@@ -113,24 +122,26 @@ export class RegisterRhinoCommand extends Command {
             // commands
             new GetDocumentationCommand(context),
             new GetTestCaseCommand(context),
-            new InvokeAllTestCasesCommand(context),
+            new InvokeTestCasesCommand(context),
+            new InvokeTestCaseCommand(context),
             new InvokeTestCaseCommand(context),
             new RegisterEnvironmentCommand(context),
-            new RegisterModelsCommand(context),
-            new RegisterPluginsCommand(context),
-            new RegisterResourcesCommand(context),
+            new RegisterModelsCommand(context, createModel),
+            new RegisterPluginsCommand(context, createModel),
+            new RegisterResourcesCommand(context, createModel),
             new RegisterTestCaseCommand(context),
             new UpdateSymbolsCommand(context),
-            new ConnectServerCommand(context)
+            connectCommand.syncData(true)
         ];
 
         // register
-        commands.forEach(element => {
+        for (const command of commands) {
             try {
-                element.register();   
-            } catch (error) {
+                command.register();
+            } catch (error: any) {
                 console.warn(error);
+                this._logger?.warning(error.message, error);
             }
-        });
+        }
     }
 }

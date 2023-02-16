@@ -4,21 +4,19 @@
  * RESOURCES
  */
 import * as vscode from 'vscode';
-import { ExtensionSettings } from '../extension-settings';
-import { Provider } from './provider';
+import { Settings } from '../constants/settings';
+import { ProviderBase } from './provider-base';
 
-export class MacrosAutoCompleteProvider extends Provider {
-    // members
-    private manifests: any[];
-    private references: number[];
+export class MacrosAutoCompleteProvider extends ProviderBase {
+    // properties
+    public manifests: any[] = [];
+    public references: number[] = [];
 
     /**
-     * Creates a new instance of CommandsProvider
+     * Creates a new instance of Provider
      */
-    constructor() {
-        super();
-        this.manifests = [];
-        this.references = [];
+    constructor(context: vscode.ExtensionContext) {
+        super(context);
     }
 
     /*┌─[ ABSTRACT IMPLEMENTATION ]────────────────────────────
@@ -28,19 +26,19 @@ export class MacrosAutoCompleteProvider extends Provider {
     /**
      * Summary. Register all providers into the given context. 
      */
-    public register(context: vscode.ExtensionContext) {
+    protected async onRegister(context: vscode.ExtensionContext): Promise<void> {
         // setup
-        let instance = new MacrosAutoCompleteProvider().setManifests(this.manifests);
+        const instance = this;
 
         // register: assertions
-        let macros = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let macros = vscode.languages.registerCompletionItemProvider(Settings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getMacrosCompletionItems(document, position);
             }
         }, '$');
 
         // register: methods
-        let parameters = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let parameters = vscode.languages.registerCompletionItemProvider(Settings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getMacrosParameters(document, position);
             }
@@ -56,27 +54,12 @@ export class MacrosAutoCompleteProvider extends Provider {
         }
     }
 
-    /**
-     * Summary. Sets the collection of plugins references as returns by Rhino Server.
-     * 
-     * @param manifests A collection of plugins references as returns by Rhino Server.
-     * @returns Self reference.
-     */
-    public setManifests(manifests: any) {
-        // setup
-        this.manifests = manifests;
-
-        // get
-        return this;
-    }
-
     /*┌─[ AUTO-COMPLETE ITEMS BEHAVIOR ]───────────────────────
       │
       │ A collection of functions to factor auto-complete items
       │ behavior for macros.
       └────────────────────────────────────────────────────────*/
-    private getMacrosCompletionItems(document: vscode.TextDocument, position: vscode.Position)
-        : vscode.CompletionItem[] {
+    private getMacrosCompletionItems(document: vscode.TextDocument, position: vscode.Position) : vscode.CompletionItem[] {
         // setup
         let matches = document.lineAt(position).text.match('(?<=.*){{\\$');
 
@@ -98,8 +81,7 @@ export class MacrosAutoCompleteProvider extends Provider {
         return [...new Map(items.map(item => [item.label, item])).values()].sort();
     }
 
-    private getMacrosParameters(document: vscode.TextDocument, position: vscode.Position)
-        : vscode.CompletionItem[] {
+    private getMacrosParameters(document: vscode.TextDocument, position: vscode.Position): vscode.CompletionItem[] {
         // setup
         let line = document.lineAt(position.line).text;
         let end = position.character;

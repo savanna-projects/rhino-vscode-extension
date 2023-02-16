@@ -8,8 +8,8 @@ import { Formatter } from "./formatter";
 
 export class TestCaseFormatter extends Formatter {
     // members:
-    private annotations: any[];
-    private excluded = [
+    private readonly _annotations: any[];
+    private readonly _excluded = [
         "test-actions",
         "test-expected-results",
         "test-data-provider",
@@ -27,7 +27,7 @@ export class TestCaseFormatter extends Formatter {
      */
     constructor(context: vscode.ExtensionContext, annotations: any[]) {
         super(context);
-        this.annotations = annotations;
+        this._annotations = annotations;
     }
 
     public format(document: vscode.TextDocument, callback: any): vscode.TextEdit[] {
@@ -38,9 +38,9 @@ export class TestCaseFormatter extends Formatter {
         // iterate
         for (let i = 0; i < documentEntities.length; i++) {
             const documentEntity = documentEntities[i].split(/\r?\n|\n\r?/).map(i => i.trim());
-            let metadataFormatted = this.formatMetadata(documentEntity, this.annotations);
-            let actionsAndExpected = this.getInvocationSection(documentEntity, this.annotations);
-            let dataSection = this.getDataSection(documentEntity, this.annotations);
+            let metadataFormatted = this.formatMetadata(documentEntity, this._annotations);
+            let actionsAndExpected = this.getInvocationSection(documentEntity, this._annotations);
+            let dataSection = this.getDataSection(documentEntity, this._annotations);
 
             // test level documentation (not under a section)
             for (const line of documentEntity) {
@@ -102,7 +102,7 @@ export class TestCaseFormatter extends Formatter {
             // setup
             let formatMap = this.getMetadataFormatMap(annotations);
             let metadataMap = formatMap
-                .filter(i => !this.excluded.some(j => j === i.key))
+                .filter(i => !this._excluded.some(j => j === i.key))
                 .sort((a, b) => (a.order < b.order ? -1 : 1));
 
             // get
@@ -129,7 +129,7 @@ export class TestCaseFormatter extends Formatter {
     private getMetadataFormatMap(annotations: any[]): any[] {
         // setup
         let metadataMap = annotations
-            .filter(i => !this.excluded.some(j => j === i.key))
+            .filter(i => !this._excluded.some(j => j === i.key))
             .map(i => i.literal.length);
         let maxLength = Math.max(...metadataMap) + 1;
         let map = [];
@@ -167,7 +167,7 @@ export class TestCaseFormatter extends Formatter {
                 .section
                 .map((i: any) => i.type === 'multiline' ? `\t\t${i.action}` : i.action)
                 .filter((i: any) => i !== null && i !== undefined);
-            let assertionsSection = this.buildExpectedSection(expected);
+            let assertionsSection = this.setExpectedSection(expected);
 
             // setup
             let isActions = actionsSection !== null && actionsSection !== undefined && actionsSection.length > 0;
@@ -366,7 +366,7 @@ export class TestCaseFormatter extends Formatter {
         };
     }
 
-    private buildExpectedSection(expectedMap: any): string[] {
+    private setExpectedSection(expectedMap: any): string[] {
         // setup
         let assertions = expectedMap.section.filter((i: any) => i.type === 'assertion' || i.type === 'comment');
         let broken = expectedMap.section.filter((i: any) => i.type === 'broken');

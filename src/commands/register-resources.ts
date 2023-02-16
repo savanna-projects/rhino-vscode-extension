@@ -8,23 +8,37 @@
  * https://code.visualstudio.com/api/extension-guides/webview
  */
 import path = require('path');
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
-import { Command } from "./command";
+import { Logger } from '../logging/logger';
+import { ResourceModel } from '../models/register-data-model';
+import { TmLanguageCreateModel } from '../models/tm-create-model';
+import { CommandBase } from "./command-base";
 import { ConnectServerCommand } from './connect-server';
-import { ResourceModel } from '../contracts/register-data-model';
+import { RhinoClient } from '../clients/rhino-client';
 
-export class RegisterResourcesCommand extends Command {
+export class RegisterResourcesCommand extends CommandBase {
+    // members: static
+    private readonly _logger: Logger;
+
+    // members: static
+    private _createModel: TmLanguageCreateModel;
+
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
      * @param context The context under which to register the command.
      */
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext, createModel: TmLanguageCreateModel) {
         super(context);
 
         // build
-        this.setCommandName('Register-Resources');
+        this.command = 'Register-Resources';
+
+        // create data
+        this._logger = super.logger?.newLogger('RegisterResourcesCommand');
+        this._createModel = createModel;
     }
 
     /*┌─[ REGISTER ]───────────────────────────────────────────
@@ -36,87 +50,87 @@ export class RegisterResourcesCommand extends Command {
      * Summary. Register a command for invoking one or more Rhino Test Case
      *          and present the report.
      */
-    public register(): any {
+    protected async onRegister(): Promise<any> {
         // setup
-        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
-            this.invoke();
+        let command = vscode.commands.registerCommand(this.command, async () => {
+            await this.invokeCommand();
         });
 
         // set
-        this.getContext().subscriptions.push(command);
+        this.context.subscriptions.push(command);
     }
 
     /**
      * Summary. Implement the command invoke pipeline.
      */
-    public invokeCommand() {
-        this.invoke();
-    }
-
-    private invoke() {
+    protected async onInvokeCommand(): Promise<any> {
         // notification
-        vscode.window.setStatusBarMessage('$(sync~spin) Registering resource(s)...');
+        vscode.window.setStatusBarMessage('$(sync~spin) Registering Resource(s)...');
 
         // setup
-        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
-        workspace = workspace === undefined ? '' : workspace;
-        let resourcesFolder = path.join(workspace, 'Resources');
-        resourcesFolder = resourcesFolder.startsWith('\\')
-            ? resourcesFolder.substring(1, resourcesFolder.length)
-            : resourcesFolder;
+        const resourcesFolder = Utilities.getSystemFolderPath('Resources');
+        const files = Utilities.getFiles(resourcesFolder);
+        const resourcesMap = new Map<string, string>();
 
         // iterate
-        Utilities.getFiles(resourcesFolder, (resourcesFiles: string[]) => {
-            const resourcesMap = new Map<string, string>();
-            for (const resourceFile of resourcesFiles) {
-                let resourceContent = this.getResourceFromFile(resourceFile);
+        for (const resourceFile of files) {
+            const resourceContent = this.getResourceFromFile(resourceFile);
 
-                if (!resourceContent) {
-                    continue;
-                }
-
-                resourcesMap.set(resourceFile, resourceContent);
+            if (!resourceContent) {
+                continue;
             }
 
-            const resources: ResourceModel[] = [];
+            resourcesMap.set(resourceFile, resourceContent);
+        }
 
-            for (const [key, value] of resourcesMap) {
-                resources.push({
-                    fileName: path.basename(key),
-                    path: key,
-                    content: value
-                });
-            }
+        const resources: ResourceModel[] = [];
 
-            this.registerResources(resources);
-        });
+        for (const [key, value] of resourcesMap) {
+            resources.push({
+                fileName: path.basename(key),
+                path: key,
+                content: value
+            });
+        }
+
+        await RegisterResourcesCommand.registerResources(
+            this.context,
+            this.client,
+            this._createModel,
+            resources);
     }
 
     private getResourceFromFile(file: string): string {
-        // setup
-        const fs = require('fs');
-
         // get
         try {
             return fs.readFileSync(file, 'utf8');
-        } catch (e) {
-            console.log(e);
+        } catch (error: any) {
+            console.warn(error);
+            this._logger?.warning(error.message, error);
         }
 
         // default
         return '';
     }
 
-    private registerResources(createModel: ResourceModel[]) {
-        this.getRhinoClient().createResources(createModel).then(() => {
-            // setup
-            let total = createModel.length;
+    // TODO: change sync data to true when auto-complete is ready
+    private static async registerResources(
+        context: vscode.ExtensionContext,
+        client: RhinoClient,
+        createModel: TmLanguageCreateModel,
+        requestBody: ResourceModel[]): Promise<void> {
+        // invoke
+        await client.resources.newResources(requestBody);
 
-            // notification
-            vscode.window.setStatusBarMessage('$(testing-passed-icon) Total of ' + total + ' resource(s) registered');
+        // setup
+        let total = requestBody.length;
 
-            // register
-            new ConnectServerCommand(this.getContext()).invokeCommand();
-        });
+        // notification
+        vscode.window.setStatusBarMessage(`$(testing-passed-icon) Total of ${total} Resource(s) Registered`);
+
+        // register
+        await new ConnectServerCommand(context, createModel)
+            .syncData(false)
+            .invokeCommand();
     }
 }

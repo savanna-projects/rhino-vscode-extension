@@ -11,30 +11,30 @@
  */
 import path = require('path');
 import * as vscode from 'vscode';
+import { TreeItem } from '../components/tree-item';
 import { Utilities } from '../extensions/utilities';
-import { TreeItem } from '../contracts/tree-item';
 
 export class PipelinesProvider implements vscode.TreeDataProvider<TreeItem> {
     // members
-    private context: vscode.ExtensionContext;
+    private readonly _context: vscode.ExtensionContext;
 
     // events
     private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | null | void> = new vscode.EventEmitter<TreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
     constructor(context: vscode.ExtensionContext) {
-        this.context = context;
+        this._context = context;
     }
 
-    refresh(): void {
+    public refresh(): void {
         this._onDidChangeTreeData.fire();
     }
 
-    getTreeItem(element: TreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    public getTreeItem(element: TreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
     }
 
-    getChildren(element?: TreeItem | undefined): vscode.ProviderResult<TreeItem[]> {
+    public getChildren(element?: TreeItem | undefined): vscode.ProviderResult<TreeItem[]> {
         // exit conditions
         if (element !== undefined) {
             return element?.children;
@@ -86,7 +86,7 @@ export class PipelinesProvider implements vscode.TreeDataProvider<TreeItem> {
         vscode.window.registerTreeDataProvider('rhinoPipelines', this);
 
         vscode.commands.getCommands().then((commands) => {
-            if(!commands.includes('Update-Pipelines')){
+            if (!commands.includes('Update-Pipelines')) {
                 vscode.commands.registerCommand('Update-Pipelines', () => {
                     this.refresh();
                 });
@@ -95,6 +95,6 @@ export class PipelinesProvider implements vscode.TreeDataProvider<TreeItem> {
 
         // register
         const tree = vscode.window.createTreeView('rhinoPipelines', options);
-        this.context.subscriptions.push(tree);
+        this._context.subscriptions.push(tree);
     }
 }

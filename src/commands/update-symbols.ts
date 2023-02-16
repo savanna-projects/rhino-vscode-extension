@@ -6,10 +6,9 @@
  * CREDITS
  */
 import * as vscode from 'vscode';
-import { RhinoDocumentSymbolProvider } from '../providers/rhino-symbol-provider';
-import { Command } from "./command";
+import { CommandBase } from "./command-base";
 
-export class UpdateSymbolsCommand extends Command {
+export class UpdateSymbolsCommand extends CommandBase {
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
@@ -19,7 +18,7 @@ export class UpdateSymbolsCommand extends Command {
         super(context);
 
         // build
-        this.setCommandName('Update-Symbols');
+        this.command = 'Update-Symbols';
     }
 
     /*┌─[ REGISTER & INVOKE ]──────────────────────────────────
@@ -30,24 +29,20 @@ export class UpdateSymbolsCommand extends Command {
     /**
      * Summary. Register a command for creating an integrated test case.
      */
-    public register(): any {
+    protected async onRegister(): Promise<any> {
         // build
-        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
-            this.invoke(undefined);
+        let command = vscode.commands.registerCommand(this.command, async () => {
+            await this.invokeCommand();
         });
 
         // set
-        this.getContext().subscriptions.push(command);
+        this.context.subscriptions.push(command);
     }
 
     /**
      * Summary. Implement the command invoke pipeline.
      */
-    public invokeCommand(callback: any) {
-        this.invoke(callback);
-    }
-
-    private invoke(callback: any) {
-        callback();
+    protected async onInvokeCommand(): Promise<any> {
+        return;
     }
 }

@@ -7,21 +7,19 @@
  * https://www.freecodecamp.org/news/definitive-guide-to-snippets-visual-studio-code/
  */
 import * as vscode from 'vscode';
-import { ExtensionSettings } from '../extension-settings';
-import { Provider } from './provider';
+import { Settings } from '../constants/settings';
+import { ProviderBase } from './provider-base';
 
-export class AnnotationsAutoCompleteProvider extends Provider {
-    // members
-    private manifests: any[];
-    private references: number[];
+export class AnnotationsAutoCompleteProvider extends ProviderBase {
+    // properties
+    public manifests: any[] = [];
+    public references: number[] = [];
 
     /**
-     * Creates a new instance of CommandsProvider
+     * Creates a new instance of Provider
      */
-    constructor() {
-        super();
-        this.manifests = [];
-        this.references = [];
+    constructor(context: vscode.ExtensionContext) {
+        super(context);
     }
 
     /*┌─[ ABSTRACT IMPLEMENTATION ]────────────────────────────
@@ -31,12 +29,12 @@ export class AnnotationsAutoCompleteProvider extends Provider {
     /**
      * Summary. Register all providers into the given context. 
      */
-    public register(context: vscode.ExtensionContext) {
+    protected async onRegister(context: vscode.ExtensionContext): Promise<void> {
         // setup
-        let instance = new AnnotationsAutoCompleteProvider().setManifests(this.manifests);
+        const instance = this;
 
         // register: actions
-        let annotations = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let annotations = vscode.languages.registerCompletionItemProvider(Settings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getAnnotationsCompletionItems(document, position);
             }
@@ -52,20 +50,14 @@ export class AnnotationsAutoCompleteProvider extends Provider {
         }
     }
 
-    public setManifests(manifests: any) {
-        // setup
-        this.manifests = manifests;
-
-        // get
-        return this;
-    }
-
     /*┌─[ AUTO-COMPLETE ITEMS - ANNOTATIONS ]──────────────────
       │
       │ A collection of functions to factor auto-complete items.
       └────────────────────────────────────────────────────────*/
-    public getAnnotationsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
-        : vscode.CompletionItem[] {
+    private getAnnotationsCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position): vscode.CompletionItem[] {
+
         // setup conditions
         let isProperty = position.character === 1 && document.lineAt(position.line).text[position.character - 1] === '[';
 

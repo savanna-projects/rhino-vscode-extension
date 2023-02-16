@@ -8,20 +8,18 @@
  * https://code.visualstudio.com/api/extension-guides/webview
  */
 import * as vscode from 'vscode';
+import { AgentLogListener } from '../components/agent-log-listener';
+import { ReportManager } from '../components/report-manager';
+import { Channels } from '../constants/channels';
 import { Utilities } from '../extensions/utilities';
-import { RhinoLogger } from '../framework/rhino-logger';
-import { LoggerOptions } from '../logging/logger-options';
-import { ServerLogParser } from '../logging/server-log-parser';
-import { ServerLogService } from '../logging/server-log-service';
-import { LoggerConfig } from '../rhino/manifest-models';
-import { ReportManager } from '../rhino/report-manager';
-import { Command } from "./command";
+import { Logger } from '../logging/logger';
+import { CommandBase } from "./command-base";
 
-let testRunLogger: RhinoLogger | undefined;
-export class InvokeTestCaseCommand extends Command {
-    // members
-    private testCases: string[];
-    private loggerConfig: LoggerConfig | undefined;
+export class InvokeTestCaseCommand extends CommandBase {
+    // members: state
+    private readonly _testCases: string[];
+    private readonly _logConfiguration: LogConfiguration;
+    private readonly _logger: Logger;
 
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
@@ -32,29 +30,10 @@ export class InvokeTestCaseCommand extends Command {
         super(context);
 
         // setup
-        this.testCases = [];
-        this.setCommandName('Invoke-TestCase');
-        this.setLoggerConfig();
-    }
-
-    private extractLoggerOptions(): LoggerOptions {
-        return new LoggerOptions(this.loggerConfig?.loggerOptions);
-    }
-
-    private setLoggerConfig(): void {
-        this.loggerConfig = Utilities.getLoggerConfig(this.getCommandName());
-    }
-
-    private createLogger() {
-        this.setLoggerConfig();
-        let loggerOptions = this.extractLoggerOptions();
-        if (!testRunLogger) {
-            console.info('Creating new Test Run Log');
-            testRunLogger = new RhinoLogger("Test Run Log", loggerOptions);
-        }
-        else{
-            testRunLogger.setLoggerOptions(loggerOptions);
-        }
+        this.command = 'Invoke-TestCase';
+        this._testCases = [];
+        this._logConfiguration = Utilities.getLogConfiguration();
+        this._logger = super.logger?.newLogger('InvokeTestCaseCommand');
     }
 
     /*┌─[ SETTERS ]────────────────────────────────────────────
@@ -70,7 +49,7 @@ export class InvokeTestCaseCommand extends Command {
      */
     public addTestCases(...testCases: string[]): InvokeTestCaseCommand {
         // build
-        this.testCases.push(...testCases);
+        this._testCases.push(...testCases);
 
         // get
         return this;
@@ -92,7 +71,7 @@ export class InvokeTestCaseCommand extends Command {
 
         // build
         let testCases = editor.document.getText().split('>>>');
-        this.testCases.push(...testCases);
+        this._testCases.push(...testCases);
 
         // get
         return this;
@@ -107,109 +86,72 @@ export class InvokeTestCaseCommand extends Command {
      * Summary. Register a command for invoking one or more Rhino Test Case
      *          and present the report.
      */
-    public register(): any {
+    protected async onRegister(): Promise<any> {
         // setup
-        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
-            this.invoke();
+        let command = vscode.commands.registerCommand(this.command, async () => {
+            await this.invokeCommand();
         });
 
         // set
-        this.getContext().subscriptions.push(command);
+        this.context.subscriptions.push(command);
     }
 
     /**
      * Summary. Implement the command invoke pipeline.
      */
-    public invokeCommand() {
-        this.invoke();
-    }
-
-    private invoke() {
-        // notification
-        vscode.window.setStatusBarMessage('$(sync~spin) Invoking test case(s)...');
-
-        let runEnded = false;
-        let stopCondition = () => runEnded;
-
-        let configuration = this.getConfiguration();
-        let invokedTest: string = configuration.testsRepository[0];
-
-        let testId = this.extractTestId(invokedTest);
-
-        if (this.loggerConfig?.enableClientSideLogging) {
-            this.displayRunLog(stopCondition, testId, 1000);
-        }
+    public async onInvokeCommand(): Promise<any> {
+        // setup
+        const listener = new AgentLogListener(Channels.agent, this.client);
+        const configuration = InvokeTestCaseCommand.getConfiguration(this.command, this._testCases);
+        const invokedTest: string = configuration.testsRepository[0];
+        const testId = InvokeTestCaseCommand.getTestId(invokedTest);
 
         // invoke
-        this.getRhinoClient().invokeConfiguration(configuration, (testRun: any) => {
-            let _testRun = JSON.parse(testRun);
-            _testRun.actual === true
-                ? vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke completed w/o test(s) failures")
-                : vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke completed, w/ test(s) failures");
+        try {
+            // log
+            this._logger?.information(`Start-TestSession -Id ${testId} = Ok`);
 
-            console.info(testRun);
-            try {
-                let htmlReport = new ReportManager(_testRun).getHtmlReport();
-                const panel = vscode.window.createWebviewPanel("RhinoReport", "Rhino Report", vscode.ViewColumn.One);
-                panel.webview.html = htmlReport;
-            } catch (error) {
-                console.error(error);
-                vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke was not completed");
+            // user interface
+            vscode.window.setStatusBarMessage('$(sync~spin) Invoking Test Case(s)...');
+
+            // agent log
+            if (this._logConfiguration.agentLogConfiguration.enabled) {
+                listener.channel.show();
+                listener.start();
             }
-            finally {
-                runEnded = true;
-            }
-        });
-    }
-    /**
-     * 
-     * @param stopCondition The condition after which
-     * @param interval Interval, in milliseconds, to get the log. Default is 1000ms
-     */
-    private async displayRunLog(stopCondition: (...args: any) => boolean, testId: string, interval?: number): Promise<void> {
-        this.createLogger();
-        if (!testRunLogger) {
-            throw new Error(`No test run logger created!`);
+
+            // invoke
+            const testRun = await this.client.rhino.invokeConfiguration(configuration);
+
+            // log
+            this._logger?.debug(JSON.stringify(testRun, null, 4));
+            this._logger?.information(`Close-TestSession -Id ${testId} = Ok`);
+
+            // user interface
+            testRun.actual === true
+                ? vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke Completed W/O Failures")
+                : vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke Completed, W/ Failures");
+
+            // static report
+            const htmlReport = new ReportManager(testRun).getHtmlReport();
+            const panel = vscode.window.createWebviewPanel("RhinoReport", "Rhino Report", vscode.ViewColumn.One);
+            panel.webview.html = htmlReport;
+        } catch (error: any) {
+            this._logger?.error(error.message, error.message);
+            vscode.window.setStatusBarMessage(`$(testing-error-icon) ${error.message}`);
         }
-        let logger = testRunLogger;
-        logger.show();
-
-        logger.appendLine(`\n----------------------------------------\n${Utilities.getTimestamp()} - ${testId}: Test run started.\n----------------------------------------\n`);
-
-
-        let logParser = new ServerLogService(this.getRhinoClient());
-        let numberOfLines = 200;
-        let latestLogId = await logParser.getLatestLogId();
-        let runStartTime = new Date();
-        let isAfterRunStart = false;
-
-        let logging = async () => {
-            let log = await logParser.getLog(latestLogId, numberOfLines);
-            let messagesToLog = logParser.parseLog(log ?? "");
-            for (let message of messagesToLog) {
-                if (!isAfterRunStart) {
-                    let logDate = ServerLogParser.parseLogTimestamp(message);
-                    isAfterRunStart = logDate > runStartTime;
-                }
-
-                if (isAfterRunStart) {
-                    logger.append(message);
-                }
-
-                //Wait to slightly stagger writing of logs to channel, allowing easier reading of log continuously.
-                await Utilities.wait(100);
-            }
-        };
-
-        Utilities.poll(logging, stopCondition, interval ?? 1000).then(() => logger.appendLine(`\n----------------------------------------\n${Utilities.getTimestamp()} - ${testId}: Test run ended.\n----------------------------------------\n`));
+        finally {
+            listener.stop();
+        }
     }
+
     // creates default configuration with text connector
-    private getConfiguration() {
+    private static getConfiguration(command: string, testCases: string[]) {
         // setup
-        let testsRepository = this.getCommandName() === 'Invoke-TestCase'
+        const testsRepository = command === 'Invoke-TestCase'
             ? this.getOpenTestCases()
-            : this.testCases;
-        let configuration = Utilities.getConfigurationByManifest();
+            : testCases;
+        const configuration = Utilities.newConfigurationByManifest();
 
         // build
         configuration.testsRepository = testsRepository;
@@ -219,7 +161,7 @@ export class InvokeTestCaseCommand extends Command {
     }
 
     // get test cases from the open document
-    private getOpenTestCases(): string[] {
+    private static getOpenTestCases(): string[] {
         // setup
         let editor = vscode.window.activeTextEditor;
 
@@ -229,14 +171,17 @@ export class InvokeTestCaseCommand extends Command {
         }
 
         // clean
-        let text = Utilities.buildRhinoSpec(editor.document.getText());
+        let text = Utilities.formatRhinoSpec(editor.document.getText());
 
         // get
         return text.split('>>>').map(i => i.trim());
     }
 
-    private extractTestId(test: string): string {
-        let matches = test.match(/(?<=\[test-id\](\s)*)\S+(?=\\n|\n)/g);
+    private static getTestId(test: string): string {
+        //setup
+        const matches = test.match(/(?<=\[test-id\](\s)*)\S+(?=\\n|\n)/g);
+
+        // get
         return matches ? matches[0] : '';
     }
 }

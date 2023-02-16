@@ -2,14 +2,11 @@
  * CHANGE LOG - keep only last 5 threads
  * 
  * RESOURCES
- * 
- * WORK ITEMS
- * TODO: use promises and parallel calls to reduce client creation time
  */
 import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
-import { RhinoClient } from '../framework/rhino-client';
-
+import { Logger } from '../logging/logger';
+import { TmLanguageCreateModel } from '../models/tm-create-model';
 import { ActionsAutoCompleteProvider } from '../providers/actions-auto-complete-provider';
 import { AnnotationsAutoCompleteProvider } from '../providers/annotations-auto-complete-provider';
 import { AssertionsAutoCompleteProvider } from '../providers/assertions-auto-complete-provider';
@@ -17,20 +14,30 @@ import { DataAutoCompleteProvider } from '../providers/data-auto-complete-provid
 import { MacrosAutoCompleteProvider } from '../providers/macros-auto-complete-provider';
 import { ModelsAutoCompleteProvider } from '../providers/models-auto-complete-provider';
 import { ParametersAutoCompleteProvider } from '../providers/parameters-auto-complete-provider';
-import { Command } from "./command";
-import { CreateTm } from './create-tm';
+import { CommandBase } from "./command-base";
+import { CreateTmLanguageCommand } from './create-tm-language';
 import { RegisterRhinoCommand } from './register-rhino';
 
-export class ConnectServerCommand extends Command {
+export class ConnectServerCommand extends CommandBase {
+    // members: static
+    private readonly _logger: Logger;
+
+    // members: state
+    private _createModel: TmLanguageCreateModel | Promise<TmLanguageCreateModel>;
+    private _refresh: boolean = true;
+
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
      * @param context The context under which to register the command.
      */
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext, createModel: TmLanguageCreateModel) {
         super(context);
+
         // build
-        this.setCommandName('Connect-Server');
+        this._logger = super.logger?.newLogger('ConnectServerCommand');
+        this.command = 'Connect-Server';
+        this._createModel = createModel;
     }
 
     /*┌─[ REGISTER & INVOKE ]──────────────────────────────────
@@ -42,243 +49,144 @@ export class ConnectServerCommand extends Command {
      * Summary. Register a command for connecting the Rhino Server and loading all
      *          Rhino Language metadata.
      */
-    public register(): any {
+    protected async onRegister(): Promise<any> {
         // build
-        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
-            this.invoke();
+        let command = vscode.commands.registerCommand(this.command, async () => {
+            await this.invokeCommand();
         });
 
         // set
-        this.getContext().subscriptions.push(command);
+        this.context.subscriptions.push(command);
     }
 
     /**
      * Summary. Implement the command invoke pipeline.
      */
-    public invokeCommand() {
-        this.invoke();
-    }
-
-    // invocation routine
-    private invoke() {
+    protected async onInvokeCommand(): Promise<any> {
         // setup
-        let client = this.getRhinoClient();
-        let context = this.getContext();
+        const context = this.context;
+        const createModel = this._refresh
+            ? await Utilities.getTmCreateObject()
+            : await this._createModel;
 
-        // clean
-        new RegisterRhinoCommand(context).invokeCommand();
-
-        // TODO: optimize calls to run in parallel and create TM when all complete
-        // build
         try {
-            this.registerActions(client, context, (client: any, context: any) => {
-                this.registerAnnotations(client, context, (client: any, context: any) => {
-                    this.registerAssertions(client, context, (client: any, context: any) => {
-                        this.registerMacros(client, context, (client: any, context: any) => {
-                            this.registerDataDrivenSnippet(client, context, (client: any, context: any) => {
-                                this.registerModels(client, context, () => {
-                                    new CreateTm(context).invokeCommand();
-                                });
-                            });
-                        });
-                    });
-                });
-            });
-        } catch (error) {
-            console.error(error);
-            vscode.window.setStatusBarMessage("$(testing-error-icon) Errors occurred connecting to Rhino Server");
+            // clean
+            await new RegisterRhinoCommand(context, Promise.resolve(this._createModel)).invokeCommand();
+
+            // register
+            ConnectServerCommand.registerActionsAutoCompleteProvider(context, createModel);
+            ConnectServerCommand.registerAnnotationsAutoCompleteProvider(context, createModel);
+            ConnectServerCommand.registerAssertionsAutoCompleteProvider(context, createModel);
+            ConnectServerCommand.registerMacrosAutoCompleteProvider(context, createModel);
+            ConnectServerCommand.registerDataAutoCompleteProvider(context, createModel);
+            ConnectServerCommand.registerModelsAutoCompleteProvider(context, createModel);
+
+            // create language
+            new CreateTmLanguageCommand(context, createModel).invokeCommand();
+        } catch (error: any) {
+            // internal server error
+            this._logger?.error(error.message, error);
+            vscode.window.setStatusBarMessage(`$(testing-error-icon) ${error.message}...`);
         }
-
     }
 
-    private registerActions(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
-        // user interface
-        vscode.window.setStatusBarMessage('$(sync~spin) Loading action(s)...');
+    public syncData(sync: boolean): ConnectServerCommand {
+        // set
+        this._refresh = sync;
 
-        console.log(`${new Date().getTime()} - Start loading actions`);
+        // get
+        return this;
+    }
+
+    //#region *** Providers    ***
+    private static async registerActionsAutoCompleteProvider(
+        context: vscode.ExtensionContext,
+        createModel: TmLanguageCreateModel): Promise<void> {
         // setup
-        let configuration = Utilities.getConfigurationByManifest();
+        const manifests = createModel.plugins;
+        const provider = new ActionsAutoCompleteProvider(context);
 
         // build
-        client.createConfiguration(configuration, (data: any) => {
-            console.log(`${new Date().getTime()} - Start register actions create config`, configuration, data);
-            let response = JSON.parse(data);
-            let configurationId = Utilities.isNullOrUndefined(response) || Utilities.isNullOrUndefined(response.id)
-                ? ''
-                : response.id;
-            client.getPluginsByConfiguration(configurationId, (plugins: any) => {
-                console.log(`${new Date().getTime()} - Getting register actions plugins by config`, configurationId);
-                let hasNoPlugins = Utilities.isNullOrUndefined(plugins) || plugins === '';
-                if (hasNoPlugins) {
-                    client.getPlugins((plugins: any) => {
-                        console.log(`${new Date().getTime()} - NO PLUGINS - Getting register actions metadata by config`, configurationId);
-                        this.getMetadata(client, context, plugins, '', callback);
-                    });
-                }
-                else {
-                    console.log(`${new Date().getTime()} - Getting register actions metadata by config`, configurationId);
-                    this.getMetadata(client, context, plugins, configurationId, callback);
-                }
-            });
+        provider.manifests = manifests;
+        provider.locators = createModel.locators;
+        provider.attributes = createModel.attributes;
+        provider.annotations = createModel.annotations;
+        provider.pattern = Utilities.getPluginsPattern(manifests);
 
-        });
+        // register
+        provider.register();
     }
 
-    private getMetadata(client: RhinoClient, context: vscode.ExtensionContext, plugins: any, configurationId: string, callback: any) {
-        client.getLocators((locators: any) => {
-            client.getAttributes((attributes: any) => {
-                client.getAnnotations((annotations: any) => {
-                    let actionsManifests = JSON.parse(plugins);
-                    let _locators = JSON.parse(locators);
-                    let _attributes = JSON.parse(attributes);
-                    let _annotations = JSON.parse(annotations);
-                    let pluginsPattern = Utilities.getPluginsPattern(actionsManifests);
+    private static async registerAnnotationsAutoCompleteProvider(
+        context: vscode.ExtensionContext,
+        createModel: TmLanguageCreateModel): Promise<void> {
+        // setup
+        const annotations = createModel.annotations;
+        const annotationsProvider = new AnnotationsAutoCompleteProvider(context);
+        const parametersProvider = new ParametersAutoCompleteProvider(context);
 
-                    new ActionsAutoCompleteProvider()
-                        .setPattern(pluginsPattern)
-                        .setAttributes(_attributes)
-                        .setManifests(actionsManifests)
-                        .setLocators(_locators)
-                        .setAnnotations(_annotations)
-                        .register(context);
+        // register
+        annotationsProvider.manifests = annotations;
+        annotationsProvider.register();
 
-                    console.info('Get-Plugins -Type Actions = (OK, ' + actionsManifests.length + ')');
-                    let message = '$(testing-passed-icon) Total of ' + actionsManifests.length + ' action(s) loaded';
-                    vscode.window.setStatusBarMessage(message);
-
-                    if (callback === null) {
-                        return;
-                    }
-                    if (configurationId === null || configurationId === '') {
-                        callback(client, context);
-                    }
-                    else {
-                        client.deleteConfiguration(configurationId, () => {
-                            callback(client, context);
-                        });
-                    }
-                });
-            });
-        });
+        parametersProvider.manifests = annotations;
+        parametersProvider.register();
     }
 
-    private registerAnnotations(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
-        // user interface
-        vscode.window.setStatusBarMessage('$(sync~spin) Loading annotations(s)...');
-        console.log(`${new Date().getTime()} - Start loading annotations`);
+    private static async registerAssertionsAutoCompleteProvider(
+        context: vscode.ExtensionContext,
+        createModel: TmLanguageCreateModel): Promise<void> {
+        // setup
+        const provider = new AssertionsAutoCompleteProvider(context);
 
         // build
-        client.getAnnotations((annotations: any) => {
-            let manifests = JSON.parse(annotations);
-            new AnnotationsAutoCompleteProvider().setManifests(manifests).register(context);
+        provider.manifests = createModel.assertions;
+        provider.annotations = createModel.annotations;
+        provider.attributes = createModel.attributes;
+        provider.locators = createModel.locators;
+        provider.operators = createModel.operators;
 
-            console.info('Get-Plugins -Type Annotations = (OK, ' + manifests.length + ')');
-            let message = '$(testing-passed-icon) Total of ' + manifests.length + ' annotation(s) loaded';
-            vscode.window.setStatusBarMessage(message);
-
-            // dependent providers
-            new ParametersAutoCompleteProvider().setManifests(manifests).register(context);
-
-            if (callback === null) {
-                return;
-            }
-            callback(client, context);
-        });
+        // register
+        provider.register();
     }
 
-    private registerAssertions(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
-        // user interface
-        vscode.window.setStatusBarMessage('$(sync~spin) Loading assertion method(s)...');
-        console.log(`${new Date().getTime()} - Start loading assertions`);
+    private static async registerMacrosAutoCompleteProvider(
+        context: vscode.ExtensionContext,
+        createModel: TmLanguageCreateModel): Promise<any> {
+        // setup
+        const provider = new MacrosAutoCompleteProvider(context);
 
         // build
-        client.getAnnotations((annotations: any) => {
-            client.getAssertions((assertions: any) => {
-                client.getAttributes((attributes: any) => {
-                    client.getLocators((locators: any) => {
-                        client.getOperators((operators: any) => {
-                            let manifests = JSON.parse(assertions);
-                            let _annotations = JSON.parse(annotations);
-                            let _locators = JSON.parse(locators);
-                            let _operators = JSON.parse(operators);
-                            let _attributes = JSON.parse(attributes);
-                            new AssertionsAutoCompleteProvider()
-                                .setManifests(manifests)
-                                .setAnnotations(_annotations)
-                                .setAttributes(_attributes)
-                                .setLocators(_locators)
-                                .setOperators(_operators)
-                                .register(context);
+        provider.manifests = createModel.macros;
 
-                            console.info('Get-Plugins -Type AssertionMethod = (OK, ' + manifests.length + ')');
-                            let message = '$(testing-passed-icon) Total of ' + manifests.length + ' assertion method(s) loaded';
-                            vscode.window.setStatusBarMessage(message);
-
-                            if (callback === null) {
-                                return;
-                            }
-                            callback(client, context);
-                        });
-                    });
-                });
-            });
-        });
+        // register
+        provider.register();
     }
 
-    private registerMacros(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
-        // user interface
-        vscode.window.setStatusBarMessage('$(sync~spin) Loading macros(s)...');
-        console.log(`${new Date().getTime()} - Start loading macros`);
+    private static async registerDataAutoCompleteProvider(
+        context: vscode.ExtensionContext,
+        createModel: TmLanguageCreateModel): Promise<any> {
+        // setup
+        const provider = new DataAutoCompleteProvider(context);
 
         // build
-        client.getMacros((macros: any) => {
-            let manifests = JSON.parse(macros);
-            new MacrosAutoCompleteProvider().setManifests(manifests).register(context);
+        provider.annotations = createModel.annotations;
 
-            console.info('Get-Plugins -Type Macro = (OK, ' + manifests.length + ')');
-            let message = '$(testing-passed-icon) Total of ' + manifests.length + ' macros(s) loaded';
-            vscode.window.setStatusBarMessage(message);
-
-            if (callback === null) {
-                return;
-            }
-            callback(client, context);
-        });
+        // register
+        provider.register();
     }
 
-    private registerDataDrivenSnippet(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
-        // user interface
-        vscode.window.setStatusBarMessage('$(sync~spin) Loading data-driven snippet(s)...');
-        console.log(`${new Date().getTime()} - Start loading data-driven snippet(s)`);
+    private static async registerModelsAutoCompleteProvider(
+        context: vscode.ExtensionContext,
+        createModel: TmLanguageCreateModel): Promise<any> {
+        // setup
+        const provider = new ModelsAutoCompleteProvider(context);
 
         // build
-        client.getAnnotations((annotations: any) => {
-            let _annotations = JSON.parse(annotations);
-            new DataAutoCompleteProvider().setAnnotations(_annotations).register(context);
-            vscode.window.setStatusBarMessage('$(testing-passed-icon) Data-Driven snippet(s) loaded');
+        provider.manifests = createModel.models;
 
-            if (callback === null) {
-                return;
-            }
-            callback(client, context);
-        });
+        // register
+        provider.register();
     }
-
-    private registerModels(client: RhinoClient, context: vscode.ExtensionContext, callback: any) {
-        // user interface
-        vscode.window.setStatusBarMessage('$(sync~spin) Loading page model(s)...');
-        console.log(`${new Date().getTime()} - Start loading page model(s)`);
-
-        // build
-        client.getModels((models: any) => {
-            let _models = JSON.parse(models);
-            new ModelsAutoCompleteProvider().setManifests(_models).register(context);
-            vscode.window.setStatusBarMessage('$(testing-passed-icon) Page models loaded');
-
-            if (callback === null) {
-                return;
-            }
-            callback(client, context);
-        });
-    }
+    //#endregion
 }

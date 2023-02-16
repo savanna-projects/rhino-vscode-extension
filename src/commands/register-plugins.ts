@@ -7,23 +7,36 @@
  * https://stackoverflow.com/questions/55633453/rotating-octicon-in-statusbar-of-vs-code
  * https://code.visualstudio.com/api/extension-guides/webview
  */
-import path = require('path');
+import * as fs from 'fs';
 import * as vscode from 'vscode';
+import { RhinoClient } from '../clients/rhino-client';
 import { Utilities } from '../extensions/utilities';
-import { Command } from "./command";
+import { Logger } from '../logging/logger';
+import { TmLanguageCreateModel } from '../models/tm-create-model';
+import { CommandBase } from "./command-base";
 import { ConnectServerCommand } from './connect-server';
 
-export class RegisterPluginsCommand extends Command {
+export class RegisterPluginsCommand extends CommandBase {
+    // members: static
+    private readonly _logger: Logger;
+
+    // members
+    private _createModel: TmLanguageCreateModel;
+
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
      * @param context The context under which to register the command.
      */
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext, createModel: TmLanguageCreateModel) {
         super(context);
 
         // build
-        this.setCommandName('Register-Plugins');
+        this.command = 'Register-Plugins';
+
+        // create data
+        this._logger = super.logger?.newLogger('RegisterPluginsCommand');
+        this._createModel = createModel;
     }
 
     /*┌─[ REGISTER ]───────────────────────────────────────────
@@ -35,86 +48,78 @@ export class RegisterPluginsCommand extends Command {
      * Summary. Register a command for invoking one or more Rhino Test Case
      *          and present the report.
      */
-    public register(): any {
+    protected async onRegister(): Promise<any> {
         // setup
-        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
-            this.invoke(undefined);
+        let command = vscode.commands.registerCommand(this.command, async () => {
+            await this.invokeCommand();
         });
 
         // set
-        this.getContext().subscriptions.push(command);
+        this.context.subscriptions.push(command);
     }
 
     /**
      * Summary. Implement the command invoke pipeline.
      */
-    public invokeCommand(callback: any) {
-        this.invoke(callback);
-    }
+    protected async onInvokeCommand(): Promise<any> {
+        // user interface
+        vscode.window.setStatusBarMessage('$(sync~spin) Registering Plugin(s)...');
 
-    private invoke(callback: any) {
-        // notification
-        vscode.window.setStatusBarMessage('$(sync~spin) Registering plugin(s)...');
-        
         // setup
-        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
-        workspace = workspace === undefined ? '' : workspace;
-        let pluginsFolder = path.join(workspace, 'Plugins');
-        pluginsFolder = pluginsFolder.startsWith('\\')
-            ? pluginsFolder.substring(1, pluginsFolder.length)
-            : pluginsFolder;
+        const pluginsFolder = Utilities.getSystemFolderPath('Plugins');
+        const files = Utilities.getFiles(pluginsFolder);
+        const plugins: string[] = [];
 
-        Utilities.getFiles(pluginsFolder, (files: string[]) => {
-            let plugins: string[] = [];
+        // build
+        for (const file of files) {
+            const plugin = this.getPluginsFromFile(file);
+            plugins.push(Utilities.formatRhinoSpec(plugin));
+        }
 
-            for (const file of files) {
-                let plugin = this.getPluginsFromFile(file);
-                plugin = Utilities.buildRhinoSpec(plugin);
-                console.log(plugin);
-                plugins.push(plugin);
-            }
+        const distinctPlugins = [...new Set(plugins)];
+        const requestBody = distinctPlugins
+            .join("\n>>>\n")
+            .split('\n')
+            .map(i => i.replace(/^\d+\.\s+/, ''))
+            .join('\n');
 
-            let distinctPlugins = [...new Set(plugins)];
-            let createModel = distinctPlugins
-                .join("\n>>>\n")
-                .split('\n')
-                .map(i => i.replace(/^\d+\.\s+/, ''))
-                .join('\n');
-
-            this.registerPlugins(createModel, callback);
-        });
+        // invoke
+        await RegisterPluginsCommand.registerPlugins(
+            this.context,
+            this._createModel,
+            this.client,
+            requestBody);
     }
 
     private getPluginsFromFile(file: string): string {
-        // setup
-        const fs = require('fs');
-
         // get
         try {
             return fs.readFileSync(file, 'utf8');
-        } catch (e) {
-            console.log(e);
+        } catch (error: any) {
+            console.warn(error);
+            this._logger?.warning(error.message, error);
         }
 
         // default
         return '';
     }
 
-    private registerPlugins(createModel: string, callback: any) {
-        this.getRhinoClient().createPlugins(createModel, (response: any) => {
-            // setup
-            let total = response.toString().split('>>>').length;
+    private static async registerPlugins(
+        context: vscode.ExtensionContext,
+        createModel: TmLanguageCreateModel,
+        client: RhinoClient,
+        requestBody: string) {
 
-            // notification
-            vscode.window.setStatusBarMessage('$(testing-passed-icon) Total of ' + total + ' plugin(s) registered');
+        // setup
+        const response = await client.plugins.addPlugins(requestBody);
+        const total = response?.toString().split('>>>').length;
 
-            // register
-            new ConnectServerCommand(this.getContext()).invokeCommand();
+        // user interface
+        vscode.window.setStatusBarMessage(`$(testing-passed-icon) Total of ${total} Plugin(s) Registered`);
 
-            // callback
-            if (callback !== undefined) {
-                callback();
-            }
-        });
+        // register
+        await new ConnectServerCommand(context, createModel)
+            .syncData(true)
+            .invokeCommand();
     }
 }

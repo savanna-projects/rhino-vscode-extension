@@ -6,14 +6,16 @@
  */
 import fs = require('fs');
 import os = require('os');
-
-import * as ph from 'path';
+import * as path from 'path';
 import * as vscode from 'vscode';
-
-import { Command } from "./command";
 import { Utilities } from '../extensions/utilities';
+import { Logger } from '../logging/logger';
+import { CommandBase } from './command-base';
 
-export class CreateProjectCommand extends Command {
+export class CreateProjectCommand extends CommandBase {
+    // members: static
+    private readonly _logger: Logger;
+
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
@@ -23,7 +25,8 @@ export class CreateProjectCommand extends Command {
         super(context);
 
         // build
-        this.setCommandName('Create-Project');
+        this._logger = super.logger?.newLogger('CreateProjectCommand');
+        this.command = 'Create-Project';
     }
 
     /*┌─[ REGISTER & INVOKE ]──────────────────────────────────
@@ -35,24 +38,20 @@ export class CreateProjectCommand extends Command {
      * Summary. Register a command for connecting the Rhino Server and loading all
      *          Rhino Language metadata.
      */
-    public register(): any {
+    protected async onRegister(): Promise<any> {
         // build
-        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
-            this.invoke();
+        let command = vscode.commands.registerCommand(this.command, async () => {
+            await this.invokeCommand();
         });
 
         // set
-        this.getContext().subscriptions.push(command);
+        this.context.subscriptions.push(command);
     }
 
     /**
      * Summary. Implement the command invoke pipeline.
      */
-    public invokeCommand() {
-        this.invoke();
-    }
-
-    private invoke() {
+    protected async onInvokeCommand(): Promise<any> {
         // setup
         let dialogOptions = {
             canSelectFiles: false,
@@ -62,46 +61,46 @@ export class CreateProjectCommand extends Command {
 
         // build
         vscode.window.showOpenDialog(dialogOptions).then(folderUri => {
-            CreateProjectCommand.createProjectFolder(folderUri);
-            CreateProjectCommand.createProjectManifest(folderUri);
+            this.createProjectFolder(folderUri);
+            this.createProjectManifest(folderUri);
             // TODO: implement switch from user
-            CreateProjectCommand.createSampleTests(folderUri);
-            CreateProjectCommand.createSamplePlugins(folderUri);
-            CreateProjectCommand.createSampleDocumentation(folderUri);
-            CreateProjectCommand.createSampleScripts(folderUri);
-            CreateProjectCommand.createSamplePipelines(folderUri);
-            CreateProjectCommand.createSampleModels(folderUri);
-            CreateProjectCommand.createSampleEnvironment(folderUri);
-            CreateProjectCommand.createSampleResource(folderUri);
+            this.createSampleTests(folderUri);
+            this.createSamplePlugins(folderUri);
+            this.createSampleDocumentation(folderUri);
+            this.createSampleScripts(folderUri);
+            this.createSamplePipelines(folderUri);
+            this.createSampleModels(folderUri);
+            this.createSampleEnvironment(folderUri);
+            this.createSampleResource(folderUri);
             // user switch ends
-            CreateProjectCommand.openFolder(folderUri);
+            this.openFolder(folderUri);
         });
     }
 
     // take the input from openDialog
-    private static createProjectFolder(userPath: any) {
+    private createProjectFolder(userPath: any) {
         // setup path
-        let path = this.getPath(userPath);
+        const projectPath = this.getPath(userPath);
 
         // create folders
-        let folders = [
-            ph.join(path, 'docs'),
-            ph.join(path, 'docs/Examples'),
-            ph.join(path, 'build'),
-            ph.join(path, 'build/Examples'),
-            ph.join(path, 'scripts'),
-            ph.join(path, 'scripts/Examples'),
-            ph.join(path, 'src/Configurations'),
-            ph.join(path, 'src/Environments'),
-            ph.join(path, 'src/Models'),
-            ph.join(path, 'src/Models/Json'),
-            ph.join(path, 'src/Models/Markdown'),
-            ph.join(path, 'src/Plugins'),
-            ph.join(path, 'src/Plugins/Examples'),
-            ph.join(path, 'src/Tests'),
-            ph.join(path, 'src/Tests/Examples'),
-            ph.join(path, 'src/Resources'),
-            ph.join(path, 'src/Resources/Examples')
+        const folders = [
+            path.join(projectPath, 'docs'),
+            path.join(projectPath, 'docs/Examples'),
+            path.join(projectPath, 'build'),
+            path.join(projectPath, 'build/Examples'),
+            path.join(projectPath, 'scripts'),
+            path.join(projectPath, 'scripts/Examples'),
+            path.join(projectPath, 'src/Configurations'),
+            path.join(projectPath, 'src/Environments'),
+            path.join(projectPath, 'src/Models'),
+            path.join(projectPath, 'src/Models/Json'),
+            path.join(projectPath, 'src/Models/Markdown'),
+            path.join(projectPath, 'src/Plugins'),
+            path.join(projectPath, 'src/Plugins/Examples'),
+            path.join(projectPath, 'src/Tests'),
+            path.join(projectPath, 'src/Tests/Examples'),
+            path.join(projectPath, 'src/Resources'),
+            path.join(projectPath, 'src/Resources/Examples')
         ];
         for (const folder of folders) {
             if (!fs.existsSync(folder)) {
@@ -111,569 +110,154 @@ export class CreateProjectCommand extends Command {
     }
 
     // take the input from openDialog
-    private static createProjectManifest(userPath: any) {
+    private createProjectManifest(userPath: any) {
         // setup
-        let manifestObj = Utilities.getDefaultProjectManifest();
-        let content = JSON.stringify(manifestObj, null, '\t');
-        let path = ph.join(this.getPath(userPath), 'src');
+        const manifestObj = Utilities.getManifest();
+        const content = JSON.stringify(manifestObj, null, '\t');
+        const projectPath = path.join(this.getPath(userPath), 'src');
 
         // write
-        this.writeFile(path, 'Manifest.json', content);
+        this.writeFile(projectPath, 'Manifest.json', content);
     }
 
-    private static createSampleTests(userPath: any) {
+    private createSampleTests(userPath: any) {
         // setup
-        let bodyBasic = [
-            "/**┌─[ General Information ]──────────────────────────────────────────────────────────────────────",
-            "/**│",
-            "/**│ Connect & Invoke Test Case",
-            "/**│ ==========================",
-            "/**│ 1. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
-            "/**│ 2. Type 'Rhino' to filter out all 'Rhino' commands.",
-            "/**│ 3. Click on the command 'Rhino: Connect to Rhino, fetch Metadata & activate commands'.",
-            "/**│ 4. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
-            "/**│ 4. Type 'Rhino' to filter out all 'Rhino' commands.",
-            "/**│ 5. Click on the command 'Rhino: Runs the automation test(s) from the currently open document'.",
-            "/**│",
-            "/**│ View Documentation",
-            "/**│ ==================",
-            "/**│ 1. Right-Click to bring up the context menu.",
-            "/**│ 2. Click on 'Rhino: Show Documentation' command.",
-            "/**│",
-            "/**└──────────────────────────────────────────────────────────────────────────────────────────────",
-            "/**",
-            "[test-id]         EXAMPLE-01",
-            "[test-scenario]   verify that results can be retrieved when searching by any keyword",
-            "[test-categories] Sanity, Ui, Search",
-            "[test-priority]   1 - critical",
-            "[test-severity]   1 - critical",
-            "[test-tolerance]  0%",
-            "",
-            "[test-actions]",
-            "1. go to url {https://www.google.com}",
-            "2. send keys {automation is fun} into {//input[@name='q']}",
-            "3. click on {//ul[@role='listbox']/li}",
-            "4. wait {1500}",
-            "5. close browser",
-            "",
-            "[test-expected-results]",
-            "[1] verify that {url} match {google}"
-        ];
-        let bodyWithModels = [
-            "/**┌─[ General Information ]──────────────────────────────────────────────────────────────────────",
-            "/**│",
-            "/**│ Connect & Invoke Test Case",
-            "/**│ ==========================",
-            "/**│ 1. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
-            "/**│ 2. Type 'Rhino' to filter out all 'Rhino' commands.",
-            "/**│ 3. Click on the command 'Rhino: Connect to Rhino, fetch Metadata & activate commands'.",
-            "/**│ 4. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
-            "/**│ 4. Type 'Rhino' to filter out all 'Rhino' commands.",
-            "/**│ 5. Click on the command 'Rhino: Runs the automation test(s) from the currently open document'.",
-            "/**│",
-            "/**│ View Documentation",
-            "/**│ ==================",
-            "/**│ 1. Right-Click to bring up the context menu.",
-            "/**│ 2. Click on 'Rhino: Show Documentation' command.",
-            "/**│",
-            "/**└──────────────────────────────────────────────────────────────────────────────────────────────",
-            "/**",
-            "[test-id]         EXAMPLE-02",
-            "[test-scenario]   verify that results can be retrieved when searching by any keyword",
-            "[test-categories] Sanity, Ui, Search",
-            "[test-priority]   1 - critical",
-            "[test-severity]   1 - critical",
-            "[test-tolerance]  0%",
-            "",
-            "[test-actions]",
-            "1. go to url {https://www.google.com}",
-            "2. send keys {automation is fun} into {search text-box}",
-            "3. click on the first {auto-complete item}",
-            "4. wait {1500}",
-            "5. close browser",
-            "",
-            "[test-expected-results]",
-            "[1] verify that {url} match {google}"
-        ];
-        let bodyWithEnvironment = [
-            "/**┌─[ General Information ]──────────────────────────────────────────────────────────────────────",
-            "/**│",
-            "/**│ Connect & Invoke Test Case",
-            "/**│ ==========================",
-            "/**│ 1. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
-            "/**│ 2. Type 'Rhino' to filter out all 'Rhino' commands.",
-            "/**│ 3. Click on the command 'Rhino: Connect to Rhino, fetch Metadata & activate commands'.",
-            "/**│ 4. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
-            "/**│ 4. Type 'Rhino' to filter out all 'Rhino' commands.",
-            "/**│ 5. Click on the command 'Rhino: Runs the automation test(s) from the currently open document'.",
-            "/**│",
-            "/**│ View Documentation",
-            "/**│ ==================",
-            "/**│ 1. Right-Click to bring up the context menu.",
-            "/**│ 2. Click on 'Rhino: Show Documentation' command.",
-            "/**│",
-            "/**└──────────────────────────────────────────────────────────────────────────────────────────────",
-            "/**",
-            "[test-id]         EXAMPLE-03",
-            "[test-scenario]   verify that results can be retrieved when searching by any keyword",
-            "[test-categories] Sanity, Ui, Search",
-            "[test-priority]   1 - critical",
-            "[test-severity]   1 - critical",
-            "[test-tolerance]  0%",
-            "",
-            "[test-actions]",
-            "1. go to url {{$getparam --name:ApplicationUrl}}",
-            "2. send keys {automation is fun} into {search text-box}",
-            "3. click on the first {auto-complete item}",
-            "4. wait {1500}",
-            "5. close browser",
-            "",
-            "[test-expected-results]",
-            "[1] verify that {url} match {google}"
-        ];
-        let bodyWithPlugins = [
-            "/**┌─[ General Information ]──────────────────────────────────────────────────────────────────────",
-            "/**│",
-            "/**│ Connect & Invoke Test Case",
-            "/**│ ==========================",
-            "/**│ 1. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
-            "/**│ 2. Type 'Rhino' to filter out all 'Rhino' commands.",
-            "/**│ 3. Click on the command 'Rhino: Connect to Rhino, fetch Metadata & activate commands'.",
-            "/**│ 4. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
-            "/**│ 4. Type 'Rhino' to filter out all 'Rhino' commands.",
-            "/**│ 5. Click on the command 'Rhino: Runs the automation test(s) from the currently open document'.",
-            "/**│",
-            "/**│ View Documentation",
-            "/**│ ==================",
-            "/**│ 1. Right-Click to bring up the context menu.",
-            "/**│ 2. Click on 'Rhino: Show Documentation' command.",
-            "/**│",
-            "/**└──────────────────────────────────────────────────────────────────────────────────────────────",
-            "/**",
-            "[test-id]         EXAMPLE-04",
-            "[test-scenario]   verify that results can be retrieved when searching by any keyword",
-            "[test-categories] Sanity, Ui, Search",
-            "[test-priority]   1 - critical",
-            "[test-severity]   1 - critical",
-            "[test-tolerance]  0%",
-            "",
-            "[test-actions]",
-            "1. go to url {{$getparam --name:ApplicationUrl}}",
-            "2. google search {automation is fun}",
-            "3. close browser"
-        ];
-        let contentBasic = bodyBasic.join('\n');
-        let contentWithModels = bodyWithModels.join('\n');
-        let contentWithEnvironment = bodyWithEnvironment.join('\n');
-        let contentWithPlugins = bodyWithPlugins.join('\n');
-        let path = ph.join(this.getPath(userPath), 'src', 'Tests', 'Examples');
+        const contentBasic = Utilities.getResource('DemoTestBasic.txt');
+        const contentWithModels = Utilities.getResource('DemoTestModel.txt');
+        const contentWithEnvironment = Utilities.getResource('DemoTestEnvironment.txt');
+        const contentWithPlugins = Utilities.getResource('DemoTestPlugins.txt');
+        const examplesPath = path.join(this.getPath(userPath), 'src', 'Tests', 'Examples');
 
         // write
-        this.writeFile(path, 'FindSomethingOnGoogle.rhino', contentBasic);
-        this.writeFile(path, 'FindSomethingOnGoogleWithModels.rhino', contentWithModels);
-        this.writeFile(path, 'FindSomethingOnGoogleWithEnvironment.rhino', contentWithEnvironment);
-        this.writeFile(path, 'FindSomethingOnGoogleWithPlugins.rhino', contentWithPlugins);
+        this.writeFile(examplesPath, 'FindSomethingOnGoogle.rhino', contentBasic);
+        this.writeFile(examplesPath, 'FindSomethingOnGoogleWithModels.rhino', contentWithModels);
+        this.writeFile(examplesPath, 'FindSomethingOnGoogleWithEnvironment.rhino', contentWithEnvironment);
+        this.writeFile(examplesPath, 'FindSomethingOnGoogleWithPlugins.rhino', contentWithPlugins);
     }
 
-    private static createSamplePlugins(userPath: any) {
+    private createSamplePlugins(userPath: any) {
         // setup
-        let body = [
-            "/**┌─[ General Information ]───────────────────────────────────────────────────────────────",
-            "/**│",
-            "/**│ Connect & Register Plugins",
-            "/**│ ==========================",
-            "/**│ 1. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
-            "/**│ 2. Type 'Rhino' to filter out all 'Rhino' commands.",
-            "/**│ 3. Click on the command 'Rhino: Connect to Rhino, fetch Metadata & activate commands'.",
-            "/**│ 4. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.",
-            "/**│ 4. Type 'Rhino' to filter out all 'Rhino' commands.",
-            "/**│ 5. Click on the command 'Rhino: Register all the plugins under 'Plugins' folder'.",
-            "/**│",
-            "/**│ View Documentation",
-            "/**│ ==================",
-            "/**│ 1. Right-Click to bring up the context menu.",
-            "/**│ 2. Click on 'Rhino: Show Documentation' command.",
-            "/**│",
-            "/**└───────────────────────────────────────────────────────────────────────────────────────",
-            "/**",
-            "[test-id]         GoogleSearch",
-            "[test-scenario]   invoke the 'Search Google' routine",
-            "",
-            "[test-actions]",
-            "/**",
-            "/** Takes the 'argument' field from the action as provided by the user and pass it into the plugin.",
-            "1. send keys {@argument} into {//input[@name='q']}",
-            "2. click on {//ul[@role='listbox']/li}",
-            "3. wait {1500}",
-            "",
-            "[test-expected-results]",
-            "[3] verify that {count} of {//div[@class='g']} is greater than {0}",
-            "",
-            "[test-examples]",
-            "/**",
-            "/** You must provide at-least one example or you will not be able to register the plugin.",
-            "| Example                    | Description                                            |",
-            "|----------------------------|--------------------------------------------------------|",
-            "| google search {Automation} | Finds results when searching for `Automation` keyword. |"
-        ];
-        let content = body.join('\n');
-        let path = ph.join(this.getPath(userPath), 'src', 'Plugins', 'Examples');
+        const content = Utilities.getResource('DemoPlugin.txt');
+        const examplesPath = path.join(this.getPath(userPath), 'src', 'Plugins', 'Examples');
 
         // write
-        this.writeFile(path, 'GoogleSearch.rhino', content);
+        this.writeFile(examplesPath, 'GoogleSearch.rhino', content);
     }
 
-    private static createSampleDocumentation(userPath: any) {
-        // setup
-        let bodyHome = [
-            "# Table Of Content",
-            "",
-            "* **Plugins**",
-            "  * [Examples](./Examples/Home.md)",
-            "",
-            "---",
-            "",
-            "* **Resources**",
-            "  * [Rhino Tutorials](https://github.com/savanna-projects/rhino-docs)",
-            "  * [Rhino on GitHub](https://github.com/savanna-projects)",
-            "  * [Gravity on GitHub](https://github.com/gravity-api)",
-        ];
-        let bodyExamplesHome = [
-            "# Examples",
-            "",
-            "[Home](../Home.md)",
-            "* **Plugins**",
-            "  * [Google Search](./GoogleSearch.md)"
-
-        ];
-        let bodyExample = [
-            "# Google Search",
-            "",
-            "[Home](../Home.md) · [Table of Content](./Home.md)  ",
-            "",
-            "5 min · Unit · [Roei Sabag](https://www.linkedin.com/in/roei-sabag-247aa18/) · Level ★★★☆☆",
-            "",
-            "## Definition",
-            "",
-            "| <!-- -->            | <!-- -->                       |",
-            "|---------------------|--------------------------------|",
-            "| **Namespace:**      | `Plugins.Examples`             |",
-            "| **File:**           | `GoogleSearch.rhino`           |",
-            "| **Specifications:** | `/api/v3/plugins/GoogleSearch` |",
-            "",
-            "## Description",
-            "",
-            "Invokes the `GoogleSearch` routine.  ",
-            "",
-            "1. Type a keyword into the `Google Search` text-box.",
-            "2. Click on the first `auto-complete` item.",
-            "3. Wait for the results to be retrieved.",
-            "",
-            "## Prerequisites",
-            "",
-            "1. Stable internet connection.",
-            "2. Access to `google.com` is not restricted by a proxy or firewall.",
-            "",
-            "## Nested Plugins",
-            "",
-            "None.",
-            "",
-            "## Scope",
-            "",
-            "1. Google Search Engine",
-            "",
-            "## Properties",
-            "",
-            "| Property    | Description                                        |",
-            "|-------------|----------------------------------------------------|",
-            "|`onAttribute`|The keyword to use when invoking the search routine.|",
-            "",
-            "## Parameters",
-            "",
-            "None.",
-            "",
-            "## Examples",
-            "",
-            "### Example No.1",
-            "",
-            "The following example demonstrate how to find results when searching for `Automation` keyword.  ",
-            "",
-            "```none",
-            "google search {Automation}",
-            "```"
-        ];
-
+    // TODO: add guidelines document
+    private createSampleDocumentation(userPath: any) {
         // set content
-        let contentHome = bodyHome.join('\n');
-        let pathHome = ph.join(this.getPath(userPath), 'docs');
-        let pathExamples = ph.join(this.getPath(userPath), 'docs', 'Examples');
-        let contentExamplesHome = bodyExamplesHome.join('\n');
-        let contentExample = bodyExample.join('\n');
+        const contentOverview = Utilities.getResource('LanguageOverview.md');
+        const contentHome = Utilities.getResource('DocumentHome.md');
+        const pathHome = path.join(this.getPath(userPath), 'docs');
+        const pathExamples = path.join(this.getPath(userPath), 'docs', 'Examples');
+        const contentExamplesHome = Utilities.getResource('DocumentExamplesHome.md');
+        const contentExample = Utilities.getResource('DocumentExample.md');
 
         // write
+        this.writeFile(pathHome, 'LanguageOverview.md', contentOverview);
         this.writeFile(pathHome, 'Home.md', contentHome);
         this.writeFile(pathExamples, 'Home.md', contentExamplesHome);
         this.writeFile(pathExamples, 'GoogleSearch.md', contentExample);
     }
 
-    private static createSampleScripts(userPath: any) {
+    private createSampleScripts(userPath: any) {
         // setup
-        let body = [
-            "#┌[General Information ───────────────────────────────────────────────────",
-            "#│",
-            "#│ 1. To run with non-windows OS, please install Powershell Core.",
-            "#│ 2. The script can be used on CI/CD as script file or inline script.",
-            "#│ 3. User the Command Line parameters to control the invocation behavior.",
-            "#│",
-            "#└────────────────────────────────────────────────────────────────────────",
-            "#",
-            "# Setup: User Parameters",
-            "param(",
-            "    [string] $HttpProtocol    = $null,",
-            "    [string] $RhinoServer     = $null,",
-            "    [int]    $RhinoPort       = 0,",
-            "    [string] $TestsRepository = $null,",
-            "    [string] $RhinoUsername   = $null,",
-            "    [string] $RhinoPassword   = $null,",
-            "    [string] $DriverBinaries  = $null",
-            ")",
-            "#",
-            "# Setup: Rhino Endpoints Default",
-            "$_httpProtocol   = \"http\"",
-            "$_rhinoServer    = \"localhost\"",
-            "$_rhinoPort      = 9000",
-            "$_driverBinaries = \".\"",
-            "#",
-            "# Setup: Tests Location (absolute/relative file or folder path)",
-            "$projectRoot      = [System.IO.Directory]::GetParent($PSScriptRoot)",
-            "$_testsRepository = [System.IO.Path]::Combine($projectRoot, 'src', 'Tests', 'Examples', 'FindSomethingOnGoogle.rhino')",
-            "#",
-            "# Setup: Rhino Credentials",
-            "$rhinoUsername = \"<rhinoUsername>\"",
-            "$rhinoPassword = \"<rhinoPassword>\"",
-            "#",
-            "# Build: User Parameters Value",
-            "$HttpProtocol    = if (($null -eq $HttpProtocol)    -or ($HttpProtocol    -eq [string]::Empty)) { $_httpProtocol }    else { $HttpProtocol }",
-            "$RhinoServer     = if (($null -eq $RhinoServer)     -or ($RhinoServer     -eq [string]::Empty)) { $_rhinoServer }     else { $RhinoServer }",
-            "$RhinoPort       = if (($null -eq $RhinoPort)       -or ($RhinoPort       -eq 0))               { $_rhinoPort }       else { $RhinoPort }",
-            "$TestsRepository = if (($null -eq $TestsRepository) -or ($TestsRepository -eq [string]::Empty)) { $_testsRepository } else { $TestsRepository }",
-            "$RhinoUsername   = if (($null -eq $RhinoUsername)   -or ($RhinoUsername   -eq [string]::Empty)) { $_rhinoUsername }   else { $RhinoUsername }",
-            "$RhinoPassword   = if (($null -eq $RhinoPassword)   -or ($RhinoPassword   -eq [string]::Empty)) { $_rhinoPassword }   else { $RhinoPassword }",
-            "$DriverBinaries  = if (($null -eq $DriverBinaries)  -or ($DriverBinaries  -eq [string]::Empty)) { $_driverBinaries }  else { $DriverBinaries }",
-            "#",
-            "# Build: Invocation Values",
-            "$rhinoAction   = \"rhino/configurations/invoke\"",
-            "$rhinoEndpoint = \"$($HttpProtocol)://$($RhinoServer):$($RhinoPort)/api/v3/$($rhinoAction)\"",
-            "#",
-            "# Build: Rhino Configuration Basic (the request body) - must be camelCase convention",
-            "$configuration = @{",
-            "    connectorConfiguration = @{",
-            "        connector = \"ConnectorText\"",
-            "    }",
-            "    authentication = @{",
-            "        username = $RhinoUsername",
-            "        password = $RhinoPassword",
-            "    }",
-            "    driverParameters = @(",
-            "        @{",
-            "            driver         = \"ChromeDriver\"",
-            "            driverBinaries = $DriverBinaries",
-            "        }",
-            "    )",
-            "    engineConfiguration = @{",
-            "        maxParallel             = 1",
-            "        elementSearchingTimeout = 15000",
-            "        pageLoadTimeout         = 60000",
-            "    }",
-            "    testsRepository = @(",
-            "        $TestsRepository",
-            "    )",
-            "};",
-            "#",
-            "# Invoke Configuration",
-            "Write-Host \"Invoking configuration on $($rhinoEndpoint), please wait...\"",
-            "$body = ConvertTo-Json $configuration",
-            "$response = Invoke-WebRequest `",
-            "    -Method Post `",
-            "    -ContentType \"application/json\" `",
-            "    -Uri $rhinoEndpoint `",
-            "    -Body $body",
-            "#",
-            "# Error From the Server",
-            "if ($response.StatusCode -ge 400) {",
-            "    Write-Error $response",
-            "    exit 10",
-            "}",
-            "#",
-            "# Assert That All Tests Passed",
-            "$responseObj = ($response.Content | ConvertFrom-Json)",
-            "if ($responseObj.actual) {",
-            "    Write-Host \"All {$($responseObj.testCases.Length)} test(s) passed\"",
-            "    exit 0",
-            "}",
-            "exit 10"
-        ];
-
-        // set content
-        let contentHome = body.join('\n');
-        let path = ph.join(this.getPath(userPath), 'scripts', 'Examples');
+        const contentHome = Utilities.getResource('DemoScript.ps1');
+        const scriptsPath = path.join(this.getPath(userPath), 'scripts', 'Examples');
 
         // write
-        this.writeFile(path, 'RunExamplesStandalone.ps1', contentHome);
+        this.writeFile(scriptsPath, 'RunExamplesStandalone.ps1', contentHome);
     }
 
-    private static createSamplePipelines(userPath: any) {
-        // setup
-        let bodyGitHub = [
-            "# Basic GitHub action pipeline to invoke the automation using a script.",
-            "name: Invoke Automation Testing",
-            "on: push",
-            "jobs:",
-            "  build:",
-            "    runs-on: ubuntu-latest",
-            "    steps:",
-            "      - name: Checkout Automation Repository ",
-            "        uses: actions/checkout@v2",
-            "      - run: |",
-            "          ./scripts/RunExamplesStandalone.ps1",
-            "        shell: pwsh",
-        ];
-        let bodyAzure = [
-            "# Basic GitHub action pipeline to invoke the automation using a script.",
-            "trigger:",
-            "- master",
-            "",
-            "pool:",
-            "  vmImage: ubuntu-latest",
-            "",
-            "stages:",
-            "  - stage: InvokeAutomation",
-            "    jobs:",
-            "    - job: 'InvokeAutomationScript'",
-            "      displayName: 'Invoke Automation Script'",
-            "      steps:",
-            "      - task: PowerShell@2",
-            "        displayName: 'Invoke Powershell Script'",
-            "        inputs:",
-            "          filePath: './scripts/RunExamplesStandalone.ps1'",
-            "          failOnStderr: true",
-            "          pwsh: true"
-        ];
-
+    private createSamplePipelines(userPath: any) {
         // set content
-        let contentGitHub = bodyGitHub.join('\n');
-        let contentAzure = bodyAzure.join('\n');
-        let path = ph.join(this.getPath(userPath), 'build', 'Examples');
+        const contentGitHub = Utilities.getResource('DemoGitHubActions.yml');
+        const contentAzure = Utilities.getResource('DemoAzureDevOps.yml');
+        const buildsPath = path.join(this.getPath(userPath), 'build', 'Examples');
 
         // write
-        this.writeFile(path, 'GitActions.yaml', contentGitHub);
-        this.writeFile(path, 'AzurePipeline.yaml', contentAzure);
+        this.writeFile(buildsPath, 'GitActions.yaml', contentGitHub);
+        this.writeFile(buildsPath, 'AzurePipeline.yaml', contentAzure);
     }
 
-    private static createSampleModels(userPath: any) {
+    private createSampleModels(userPath: any) {
         // setup
-        let bodyMarkdown = [
-            "[test-models] Google Search Home Page (Markdown)",
-            "| Name               | Value                    | Type  | Comment                                      |",
-            "|--------------------|--------------------------|-------|----------------------------------------------|",
-            "| search text-box    | //input[@name='q']       | xpath | Finds the Google search text-box.            |",
-            "| auto-complete item | //ul[@role='listbox']/li | xpath | Finds the first auto-complete item.          |",
-            "| search results     | //div[@class='g']        | xpath | Finds all search results under results page. |",
-        ];
-        let bodyJson = {
-            "name": "Google Search Home Page (JSON)",
-            "entries": [
-                {
-                    "name": "search text-box",
-                    "value": "//input[@name='q']",
-                    "type": "xpath",
-                    "comment": "Finds the Google search text-box."
-                },
-                {
-                    "name": "auto-complete item",
-                    "value": "//ul[@role='listbox']/li",
-                    "type": "xpath",
-                    "comment": "Finds the first auto-complete item."
-                },
-                {
-                    "name": "search results",
-                    "value": "//div[@class='g']",
-                    "type": "xpath",
-                    "comment": "Finds all search results under results page."
-                }
-            ]
-        };
-
-        // set content
-        let contentMarkdown = bodyMarkdown.join('\n');
-        let contentJson = JSON.stringify(bodyJson, null, 4);
-        let pathMarkdown = ph.join(this.getPath(userPath), 'src', 'Models', 'Markdown');
-        let pathJson = ph.join(this.getPath(userPath), 'src', 'Models', 'Json');
+        const contentMarkdown = Utilities.getResource('DemoModel.txt');
+        const contentJson = Utilities.getResource('DemoModel.json');
+        const pathMarkdown = path.join(this.getPath(userPath), 'src', 'Models', 'Markdown');
+        const pathJson = path.join(this.getPath(userPath), 'src', 'Models', 'Json');
 
         // write
         this.writeFile(pathMarkdown, 'GoogleSearchHomePage.rmodel', contentMarkdown);
         this.writeFile(pathJson, 'GoogleSearchHomePage.json', contentJson);
     }
 
-    private static createSampleEnvironment(userPath: any) {
+    private createSampleEnvironment(userPath: any) {
         // setup
-        let body = `{
-            "ApplicationUrl": "https://www.google.com"
-        }`;
+        const body = Utilities.getResource('DemoEnvironment.json');
 
         // set content
-        let content = JSON.stringify(JSON.parse(body), null, 4);
-        let path = ph.join(this.getPath(userPath), 'src', 'Environments');
+        const content = JSON.stringify(JSON.parse(body), null, 4);
+        const environmentsPath = path.join(this.getPath(userPath), 'src', 'Environments');
 
         // write
-        this.writeFile(path, 'GoogleSearchEnvironment.json', content);
+        this.writeFile(environmentsPath, 'GoogleSearchEnvironment.json', content);
     }
 
-    private static createSampleResource(userPath: any) {
+    private createSampleResource(userPath: any) {
         // setup
-        let content = `Demo Resource File.`;
+        const content = Utilities.getResource('DemoResource.txt');
 
         // set content
-        let path = ph.join(this.getPath(userPath), 'src', 'Resources', 'Examples');
+        const resourcesPath = path.join(this.getPath(userPath), 'src', 'Resources', 'Examples');
 
         // write
-        this.writeFile(path, 'DemoResource.txt', content);
+        this.writeFile(resourcesPath, 'DemoResource.txt', content);
     }
 
     // open a folder in VS Code workspace
-    private static openFolder(userPath: any) {
+    private openFolder(userPath: any) {
         // build
-        let path = this.getPath(userPath);
-        path = os.platform() === 'win32' && path.startsWith('/')
-            ? path.substring(1, path.length)
-            : path;
-        path = os.platform() === 'win32'
-            ? path.replaceAll('/', '\\').substring(0, path.length)
-            : path;
+        let projectPath = this.getPath(userPath);
+        projectPath = os.platform() === 'win32' && projectPath.startsWith('/')
+            ? projectPath.substring(1, projectPath.length)
+            : projectPath;
+        projectPath = os.platform() === 'win32'
+            ? projectPath.replaceAll('/', '\\').substring(0, projectPath.length)
+            : projectPath;
 
         // setup
-        let uri = vscode.Uri.file(ph.join(path, 'src'));
+        const uri = vscode.Uri.file(path.join(projectPath, 'src'));
 
         // invoke
         vscode.commands.executeCommand('vscode.openFolder', uri);
     }
 
-    private static writeFile(path: string, fileName: string, content: string) {
+    private writeFile(directoryPath: string, fileName: string, content: string) {
+        // setup
+        const manifestPath = path.join(directoryPath, fileName);
+
         // write
-        let manifestPath = ph.join(path, fileName);
-        fs.writeFile(manifestPath, content, (err) => {
-            if (err) {
-                vscode.window.showErrorMessage(err.message);
+        fs.writeFile(manifestPath, content, (error: any) => {
+            if (error) {
+                this._logger?.error(error.message, error);
             }
         });
     }
 
-    private static getPath(userPath: any) {
-        // setup path
+    private getPath(userPath: any) {
+        // setup
         let path = '';
+
+        // default
         if (userPath && userPath[0]) {
             path = userPath[0].path;
         }
-        return os.platform() === 'win32' ? path.replaceAll('/', '\\').substring(1, path.length) : path;
+
+        // get
+        return os.platform() === 'win32'
+            ? path.replaceAll('/', '\\').substring(1, path.length)
+            : path;
     }
 }
