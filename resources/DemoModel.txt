@@ -1,6 +1,0 @@
-[test-models] Google Search Home Page (Markdown)
-| Name               | Value                    | Type  | Comment                                      |
-|--------------------|--------------------------|-------|----------------------------------------------|
-| search text-box    | //input[@name='q']       | xpath | Finds the Google search text-box.            |
-| auto-complete item | //ul[@role='listbox']/li | xpath | Finds the first auto-complete item.          |
-| search results     | //div[@class='g']        | xpath | Finds all search results under results page. |
