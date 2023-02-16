@@ -1,0 +1,23 @@
+{
+    "name": "Google Search Home Page (JSON)",
+    "entries": [
+        {
+            "name": "search text-box",
+            "value": "//input[@name='q']",
+            "type": "xpath",
+            "comment": "Finds the Google search text-box."
+        },
+        {
+            "name": "auto-complete item",
+            "value": "//ul[@role='listbox']/li",
+            "type": "xpath",
+            "comment": "Finds the first auto-complete item."
+        },
+        {
+            "name": "search results",
+            "value": "//div[@class='g']",
+            "type": "xpath",
+            "comment": "Finds all search results under results page."
+        }
+    ]
+}
