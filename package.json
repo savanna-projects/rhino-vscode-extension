@@ -258,14 +258,14 @@
     "eslint": "^8.32.0",
     "glob": "^7.2.0",
     "mocha": "^9.2.2",
-    "typescript": "^4.9.4",
-    "vscode-test": "^1.6.1"
+    "typescript": "^4.9.4"
   },
   "dependencies": {
+    "@vscode/test-electron": "^2.2.3",
+    "@vscode/vsce": "^2.17.0",
     "fetch": "^1.1.0",
     "node-fetch": "^2.6.9",
-    "npm": "^8.18.0",
-    "vsce": "^2.15.0"
+    "npm": "^8.18.0"
   },
   "extensionDependencies": [
     "humao.rest-client",

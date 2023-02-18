@@ -100,10 +100,10 @@ Naming conventions is a way to provide a unified way of writing when working in 
 |--------------|----------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------|
 | `camelCase`  | The first letter of the first word is **lower case** and the first letter of every other word is **upper case**. No spaces.                        | `fooBar`, `oneTwoThree`    |
 | `PascalCase` | Every first letter of a word is **upper case**. No spaces.                                                                                         | `FooBar`, `OneTwoThree`    |
-| `space case` | Every word is **lower case** and there is one spaces between words.                                                                                | `foo bar`, `one two three` |
+| `space case` | Every word is **lower case** and there is one space between words.                                                                                 | `foo bar`, `one two three` |
 | `Title Case` | All of the major words begin with capital letters. Minor words like prepositions, articles, and coordinating conjunctions are typically lowercase. | `Foo Bar`, `One Two Three` |
 | `kebab-case` | Every word is **lower case** and there is one **hyphen** between words.                                                                            | `foo-bar`, `one-two-three` |
-| `snake-case` | Every word is **lower case** and there is one **underscore** between words.                                                                        | `foo_bar`, `one_two_three` |
+| `snake_case` | Every word is **lower case** and there is one **underscore** between words.                                                                        | `foo_bar`, `one_two_three` |
 
 ### Fields & Verbs
 
@@ -129,7 +129,7 @@ A list of all available actions can be retrieved from the following address <htt
 Verbs: `on`, `into`, `of`, `take`, `to`  
   
 The subject (element or entity) to perform the action on. This can vary, depends on the action implementation and can be a UI element, web address, etc.
-This field is optional and there are not restrictions to implement it when creating an action, please see the following examples:  
+This field is optional and there are no restrictions to implement it when creating an action, please see the following examples:  
 
 * `click on {element}` - clicks on an element provided under the `onElement` filed and identified by the `on` verb.
 * `click` - click on the last known location on the physical screen - no element provided.
