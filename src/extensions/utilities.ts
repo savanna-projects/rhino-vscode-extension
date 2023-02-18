@@ -325,27 +325,34 @@ export class Utilities {
         const isConfiguration = id !== null && id !== undefined && id !== '';
 
         // collect data (runs in parallel)
-        const annotations = client.meta.getAnnotations();
-        const assertions = client.meta.getAssertions();
-        const attributes = client.meta.getAttributes();
-        const locators = client.meta.getLocators();
-        const macros = client.meta.getMacros();
-        const models = client.meta.getModels();
-        const operators = client.meta.getOperators();
-        const plugins = isConfiguration ? client.meta.getPlugins(id) : client.meta.getPlugins();
-        const verbs = client.meta.getVerbs();
+        vscode.window.setStatusBarMessage("$(sync~spin) Collecting Language Data...");
+        const annotations = await client.meta.getAnnotations();
+        const assertions = await client.meta.getAssertions();
+        const attributes = await client.meta.getAttributes();
+        const locators = await client.meta.getLocators();
+        const macros = await client.meta.getMacros();
+        const models = await client.meta.getModels();
+        const operators = await client.meta.getOperators();
+        const verbs = await client.meta.getVerbs();
+        vscode.window.setStatusBarMessage("$(testing-passed-icon) Language Data Collected");
+
+        vscode.window.setStatusBarMessage("$(sync~spin) Collecting Plugins...");
+        const plugins = isConfiguration
+            ? await client.meta.getPlugins(id)
+            : await client.meta.getPlugins();
+        vscode.window.setStatusBarMessage("$(testing-passed-icon) Plugins Collected");
 
         // invoke
         const createModel: TmLanguageCreateModel = {
-            annotations: await annotations,
-            assertions: await assertions,
-            attributes: await attributes,
-            locators: await locators,
-            macros: await macros,
-            models: await models,
-            operators: await operators,
-            plugins: await plugins,
-            verbs: await verbs
+            annotations: annotations,
+            assertions: assertions,
+            attributes: attributes,
+            locators: locators,
+            macros: macros,
+            models: models,
+            operators: operators,
+            plugins: plugins,
+            verbs: verbs
         };
 
         // clean
@@ -624,8 +631,8 @@ export class Utilities {
     private static resolveResource(resourceName: string) {
         // get
         try {
-            const directorypath = path.resolve(__dirname, '../..');
-            const filePath = path.join(directorypath, 'resources', resourceName);
+            const directoryPath = path.resolve(__dirname, '../..');
+            const filePath = path.join(directoryPath, 'resources', resourceName);
 
             return fs.readFileSync(filePath, 'utf8');
         } catch (error: any) {

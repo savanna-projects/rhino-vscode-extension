@@ -8,10 +8,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	new CreateProjectCommand(context).register();
 
 	// wait for server
-	const baseUrl = Utilities.getRhinoEndpoint();
-	const isRhinoPorject = baseUrl !== null && baseUrl !== undefined && baseUrl !== '';
+	let baseUrl = Utilities.getRhinoEndpoint();
+	const isRhinoProject = baseUrl !== null && baseUrl !== undefined && baseUrl !== '';
 	
-	if (isRhinoPorject) {
+	if (isRhinoProject) {
 		while (true) {
 			// wait for server to be ready
 			vscode.window.setStatusBarMessage('$(sync~spin) Waiting for Connection...');
@@ -23,6 +23,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				break;
 			}
 
+			baseUrl = Utilities.getRhinoEndpoint();
 			await Utilities.waitAsync(5000);
 		}
 
