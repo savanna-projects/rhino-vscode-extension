@@ -28,8 +28,7 @@
   ],
   "activationEvents": [
     "onStartupFinished",
-    "onCommand:Register-Rhino",
-    "onCommand:Create-Project"
+    "onCommand:Register-Rhino"
   ],
   "main": "./out/extension.js",
   "contributes": {
