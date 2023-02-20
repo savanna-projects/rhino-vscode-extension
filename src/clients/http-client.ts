@@ -112,9 +112,15 @@ export class HttpClient {
         this.onError(logger, error, resolve);
     }
 
-    private static onTimeout(logger: Logger, url: string, timeout: number, resolve: any) {
+    private static onTimeout(logger: Logger, url: string, timeout: number | undefined, resolve: any) {
+        var formattedThreshold = "";
+        if(timeout){
+            formattedThreshold = timeout > 60000 
+            ? `after ${(timeout/60000).toPrecision(2)} minutes`
+            : `after ${timeout} milliseconds`;
+        }
         // no success
-        const error = new Error(`Send-HttpRequest -Url ${url} = (408) Request Timeout after ${timeout} ms`);
+        const error = new Error(`Send-HttpRequest -Url ${url} = (408) Request Timeout ${formattedThreshold}`);
         this.onError(logger, error, resolve);
     }
 
