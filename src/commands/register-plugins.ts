@@ -114,12 +114,12 @@ export class RegisterPluginsCommand extends CommandBase {
         const response = await client.plugins.addPlugins(requestBody);
         const total = response?.toString().split('>>>').length;
 
-        // user interface
-        vscode.window.setStatusBarMessage(`$(testing-passed-icon) Total of ${total} Plugin(s) Registered`);
-
         // register
         await new ConnectServerCommand(context, createModel)
             .syncData(true)
             .invokeCommand();
+            
+        // user interface
+        vscode.window.setStatusBarMessage(`$(testing-passed-icon) Total of ${total} Plugin(s) Registered`);
     }
 }
