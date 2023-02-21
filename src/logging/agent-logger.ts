@@ -19,7 +19,7 @@ export class AgentLogger extends LoggerBase {
      */
     protected onWriteLog(logEntry: LogEntry, error?: Error): void {
         // setup
-        const gravityLog = AgentLogParser.getGravityLog(logEntry.message, error);
+        const gravityLog = AgentLogParser.getGravityLog(logEntry, error);
 
         // set
         logEntry.applicationName = gravityLog.applicationName;
@@ -40,25 +40,31 @@ class AgentLogParser {
 
     // TODO: clean gravity action message (remove time and trace data)
     // TODO: normalize timestamp (optional) - create unique value
-    public static getGravityLog(logMessage: string, error?: Error): LogEntry {
+    public static getGravityLog(logEntry: LogEntry, error?: Error): LogEntry {
+
+        var logMessage = logEntry.message;
         // tokens
         const logNameToken = /(?<=Logger\s+:\s+)\w+/gi;
         const logLevelToken = /(?<=LogLevel\s+:\s+)\w+|(?<=Rhino.Agent\s)\w+(?=:\s+(\d+\s+:\s+(\d+\.?)+)?)/gi;
         const timestampToken = /(?<=TimeStamp\s+:\s+)(\d+(\W+)?)+(?=\n)|(?<=Rhino.Agent\s+\w+:\s+\d+\s+:\s+)(\d+\.?)+/gi;
         const messageToken = /(?<=Message\s+:\s+).*|(?<=Rhino\.Agent\s+\w+:\s+\d+\s+:\s+((\d+\.?)+\s+-\s+)?).*/gi;
         const normalizeToken = /^((\d+\.?)+)\s+\W+\s+/gi;
+        const applicationNameToken = /(?<=Application\s*?:\s+)\w+|(^Rhino.Agent(?=\s+))(?![\s\S]*Application)/gi;
 
         // setup
         try {
             const isErrorMessage = error !== null && error !== undefined && error.message !== '';
             const logName: string = Utilities.getFirstMatch(logMessage.match(logNameToken)).trim();
-            const logLevel = Utilities.getFirstMatch(logMessage.match(logLevelToken)).trim();
+            const applicationName: string = Utilities.getFirstMatch(logMessage.match(applicationNameToken)).trim();
+            const logLevel = logEntry?.logLevel 
+                ? logEntry.logLevel 
+                : Utilities.getFirstMatch(logMessage.match(logLevelToken)).trim();
             const timestamp = Utilities.getFirstMatch(logMessage.match(timestampToken)).trim();
             const message = isErrorMessage
                 ? error.message
                 : Utilities.getFirstMatch(logMessage.match(messageToken)).trim();
             return {
-                applicationName: 'Rhino Extension',
+                applicationName: applicationName,
                 logName: logName && logName !== 'LogLevel' ? logName : 'N/A',
                 timestamp: timestamp ? timestamp : Utilities.getTimestamp(),
                 logLevel: logLevel,
