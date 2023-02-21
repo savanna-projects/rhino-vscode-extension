@@ -408,8 +408,8 @@ export class ReportManager {
 
         // get
         return assertion?.actual
-            ? `<pre style="color: ${assertionColor}">${assertion.expectedResult}<br />Actual: ${reason}</pre>`
-            : `<pre style="color: ${assertionColor}">${assertion.expectedResult}</pre>`;
+            ? `<pre style="color: ${assertionColor}">${assertion.expectedResult}</pre>`
+            : `<pre style="color: ${assertionColor}">${assertion.expectedResult}<br />Actual: ${reason}</pre>`;
     }
 
     private static getActualValue(reasonPhrase: any): string {
