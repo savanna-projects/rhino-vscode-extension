@@ -47,7 +47,7 @@ class AgentLogParser {
         const logNameToken = /(?<=Logger\s+:\s+)\w+/gi;
         const logLevelToken = /(?<=LogLevel\s+:\s+)\w+|(?<=Rhino.Agent\s)\w+(?=:\s+(\d+\s+:\s+(\d+\.?)+)?)/gi;
         const timestampToken = /(?<=TimeStamp\s+:\s+)(\d+(\W+)?)+(?=\n)|(?<=Rhino.Agent\s+\w+:\s+\d+\s+:\s+)(\d+\.?)+/gi;
-        const messageToken = /(?<=Message\s+:\s+).*|(?<=Rhino\.Agent\s+\w+:\s+\d+\s+:\s+((\d+\.?)+\s+-\s+)?).*/gi;
+        const messageToken = /(?<=Message\s+:\s+).*|(?<=Rhino\.Agent\s+\w+:\s+\d+\s+:\s+((\d+\.?)+\s+-\s+)?).*/gis;
         const normalizeToken = /^((\d+\.?)+)\s+\W+\s+/gi;
         const applicationNameToken = /(?<=Application\s*?:\s+)\w+|(^Rhino.Agent(?=\s+))(?![\s\S]*Application)/gi;
 
