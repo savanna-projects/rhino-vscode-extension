@@ -124,7 +124,6 @@ export class RegisterRhinoCommand extends CommandBase {
             new GetTestCaseCommand(context),
             new InvokeTestCasesCommand(context),
             new InvokeTestCaseCommand(context),
-            new InvokeTestCaseCommand(context),
             new RegisterEnvironmentCommand(context),
             new RegisterModelsCommand(context, createModel),
             new RegisterPluginsCommand(context, createModel),
