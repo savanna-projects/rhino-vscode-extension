@@ -34,7 +34,7 @@ export class AgentLogListener {
         // constants
         const rhinoPattern = /(Application|Logger|LogLevel|TimeStamp|MachineName|Message)(\s+)?:\s+.*/gi;
         const gravityPattern = /(Rhino\.Agent\s+\w+:)(\s+\d+\s+:)(\s+(\d+\.?)+)?.*(?<=executed(\n?))/gi;
-        const exceptionPattern = /(Rhino\.Agent\s+\w+:\s+\d+\s+:\s+)(.*Exception.*)|(\s{3}at\s+).*|\s(\s{2})?-{3}.*|(\s{2})(\(.*)/gi;
+        const exceptionPattern = /(Rhino\.Agent\s+\w+:\s+\d+\s+:\s+)(.*Exception.*)|(\s{3}at\s+).*|(\s{3})?(?:---)\s+End of.+(?:---)|(\s{2})(\(.*)|(?:\s--->\s)?(\w+\.).*Exception:.*/gi;
         const exceptionMessagePattern = /(?<=--->\s+(.*)Exception:\s+).*/gi;
 
         // setup
@@ -63,7 +63,7 @@ export class AgentLogListener {
                     let entries = [];
 
                     while (log[i].match(rhinoPattern)) {
-                        entries.push(log[i].trim());
+                        entries.push(log[i].trim().replace(/\n|\r/, ' '));
                         i++;
                     }
 
@@ -71,7 +71,7 @@ export class AgentLogListener {
                 }
 
                 if (line.match(gravityPattern)) {
-                    logEntry = line;
+                    logEntry = line.trim().replace(/\n|\r/, ' ');
                 }
 
                 let error: Error | undefined = undefined;
@@ -84,7 +84,7 @@ export class AgentLogListener {
                         if (match) {
                             message = Utilities.getFirstMatch(match);
                         }
-                        entries.push(log[i].trim());
+                        entries.push(log[i].trimEnd());
                         i++;
                     }
 
@@ -110,7 +110,7 @@ export class AgentLogListener {
             // setup
             const logs = await client.logs.getLogs();
 
-            // extact
+            // extract
             const ids = logs
                 .map((i: any) => i.match(/\d+/).toString())
                 .sort((a: any, b: any) => (a > b ? -1 : 1));

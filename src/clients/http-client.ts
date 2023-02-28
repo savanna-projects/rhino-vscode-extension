@@ -125,7 +125,6 @@ export class HttpClient {
     }
 
     private static onError(logger: Logger, error: any, resolve: any) {
-        logger?.channel.show();
         logger?.error(error.message, error);
         resolve(error.stack);
     }
