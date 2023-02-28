@@ -125,12 +125,12 @@ export class RegisterResourcesCommand extends CommandBase {
         // setup
         let total = requestBody.length;
 
-        // notification
-        vscode.window.setStatusBarMessage(`$(testing-passed-icon) Total of ${total} Resource(s) Registered`);
-
         // register
         await new ConnectServerCommand(context, createModel)
             .syncData(false)
             .invokeCommand();
+            
+        // notification
+        vscode.window.setStatusBarMessage(`$(testing-passed-icon) Total of ${total} Resource(s) Registered`);
     }
 }

@@ -521,6 +521,7 @@ class RhinoSyncClient {
     public invokeConfiguration(requestBody: any): Promise<any> {
         // setup
         const httpCommand = new HttpCommand();
+        httpCommand.timeout = 900000;
         httpCommand.command = `/api/v${this._version}/rhino/configurations/invoke`;
         httpCommand.addHeader('Content-Type', 'application/json');
         httpCommand.method = 'POST';

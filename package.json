@@ -3,7 +3,7 @@
   "publisher": "RhinoAPI",
   "displayName": "Rhino Languages Support",
   "description": "Supports IntelliSense, code snippets and commands for Rhino API client language.",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "icon": "images/128x128.png",
   "repository": {
     "url": "https://github.com/savanna-projects/rhino-vscode-extension.git"
@@ -28,8 +28,7 @@
   ],
   "activationEvents": [
     "onStartupFinished",
-    "onCommand:Register-Rhino",
-    "onCommand:Create-Project"
+    "onCommand:Register-Rhino"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -263,6 +262,7 @@
   "dependencies": {
     "@vscode/test-electron": "^2.2.3",
     "@vscode/vsce": "^2.17.0",
+    "esbuild": "^0.17.10",
     "fetch": "^1.1.0",
     "node-fetch": "^2.6.9",
     "npm": "^8.18.0"

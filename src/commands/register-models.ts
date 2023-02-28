@@ -73,11 +73,12 @@ export class RegisterModelsCommand extends CommandBase {
         // invoke
         await this.registerModels(this.client, requestBody);
 
-        // user interface
-        vscode.window.setStatusBarMessage('$(testing-passed-icon) Models Registered');
 
         // register
         new RegisterRhinoCommand(context, Promise.resolve(this._createModel)).invokeCommand();
+        
+        // user interface
+        vscode.window.setStatusBarMessage('$(testing-passed-icon) Models Registered');
     }
 
     private getModelsFromFiles(): any[] {

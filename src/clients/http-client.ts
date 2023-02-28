@@ -50,7 +50,7 @@ export class HttpClient {
                 response.on('error', (error) => HttpClient.onError(logger, error, resolve));
                 response.on('end', () => HttpClient.onEnd(logger, response, data, resolve));
             });
-            clientRequest.on('timeout', () => HttpClient.onTimeout(logger, url, resolve));
+            clientRequest.on('timeout', () => HttpClient.onTimeout(logger, url, options.timeout, resolve));
             clientRequest.on('error', (error: any) => HttpClient.onError(logger, error, resolve));
 
             // send
@@ -112,9 +112,15 @@ export class HttpClient {
         this.onError(logger, error, resolve);
     }
 
-    private static onTimeout(logger: Logger, url: string, resolve: any) {
+    private static onTimeout(logger: Logger, url: string, timeout: number | undefined, resolve: any) {
+        var formattedThreshold = "";
+        if(timeout){
+            formattedThreshold = timeout > 60000 
+            ? `after ${(timeout/60000).toPrecision(2)} minutes`
+            : `after ${timeout} milliseconds`;
+        }
         // no success
-        const error = new Error(`Send-HttpRequest -Url ${url} = (408) Request Timeout`);
+        const error = new Error(`Send-HttpRequest -Url ${url} = (408) Request Timeout ${formattedThreshold}`);
         this.onError(logger, error, resolve);
     }
 
