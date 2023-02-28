@@ -8,20 +8,23 @@
  */
 import path = require('path');
 import * as vscode from 'vscode';
-import { ExtensionSettings } from '../extension-settings';
+import { Settings } from '../constants/settings';
 import { Utilities } from '../extensions/utilities';
-import { Provider } from './provider';
+import { Logger } from '../logging/logger';
+import { ProviderBase } from './provider-base';
 
-export class RhinoDefinitionProvider extends Provider {
+export class RhinoDefinitionProvider extends ProviderBase {
     // members
-    private context: vscode.ExtensionContext;
+    private readonly _logger: Logger;
 
     /**
-     * Creates a new instance of CommandsProvider
+     * Creates a new instance of Provider
      */
     constructor(context: vscode.ExtensionContext) {
-        super();
-        this.context = context;
+        super(context);
+
+        // setup
+        this._logger = super.logger?.newLogger('RhinoDefinitionProvider');
     }
 
     /*┌─[ ABSTRACT IMPLEMENTATION ]────────────────────────────
@@ -31,12 +34,12 @@ export class RhinoDefinitionProvider extends Provider {
     /**
      * Summary. Register all providers into the given context. 
      */
-    public register(): any {
+    protected async onRegister(): Promise<void> {
         // setup
-        let plugins = this.getPlugins();
+        const plugins = this.getPlugins();
 
         // register: actions
-        let definitions = vscode.languages.registerDefinitionProvider(ExtensionSettings.providerOptions, {
+        let definitions = vscode.languages.registerDefinitionProvider(Settings.providerOptions, {
             provideDefinition(_textDocument, position) {
                 const editor = vscode.window.activeTextEditor;
                 const selection = editor?.selection;
@@ -59,17 +62,6 @@ export class RhinoDefinitionProvider extends Provider {
         this.context.subscriptions.push(...items);
     }
 
-    /**
-     * Summary. Sets the collection of plugins references as returns by Rhino Server.
-     * 
-     * @param manifests A collection of plugins references as returns by Rhino Server.
-     * @returns Self reference.
-     */
-    public setManifests(manifests: any): any {
-        console.log(manifests);
-        return [];
-    }
-
     /*┌─[ UTILITIES ]──────────────────────────────────────────
       │
       │ A collection of utility methods
@@ -78,24 +70,26 @@ export class RhinoDefinitionProvider extends Provider {
         // setup
         let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
+
         let pluginsFolder = path.join(workspace, 'Plugins');
         pluginsFolder = pluginsFolder.startsWith('\\')
             ? pluginsFolder.substring(1, pluginsFolder.length)
             : pluginsFolder;
-        let plugins: any[] = [];
+
+        const plugins: any[] = [];
 
         // build
-        Utilities.getFiles(pluginsFolder, (files: string[]) => {
-            for (const file of files) {
-                let plugin = this.getPlugin(file);
-                let pluginContent = plugin.split(/\r?\n|\n\r?/);
-                let pluginData = {
-                    id: this.getPluginId(pluginContent),
-                    file: file
-                };
-                plugins.push(pluginData);
-            }
-        });
+        const files = Utilities.getFiles(pluginsFolder);
+
+        for (const file of files) {
+            const plugin = this.getPlugin(file);
+            const pluginContent = plugin.split(/\r?\n|\n\r?/);
+            const pluginData = {
+                id: this.getPluginId(pluginContent),
+                file: file
+            };
+            plugins.push(pluginData);
+        }
 
         // get
         return [...new Map(plugins.map(item => [item['id'], item])).values()];
@@ -145,8 +139,8 @@ export class RhinoDefinitionProvider extends Provider {
                 .trim()
                 .replace(/([a-z])([A-Z])/g, `$1 $2`)
                 .toLowerCase();
-        } catch (error) {
-            console.error(error);
+        } catch (error: any) {
+            this._logger?.error(error.message, error);
             return '';
         }
     }

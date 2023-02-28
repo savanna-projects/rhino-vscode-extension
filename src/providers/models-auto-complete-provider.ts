@@ -9,18 +9,18 @@
  * https://www.gitmemory.com/issue/microsoft/vscode/75237/501481326
  */
 import * as vscode from 'vscode';
-import { ExtensionSettings } from '../extension-settings';
-import { Provider } from './provider';
+import { Settings } from '../constants/settings';
+import { ProviderBase } from './provider-base';
 
-export class ModelsAutoCompleteProvider extends Provider {
-    // members
-    private manifests: any[];
+export class ModelsAutoCompleteProvider extends ProviderBase {
+    // properties
+    public manifests: any[] = [];
+
     /**
-     * Creates a new instance of CommandsProvider
+     * Creates a new instance of Provider
      */
-    constructor() {
-        super();
-        this.manifests = [];
+    constructor(context: vscode.ExtensionContext) {
+        super(context);
     }
 
     /*┌─[ ABSTRACT IMPLEMENTATION ]────────────────────────────
@@ -30,12 +30,12 @@ export class ModelsAutoCompleteProvider extends Provider {
     /**
      * Summary. Register all providers into the given context. 
      */
-    public register(context: vscode.ExtensionContext): any {
+    protected async onRegister(context: vscode.ExtensionContext): Promise<void> {
         // setup
-        let instance = new ModelsAutoCompleteProvider().setManifests(this.manifests);
+        const instance = this;
 
         // register: models
-        let models = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let models = vscode.languages.registerCompletionItemProvider(Settings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getModelsCompletionItems(document, position);
             }
@@ -46,26 +46,11 @@ export class ModelsAutoCompleteProvider extends Provider {
         context.subscriptions.push(...items);
     }
 
-    /**
-     * Summary. Sets the collection of plugins references as returns by Rhino Server.
-     * 
-     * @param manifests A collection of plugins references as returns by Rhino Server.
-     * @returns Self reference.
-     */
-    public setManifests(manifests: any): ModelsAutoCompleteProvider {
-        // setup
-        this.manifests = manifests;
-
-        // get
-        return this;
-    }
-
     /*┌─[ AUTO-COMPLETE ITEMS - PARAMETERS ]───────────────────
       │
       │ A collection of functions to factor auto-complete items.
       └────────────────────────────────────────────────────────*/
-    private getModelsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
-        : vscode.CompletionItem[] {
+    private getModelsCompletionItems(document: vscode.TextDocument, position: vscode.Position): vscode.CompletionItem[] {
         // setup
         let text = document.lineAt(position).text.substring(0, position.character);
         let isModelToke = text.substring(position.character - 2, text.length) === 'm:';

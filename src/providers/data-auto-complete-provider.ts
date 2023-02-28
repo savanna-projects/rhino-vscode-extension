@@ -4,31 +4,19 @@
  * RESOURCES
  */
 import * as vscode from 'vscode';
-import { ExtensionSettings } from '../extension-settings';
-import { Provider } from './provider';
+import { Settings } from '../constants/settings';
+import { ProviderBase } from './provider-base';
 
-export class DataAutoCompleteProvider extends Provider {
-    // members
-    private manifests: any[];
-    private references: number[];
-    private annotations: any[];
+export class DataAutoCompleteProvider extends ProviderBase {
+    // properties
+    public references: number[] = [];
+    public annotations: any[] = [];
 
     /**
-     * Creates a new instance of CommandsProvider
+     * Creates a new instance of Provider
      */
-    constructor() {
-        super();
-        this.manifests = [];
-        this.references = [];
-        this.annotations = [];
-    }
-
-    public setAnnotations(annotations: any[]) {
-        // setup
-        this.annotations = annotations;
-
-        // get
-        return this;
+    constructor(context: vscode.ExtensionContext) {
+        super(context);
     }
 
     /*┌─[ ABSTRACT IMPLEMENTATION ]────────────────────────────
@@ -38,14 +26,12 @@ export class DataAutoCompleteProvider extends Provider {
     /**
      * Summary. Register all providers into the given context. 
      */
-    public register(context: vscode.ExtensionContext) {
+    protected async onRegister(context: vscode.ExtensionContext): Promise<void> {
         // setup
-        let instance = new DataAutoCompleteProvider()
-            .setAnnotations(this.annotations)
-            .setManifests(this.manifests);
+        const instance = this;
 
         // register: assertions
-        let snippet = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let snippet = vscode.languages.registerCompletionItemProvider(Settings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getDataCompletionItems(document, position);
             }
@@ -61,20 +47,6 @@ export class DataAutoCompleteProvider extends Provider {
         }
     }
 
-    /**
-     * Summary. Sets the collection of plugins references as returns by Rhino Server.
-     * 
-     * @param manifests A collection of plugins references as returns by Rhino Server.
-     * @returns Self reference.
-     */
-    public setManifests(manifests: any) {
-        // setup
-        this.manifests = manifests;
-
-        // get
-        return this;
-    }
-
     /*┌─[ AUTO-COMPLETE - DATA SNIPPET ]───────────────────────
       │
       │ A collection of functions to factor auto-complete items
@@ -83,8 +55,7 @@ export class DataAutoCompleteProvider extends Provider {
     /**
      * Summary. Gets a collection of CompletionItem for test case data with auto-complete behavior. 
      */
-    public getDataCompletionItems(document: vscode.TextDocument, position: vscode.Position)
-        : vscode.CompletionItem[] {
+    private getDataCompletionItems(document: vscode.TextDocument, position: vscode.Position): vscode.CompletionItem[] {
         // bad request
         if (!this.isUnderAnnotation(document, position, 'test-data-provider', this.annotations)) {
             return [];

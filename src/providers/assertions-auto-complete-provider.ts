@@ -7,73 +7,23 @@
  * https:/w/ww.freecodecamp.org/news/definitive-guide-to-snippets-visual-studio-code/
  */
 import * as vscode from 'vscode';
-import { ExtensionSettings } from '../extension-settings';
-import { Provider } from './provider';
+import { Settings } from '../constants/settings';
+import { ProviderBase } from './provider-base';
 
-export class AssertionsAutoCompleteProvider extends Provider {
-    // members
-    private attributes: any[];
-    private operators: any[];
-    private manifests: any[];
-    private references: number[];
-    private locators: any[];
-    private annotations: any[];
+export class AssertionsAutoCompleteProvider extends ProviderBase {
+    // properties
+    public attributes: any[] = [];
+    public operators: any[] = [];
+    public manifests: any[] = [];
+    public references: number[] = [];
+    public locators: any[] = [];
+    public annotations: any[] = [];
 
     /**
      * Creates a new instance of Provider
      */
-    constructor() {
-        super();
-        this.attributes = [];
-        this.operators = [];
-        this.manifests = [];
-        this.references = [];
-        this.locators = [];
-        this.annotations = [];
-    }
-
-    public setAnnotations(annotations: any[]) {
-        // setup
-        this.annotations = annotations;
-
-        // get
-        return this;
-    }
-
-    public setLocators(locators: any[]) {
-        // setup
-        this.locators = locators;
-
-        // get
-        return this;
-    }
-
-    /**
-     * Summary. Sets a collection of operators.
-     * 
-     * @param operators A collection of operators.
-     * @returns Self reference.
-     */
-    public setOperators(operators: any): AssertionsAutoCompleteProvider {
-        // setup
-        this.operators = operators;
-
-        // get
-        return this;
-    }
-
-    /**
-     * Summary. Sets a collection of element special attributes.
-     * 
-     * @param attributes A collection of element special attributes.
-     * @returns Self reference.
-     */
-     public setAttributes(attributes: any): AssertionsAutoCompleteProvider {
-        // setup
-        this.attributes = attributes;
-
-        // get
-        return this;
+    constructor(context: vscode.ExtensionContext) {
+        super(context);
     }
 
     /*┌─[ ABSTRACT IMPLEMENTATION ]────────────────────────────
@@ -83,24 +33,19 @@ export class AssertionsAutoCompleteProvider extends Provider {
     /**
      * Summary. Register all providers into the given context. 
      */
-    public register(context: vscode.ExtensionContext) {
+    protected async onRegister(context: vscode.ExtensionContext): Promise<void> {
         // setup
-        let instance = new AssertionsAutoCompleteProvider()
-            .setManifests(this.manifests)
-            .setAnnotations(this.annotations)
-            .setAttributes(this.attributes)
-            .setOperators(this.operators)
-            .setLocators(this.locators);
+        const instance = this;
 
         // register: assertions
-        let assertions = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let assertions = vscode.languages.registerCompletionItemProvider(Settings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getAssertionsCompletionItems(document, position);
             }
         });
 
         // register: methods
-        let assertionMethods = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let assertionMethods = vscode.languages.registerCompletionItemProvider(Settings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getAssertionMethodsCompletionItems(document, position);
             }
@@ -116,20 +61,14 @@ export class AssertionsAutoCompleteProvider extends Provider {
         }
     }
 
-    public setManifests(manifests: any) {
-        // setup
-        this.manifests = manifests;
-
-        // get
-        return this;
-    }
-
     /*┌─[ AUTO-COMPLETE ITEMS - ASSERTIONS ]──────────────────
       │
       │ A collection of functions to factor auto-complete items.
       └────────────────────────────────────────────────────────*/
-    private getAssertionMethodsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
-        : vscode.CompletionItem[] {
+    private getAssertionMethodsCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position): vscode.CompletionItem[] {
+
         // bad request
         if (!this.isAssert(document, position)) {
             return [];
@@ -148,8 +87,9 @@ export class AssertionsAutoCompleteProvider extends Provider {
         return [...new Map(items.map(item => [item.label, item])).values()];
     }
 
-    private getAssertionsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
-        : vscode.CompletionItem[] {
+    private getAssertionsCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position): vscode.CompletionItem[] {
 
         // setup
         let isUnderSection = this.isUnderAnnotation(document, position, 'test-expected-results', this.annotations);
@@ -191,8 +131,11 @@ export class AssertionsAutoCompleteProvider extends Provider {
         return item;
     }
 
-    private getWithElementWithAttribute(locators: string, operators: string, attributes: string)
-        : vscode.CompletionItem {
+    private getWithElementWithAttribute(
+        locators: string,
+        operators: string,
+        attributes: string): vscode.CompletionItem {
+
         // build
         let snippet =
             '[${1:step number}] verify that ' +
@@ -228,8 +171,11 @@ export class AssertionsAutoCompleteProvider extends Provider {
         return item;
     }
 
-    private getWithElementWithAttributeWithRegex(locators: string, operators: string, attributes: string)
-        : vscode.CompletionItem {
+    private getWithElementWithAttributeWithRegex(
+        locators: string,
+        operators: string,
+        attributes: string): vscode.CompletionItem {
+
         // build
         let snippet =
             '[${1:step number}] verify that ' +

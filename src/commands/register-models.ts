@@ -8,22 +8,34 @@
  * https://code.visualstudio.com/api/extension-guides/webview
  */
 import path = require('path');
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
-import { Command } from "./command";
+import { Logger } from '../logging/logger';
+import { TmLanguageCreateModel } from '../models/tm-create-model';
+import { CommandBase } from "./command-base";
 import { RegisterRhinoCommand } from './register-rhino';
+import { RhinoClient } from '../clients/rhino-client';
 
-export class RegisterModelsCommand extends Command {
+export class RegisterModelsCommand extends CommandBase {
+    // members: state
+    private readonly _logger: Logger;
+    private _createModel: TmLanguageCreateModel;
+
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
      * @param context The context under which to register the command.
      */
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext, createModel: TmLanguageCreateModel) {
         super(context);
 
         // build
-        this.setCommandName('Register-Models');
+        this.command = 'Register-Models';
+
+        // create data
+        this._logger = super.logger?.newLogger('RegisterModelsCommand');
+        this._createModel = createModel;
     }
 
     /*┌─[ REGISTER ]───────────────────────────────────────────
@@ -35,127 +47,91 @@ export class RegisterModelsCommand extends Command {
      * Summary. Register a command for invoking one or more Rhino Test Case
      *          and present the report.
      */
-    public register(): any {
+    protected async onRegister(): Promise<any> {
         // setup
-        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
-            this.invoke(undefined);
+        let command = vscode.commands.registerCommand(this.command, () => {
+            this.invokeCommand();
         });
 
         // set
-        this.getContext().subscriptions.push(command);
+        this.context.subscriptions.push(command);
     }
 
     /**
      * Summary. Implement the command invoke pipeline.
      */
-    public invokeCommand(callback: any) {
-        this.invoke(callback);
-    }
-
-    private invoke(callback: any) {
-        // notification
-        vscode.window.setStatusBarMessage('$(sync~spin) Registering model(s)...');
-
-        // build
-        this.getModelsFromFiles((createModel: any) => {
-            this.registerModels(createModel, callback);
-        });
-    }
-
-    private getModelsFromFiles(callback: any) {
+    protected async onInvokeCommand(): Promise<any> {
         // setup
-        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
-        workspace = workspace === undefined ? '' : workspace;
+        const context = this.context;
 
-        let modelsFolder = path.join(workspace, 'Models');
-        modelsFolder = modelsFolder.startsWith('\\')
-            ? modelsFolder.substring(1, modelsFolder.length)
-            : modelsFolder;
+        // user interface
+        vscode.window.setStatusBarMessage('$(sync~spin) Registering Model(s)...');
 
-        // build
-        const fs = require('fs');
+        // setup
+        const requestBody = this.getModelsFromFiles();
+
+        // invoke
+        await this.registerModels(this.client, requestBody);
+
+
+        // register
+        new RegisterRhinoCommand(context, Promise.resolve(this._createModel)).invokeCommand();
+        
+        // user interface
+        vscode.window.setStatusBarMessage('$(testing-passed-icon) Models Registered');
+    }
+
+    private getModelsFromFiles(): any[] {
+        // setup
+        const modelsFolder = Utilities.getSystemFolderPath('Models');
 
         // iterate
-        Utilities.getFiles(modelsFolder, (files: string[]) => {
-            let modelsData = [];
-            for (const modelFile of files) {
-                try {
-                    let modelStr = fs.readFileSync(modelFile, 'utf8');
-                    let isJson = this.isJson(modelStr);
-                    let modelData = isJson ? JSON.parse(modelStr) : modelStr;
-                    modelsData.push({
-                        type: isJson ? 'json' : 'md',
-                        data: modelData
-                    });
-                } catch (e) {
-                    console.log('Error:', e);
-                }
+        const files = Utilities.getFiles(modelsFolder);
+        const modelsData = [];
+        for (const modelFile of files) {
+            try {
+                const modelStr = fs.readFileSync(modelFile, 'utf8');
+                const isJson = Utilities.assertJson(modelStr);
+                const modelData = isJson ? JSON.parse(modelStr) : modelStr;
+                modelsData.push({
+                    type: isJson ? 'json' : 'md',
+                    data: modelData
+                });
+            } catch (error: any) {
+                this._logger?.error(error.message, error);
             }
+        }
 
-            callback(modelsData);
-        });
+        // get
+        return modelsData;
     }
 
-    private registerModels(createModel: any[], callback: any) {
-        // setup
-        let client = this.getRhinoClient();
+    private async registerModels(client: RhinoClient, requestBody: any[]): Promise<void> {
+        try {
+            // setup
+            const markdownModels = requestBody.filter(i => i.type === 'md');
+            const mdModels = markdownModels.map(i => i.data).join('\n>>>\n');
+            const jsModels = requestBody.filter(i => i.type === 'json').map(i => i.data);
+            const isJson = jsModels.length > 0;
+            const isMarkdown = markdownModels.length > 0;
 
-        // clean and register
-        client.deleteModels(() => {
-            this.createModels(createModel, callback);
-        });
-    }
-
-    private createModels(createModel: any[], callback: any) {
-        // setup
-        let client = this.getRhinoClient();
-        let markdownModels = createModel.filter(i => i.type === 'md');
-        let mdModels = markdownModels.map(i => i.data).join('\n>>>\n');
-        let jsModels = createModel.filter(i => i.type === 'json').map(i => i.data);
-        let isJson = jsModels.length > 0;
-        let isMarkdown = markdownModels.length > 0;
-
-        // local functions
-        function _callback(context: vscode.ExtensionContext, callback: any) {
-            // notification
-            vscode.window.setStatusBarMessage('$(testing-passed-icon) Models registered');
+            // clean
+            await client.models.deleteModels();
 
             // register
-            new RegisterRhinoCommand(context).invokeCommand();
-
-            // callback
-            if (callback !== undefined) {
-                callback();
+            if (isJson && !isMarkdown) {
+                await client.models.newModels(jsModels);
+            }
+            if (isMarkdown && !isJson) {
+                await client.models.newModels(mdModels);
+            }
+            if (isMarkdown && isJson) {
+                await client.models.newModels(jsModels);
+                await client.models.newModels(mdModels);
             }
         }
-
-        // factory
-        if (isJson && !isMarkdown) {
-            client.createModels(jsModels, () => {
-                _callback(this.getContext(), callback);
-            });
-        }
-        if (isMarkdown && !isJson) {
-            client.createModelsMd(mdModels, () => {
-                _callback(this.getContext(), callback);
-            });
-        }
-        if (isMarkdown && isJson) {
-            client.createModels(jsModels, () => {
-                client.createModelsMd(mdModels, () => {
-                    _callback(this.getContext(), callback);
-                });
-            });
-        }
-    }
-
-    private isJson(str: string): boolean {
-        try {
-            JSON.parse(str);
-            return true;
-        }
-        catch {
-            return false;
+        catch (error: any) {
+            this._logger?.error(error.message, error);
         }
     }
 }

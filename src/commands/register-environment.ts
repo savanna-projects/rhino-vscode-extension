@@ -3,13 +3,18 @@
  * 
  * RESOURCES
  */
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 import path = require('path');
 import { Utilities } from '../extensions/utilities';
-import { Command } from "./command";
+import { CommandBase } from "./command-base";
+import { Logger } from '../logging/logger';
 
 
-export class RegisterEnvironmentCommand extends Command {
+export class RegisterEnvironmentCommand extends CommandBase {
+    // members: static
+    private readonly _logger: Logger;
+
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
@@ -19,7 +24,8 @@ export class RegisterEnvironmentCommand extends Command {
         super(context);
 
         // build
-        this.setCommandName('Register-Environment');
+        this._logger = super.logger?.newLogger('InvokeTestCaseCommand');
+        this.command = 'Register-Environment';
     }
 
     /*┌─[ REGISTER & INVOKE ]──────────────────────────────────
@@ -30,104 +36,86 @@ export class RegisterEnvironmentCommand extends Command {
     /**
      * Summary. Register a command for creating an integrated test case.
      */
-    public register(): any {
+    protected async onRegister(): Promise<any> {
         // build
-        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
-            this.invoke(undefined);
+        let command = vscode.commands.registerCommand(this.command, async () => {
+            await this.invokeCommand();
         });
 
         // set
-        this.getContext().subscriptions.push(command);
+        this.context.subscriptions.push(command);
     }
 
     /**
      * Summary. Implement the command invoke pipeline.
      */
-    public invokeCommand(callback: any) {
-        this.invoke(callback);
-    }
-    isFunction(functionToCheck: any): boolean {
-        // Possibly won't work for async functions - needs further testing
-        return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
-
-        // return functionToCheck instanceof Function;
-    }
-    private invoke(callback: any) {
+    protected async onInvokeCommand(): Promise<any> {
         // setup
-        let client = this.getRhinoClient();
-        let options = {
+        const client = this.client;
+        const options = {
             placeHolder: 'Environment file name w/o extension (e.g., Production)'
         };
 
-        vscode.window.showInputBox(options).then((value) => {
-            RegisterEnvironmentCommand.getEnvironments(value, (requests:JSON[]) =>{
+        vscode.window.showInputBox(options).then(async (value) => {
+            if (value === undefined || value === null || value === '') {
+                return;
+            }
+            const requests = this.getEnvironments(value);
 
-                // setup
-                let mergedJson:JSON = requests[0];
-            
-                // merge requests
-                for (let request of requests) {
-                    mergedJson = {...mergedJson, ...request};
-                }
-                
-                // bad request
-                if (Utilities.isNullOrUndefined(mergedJson)) {
-                    vscode.window.setStatusBarMessage('$(testing-error-icon) Environment file not found or not valid.');
-                    return;
-                }
+            // setup
+            let mergedJson: JSON = requests[0];
 
-                // user interface
-                vscode.window.setStatusBarMessage('$(sync~spin) Registering environment...');
+            // merge requests
+            for (let request of requests) {
+                mergedJson = { ...mergedJson, ...request };
+            }
 
-                // get
-                client.addEnvironment(mergedJson, () => {
-                    client.syncEnvironment((response: any) => {
-                        vscode.window.setStatusBarMessage('$(testing-passed-icon) Environment registered');
-                        if(this.isFunction(callback)){
-                            callback(response);
-                        }
-                    });
-                }); 
-            }); 
+            // bad request
+            if (Utilities.assertNullOrUndefined(mergedJson)) {
+                vscode.window.setStatusBarMessage('$(testing-error-icon) Environment File Not Found or Not Valid.');
+                return;
+            }
+
+            // user interface
+            vscode.window.setStatusBarMessage('$(sync~spin) Registering Environment(s)...');
+
+            // register
+            await client.environments.addEnvironment(mergedJson);
+            await client.environments.syncEnvironment();
+
+            // user interface
+            vscode.window.setStatusBarMessage('$(testing-passed-icon) Environment Registered');
         });
     }
 
-    private static getEnvironments(environment: string | undefined, callback: any) {
+    private getEnvironments(environment: string): JSON[] {
         // setup
-        let listOfEnviorments = environment?.split(/\s*,\s*/);
-        
+        const listOfEnviorments = environment?.split(/\s*,\s*/);
+
         // check if undefined 
-        if(!listOfEnviorments) {
-            vscode.window.setStatusBarMessage('$(testing-error-icon) Environment file not found or not valid.');
-            return;
+        if (!listOfEnviorments) {
+            vscode.window.setStatusBarMessage('$(testing-error-icon) Environment File was Not Found or Not Valid');
+            return [];
         }
 
         // setup
-        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
-        workspace = workspace === undefined ? '' : workspace;
-        let environmetsFolder = path.join(workspace, 'Environments');
-        environmetsFolder = environmetsFolder.startsWith('\\')
-            ? environmetsFolder.substring(1, environmetsFolder.length)
-            : environmetsFolder;
+        const environmetsFolder = Utilities.getSystemFolderPath('Environments');
 
-        Utilities.getFilesByFileNames(environmetsFolder, listOfEnviorments, (listOfPaths: string[]) => {
-            
-            // setup 
-            let requests:JSON[] = []; 
+        // build
+        const listOfPaths = Utilities.getFilesByFileNames(environmetsFolder, listOfEnviorments);
+        const requests: JSON[] = [];
 
-            for (let curPath of listOfPaths) {
-                // build
-                let data = "{}";
-                const fs = require('fs');
-                try {
-                    data = fs.readFileSync(curPath, 'utf8');
-                    requests.push(JSON.parse(data));
-                } catch (e: any) {
-                    console.log('Error:', e.stack);
-                    return;
-                }
+        for (const path of listOfPaths) {
+            try {
+                const data = fs.readFileSync(path, 'utf8');
+                requests.push(JSON.parse(data));
+            } catch (error: any) {
+                this._logger?.error(error.message, error);
+                continue;
             }
-            callback(requests);
-        });
+        }
+
+        // get
+        return requests;
     }
 }

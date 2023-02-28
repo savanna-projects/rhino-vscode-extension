@@ -6,9 +6,9 @@
  */
 import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
-import { Command } from "./command";
+import { CommandBase } from './command-base';
 
-export class RegisterTestCaseCommand extends Command {
+export class RegisterTestCaseCommand extends CommandBase {
     // members
     private testSuites: string[] | undefined;
 
@@ -22,7 +22,7 @@ export class RegisterTestCaseCommand extends Command {
 
         // build
         this.testSuites = [];
-        this.setCommandName('Register-TestCase');
+        this.command = 'Register-TestCase';
     }
 
     /*┌─[ REGISTER & INVOKE ]──────────────────────────────────
@@ -33,99 +33,66 @@ export class RegisterTestCaseCommand extends Command {
     /**
      * Summary. Register a command for creating an integrated test case.
      */
-    public register(): any {
+    protected async onRegister(): Promise<any> {
         // build
-        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
+        const command = vscode.commands.registerCommand(this.command, () => {
             // setup
-            let options = {
-                placeHolder: 'A comma separated test suite ids (e.g. 1908, RH-1908, etc.)'
+            const options = {
+                placeHolder: 'A comma separated test suite id (e.g. 1908, RH-1908, etc.)'
             };
 
-            vscode.window.showInputBox(options).then((value) => {
+            vscode.window.showInputBox(options).then(async (value) => {
                 this.testSuites = value?.split(',');
                 this.testSuites = (this.testSuites === undefined) ? [] : this.testSuites;
-                this.invoke();
+                await this.invokeCommand();
             });
         });
 
         // set
-        this.getContext().subscriptions.push(command);
+        this.context.subscriptions.push(command);
     }
 
     /**
      * Summary. Implement the command invoke pipeline.
      */
-    public invokeCommand() {
-        this.invoke();
-    }
-
-    private invoke() {
-        // notification
-        vscode.window.setStatusBarMessage('$(sync~spin) Creating an integrated test case(s)...');
+    protected async onInvokeCommand(): Promise<any> {
+        // user interface
+        vscode.window.setStatusBarMessage('$(sync~spin) Creating an Integrated Test Case(s)...');
 
         // setup
-        let manifest = Utilities.getProjectManifest();
-        let configuration = {
+        let manifest = Utilities.getManifest();
+        let testCreateModel = {
             connector: manifest.connectorConfiguration,
             entity: {
-                spec: this.getOpenTestCases(),
+                spec: Utilities.getOpenDocumentText(),
                 testSuites: this.testSuites
             }
         };
 
-        // build
-        this.getRhinoClient().createTestCase(configuration, (response: any) => {
-            vscode.window.setStatusBarMessage('$(testing-passed-icon) Integrated test cases created');
+        // invoke
+        const createResponse = await this.client.integration.newTestCase(testCreateModel);
 
-            // get by id
-            let testCasesResponse = JSON.parse(response);
-            vscode.window.setStatusBarMessage('$(sync~spin) Getting an integrated test case(s)...');
-            let model = {
-                connector: manifest.connectorConfiguration,
-                entity: testCasesResponse.length > 0 ? testCasesResponse[0] : ''
-            };
-            if (model.entity === '') {
-                return;
-            }
-            this.getRhinoClient().getTestCases(model, (testCase: any) => {
-                let range = this.getDocumentRange();
-                vscode.window.activeTextEditor?.edit((i) => {
-                    i.replace(range, testCase);
-                    vscode.window.setStatusBarMessage('$(testing-passed-icon) Integrated Test case(s) retrieved');
-                });
-            });
+        // user interface
+        vscode.window.setStatusBarMessage('$(testing-passed-icon) Integrated Test Case(s) Created');
+
+        // get by id
+        vscode.window.setStatusBarMessage('$(sync~spin) Retrieving an Integrated Test Case(s)...');
+        let testGetModel = {
+            connector: manifest.connectorConfiguration,
+            entity: createResponse.length > 0 ? createResponse[0] : ''
+        };
+
+        if (testGetModel.entity === '') {
+            return;
+        }
+
+        const testCase = await this.client.integration.getTestCases(testGetModel);
+
+        // replace in open document
+        const range = Utilities.getOpenDocumentRange();
+        vscode.window.activeTextEditor?.edit((i) => {
+            i.replace(range, testCase);
+            vscode.window.setStatusBarMessage('$(testing-passed-icon) Integrated Test Case(s) Retrieved');
         });
-    }
-
-    // get test cases from the open document
-    private getOpenTestCases(): string {
-        // setup
-        let editor = vscode.window.activeTextEditor;
-
-        // bad request
-        if (!editor) {
-            return '';
-        }
-
-        // get
-        return editor.document.getText();
-    }
-
-    private getDocumentRange() {
-        // setup
-        let document = vscode.window.activeTextEditor?.document;
-
-        // not found
-        if (!document) {
-            let position = new vscode.Position(0, 0);
-            return new vscode.Range(position, position);
-        }
-
-        // build
-        let firstLine = document.lineAt(0);
-        let lastLine = document.lineAt(document.lineCount - 1);
-
-        // get
-        return new vscode.Range(firstLine.range.start, lastLine.range.end);
     }
 }

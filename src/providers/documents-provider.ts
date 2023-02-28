@@ -5,36 +5,33 @@
  * https://github.com/microsoft/vscode-extension-samples
  * https://css-tricks.com/what-i-learned-by-building-my-own-vs-code-extension/
  * https://www.freecodecamp.org/news/definitive-guide-to-snippets-visual-studio-code/
- * 
- * CREDITS
- * https://iconscout.com/contributors/vorillaz
  */
 import path = require('path');
 import * as vscode from 'vscode';
+import { TreeItem } from '../components/tree-item';
 import { Utilities } from '../extensions/utilities';
-import { TreeItem } from '../contracts/tree-item';
 
 export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
     // members
-    private context: vscode.ExtensionContext;
+    private readonly _context: vscode.ExtensionContext;
 
     // events
     private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | null | void> = new vscode.EventEmitter<TreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
     constructor(context: vscode.ExtensionContext) {
-        this.context = context;
+        this._context = context;
     }
 
-    refresh(): void {
+    public refresh(): void {
         this._onDidChangeTreeData.fire();
     }
 
-    getTreeItem(element: TreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    public getTreeItem(element: TreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
     }
 
-    getChildren(element?: TreeItem | undefined): vscode.ProviderResult<TreeItem[]> {
+    public getChildren(element?: TreeItem | undefined): vscode.ProviderResult<TreeItem[]> {
         // exit conditions
         if (element !== undefined) {
             return element?.children;
@@ -85,16 +82,15 @@ export class DocumentsProvider implements vscode.TreeDataProvider<TreeItem> {
         // build
         vscode.window.registerTreeDataProvider('rhinoDocumentation', this);
         vscode.commands.getCommands().then((commands) => {
-            if(!commands.includes('Update-Documents')){
+            if (!commands.includes('Update-Documents')) {
                 vscode.commands.registerCommand('Update-Documents', () => {
                     this.refresh();
                 });
             }
         });
-        
 
         // register
         const tree = vscode.window.createTreeView('rhinoDocumentation', options);
-        this.context.subscriptions.push(tree);
+        this._context.subscriptions.push(tree);
     }
 }

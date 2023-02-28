@@ -4,11 +4,16 @@
  * RESOURCES
  */
 import path = require('path');
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
-import { Command } from "./command";
+import { Logger } from '../logging/logger';
+import { CommandBase } from "./command-base";
 
-export class GetDocumentationCommand extends Command {
+export class GetDocumentationCommand extends CommandBase {
+    // members: static
+    private readonly _logger: Logger;
+
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
@@ -18,7 +23,8 @@ export class GetDocumentationCommand extends Command {
         super(context);
 
         // build
-        this.setCommandName('Get-Documentation');
+        this._logger = super.logger?.newLogger('GetDocumentationCommand');
+        this.command = 'Get-Documentation';
     }
 
     /*┌─[ REGISTER & INVOKE ]──────────────────────────────────
@@ -29,88 +35,71 @@ export class GetDocumentationCommand extends Command {
     /**
      * Summary. Register a command for creating an integrated test case.
      */
-    public register(): any {
-        // setup
-        let documents = this.getDocumentations();
-
+    protected async onRegister(): Promise<any> {
         // build
-        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
-            this.invoke(documents, (id: any) => {
-                console.log(`Get-Document -Id ${id} = OK`);
-            });
+        let command = vscode.commands.registerCommand(this.command, async () => {
+            const id = await this.invokeCommand();
+            this._logger?.trace(`Get-Document -Id ${id} = OK`);
         });
 
         // set
-        this.getContext().subscriptions.push(command);
+        this.context.subscriptions.push(command);
     }
 
     /**
      * Summary. Implement the command invoke pipeline.
      */
-    public invokeCommand(callback: any) {
-        let documents = this.getDocumentations();
-        this.invoke(documents, callback);
-    }
-
-    private invoke(documents: any[] | undefined, callback: any) {
+    protected async onInvokeCommand(): Promise<any> {
         // setup
-        let plugin = this.getOpenEntity();
-        let id = this.getEntityId(plugin);
-        let document = documents?.find(i => i.name === id);
+        const documents = GetDocumentationCommand.getDocumentations();
+        const plugin = GetDocumentationCommand.getOpenEntity();
+        const id = this.getEntityId(plugin);
+        const document = documents?.find(i => i.name === id);
 
         // not found
         if (document === undefined) {
-            console.warn(`Get-Document -Id ${id} = NotFound`);
-            vscode.window.setStatusBarMessage(`$(extensions-warning-message) Documentation for '${id}' not found`);
+            this._logger?.trace(`Get-Document -Id ${id} = NotFound`);
+            vscode.window.setStatusBarMessage(`$(extensions-warning-message) Documentation For '${id}' Not Found`);
             return;
         }
 
         // build
         let file = document.file.replaceAll('\\', '/');
         file = file.match(/^[a-z,A-Z]:/) ? `/${file}` : file;
-        let uri = vscode.Uri.parse(file);
+
+        const uri = vscode.Uri.parse(file);
 
         // get
         vscode.commands.executeCommand("markdown.showPreviewToSide", uri);
-
-        // callback
-        callback(id);
     }
 
     /*┌─[ UTILITIES ]──────────────────────────────────────────
       │
       │ A collection of utility methods
       └────────────────────────────────────────────────────────*/
-    private getDocumentations() {
+    private static getDocumentations() {
         // setup
-        let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
-        workspace = workspace === undefined ? '' : workspace;
-        let pluginsFolder = path.join(workspace, '..', 'docs');
-        pluginsFolder = pluginsFolder.startsWith('\\')
-            ? pluginsFolder.substring(1, pluginsFolder.length)
-            : pluginsFolder;
-        let data: any[] = [];
+        const pluginsFolder = Utilities.getSystemUtilityFolderPath('docs');
+        const data: any[] = [];
 
         // bad request
-        const fs = require('fs');
         if (!fs.existsSync(pluginsFolder)) {
             return;
         }
 
-        // build 
-        Utilities.getFiles(pluginsFolder, (files: string[]) => {
-            for (const file of files) {
-                let name = path.parse(file).name;
-                data.push({ name: name, file: file });
-            }
-        });
+        // build
+        const files = Utilities.getFiles(pluginsFolder);
+        for (const file of files) {
+            let name = path.parse(file).name;
+            data.push({ name: name, file: file });
+        }
 
         // get
         return [...new Map(data.map(item => [item['name'], item])).values()];
     }
 
     // get test cases from the open document
-    private getOpenEntity(): string[] {
+    private static getOpenEntity(): string[] {
         // setup
         let editor = vscode.window.activeTextEditor;
 
@@ -150,8 +139,8 @@ export class GetDocumentationCommand extends Command {
             return document[onLine] ? document[onLine]
                 .replaceAll('[test-id]', '')
                 .trim() : '';
-        } catch (error) {
-            console.error(error);
+        } catch (error: any) {
+            this._logger?.error(error.message, error);
             return '';
         }
     }

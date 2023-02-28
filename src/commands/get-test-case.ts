@@ -4,9 +4,9 @@
  * RESOURCES
  */
 import * as vscode from 'vscode';
-import { Command } from "./command";
+import { CommandBase } from "./command-base";
 
-export class GetTestCaseCommand extends Command {
+export class GetTestCaseCommand extends CommandBase {
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
      * 
@@ -16,7 +16,7 @@ export class GetTestCaseCommand extends Command {
         super(context);
 
         // build
-        this.setCommandName('Get-TestCase');
+        this.command = 'Get-TestCase';
     }
 
     /*┌─[ REGISTER & INVOKE ]──────────────────────────────────
@@ -27,65 +27,58 @@ export class GetTestCaseCommand extends Command {
     /**
      * Summary. Register a command for creating an integrated test case.
      */
-    public register(): any {
+    protected async onRegister(): Promise<any> {
         // build
-        let command = vscode.commands.registerCommand(this.getCommandName(), () => {
-            this.invoke(undefined);
+        let command = vscode.commands.registerCommand(this.command, async () => {
+            await this.invokeCommand();
         });
 
         // set
-        this.getContext().subscriptions.push(command);
+        this.context.subscriptions.push(command);
     }
 
     /**
      * Summary. Implement the command invoke pipeline.
      */
-    public invokeCommand(callback: any) {
-        this.invoke(callback);
-    }
-
-    private invoke(callback: any) {
+    protected async onInvokeCommand(): Promise<any> {
         // setup
-        let client = this.getRhinoClient();
-        let configuration = this.getConfiguration();
-        let options = {
+        const client = this.client;
+        const configuration = GetTestCaseCommand.getConfiguration(this.manifest);
+        const options = {
             placeHolder: 'Test ID to get (e.g., RP-1234)'
         };
-        let request = {
+        const request = {
             connector: configuration.connector,
             entity: ''
         };
 
-        vscode.window.showInputBox(options).then((value) => {
+        vscode.window.showInputBox(options).then(async (value) => {
             // setup
             request.entity = value === undefined ? '' : value;
 
             // user interface
-            vscode.window.setStatusBarMessage('$(sync~spin) Loading Test Case ' + request.entity + '...');
+            vscode.window.setStatusBarMessage(`$(sync~spin) Loading Test Case ${request.entity}...`);
 
             // get
-            client.getTestCase(request, (response: any) => {
-                let range = this.getDocumentRange();
-                vscode.window.activeTextEditor?.edit((i) => {
-                    i.replace(range, response);
+            const response = await client.integration.getTestCases(request);
 
-                    vscode.window.activeTextEditor?.document.save();
+            // replace in editor
+            const range = GetTestCaseCommand.getDocumentRange();
+            vscode.window.activeTextEditor?.edit((i) => {
+                i.replace(range, response);
 
-                    let message = '$(testing-passed-icon) Test Case ' + request.entity + ' loaded';
-                    vscode.window.setStatusBarMessage(message);
+                vscode.window.activeTextEditor?.document.save();
 
-                    if (callback !== undefined) {
-                        callback();
-                    }
-                });
+                const message = `$(testing-passed-icon) Test Case ${request.entity} Loaded`;
+                vscode.window.setStatusBarMessage(message);
             });
         });
     }
 
     // creates default configuration with text connector
-    private getConfiguration() {
+    private static getConfiguration(manifest: any) {
         // setup
-        let projectManifest = this.getProjectManifest();
+        const projectManifest = manifest;
 
         // build
         return {
@@ -93,19 +86,19 @@ export class GetTestCaseCommand extends Command {
         };
     }
 
-    private getDocumentRange() {
+    private static getDocumentRange() {
         // setup
-        let document = vscode.window.activeTextEditor?.document;
+        const document = vscode.window.activeTextEditor?.document;
 
         // not found
         if (!document) {
-            let position = new vscode.Position(0, 0);
+            const position = new vscode.Position(0, 0);
             return new vscode.Range(position, position);
         }
 
         // build
-        let firstLine = document.lineAt(0);
-        let lastLine = document.lineAt(document.lineCount - 1);
+        const firstLine = document.lineAt(0);
+        const lastLine = document.lineAt(document.lineCount - 1);
 
         // get
         return new vscode.Range(firstLine.range.start, lastLine.range.end);

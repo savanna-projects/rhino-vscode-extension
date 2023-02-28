@@ -7,85 +7,24 @@
  * https://www.freecodecamp.org/news/definitive-guide-to-snippets-visual-studio-code/
  */
 import * as vscode from 'vscode';
-import { RhinoSnippet } from '../contracts/rhino-snippet';
-import { ExtensionSettings } from '../extension-settings';
-import { Provider } from './provider';
+import { Settings } from '../constants/settings';
+import { RhinoSnippet } from '../models/rhino-snippet-model';
+import { ProviderBase } from './provider-base';
 
-export class ActionsAutoCompleteProvider extends Provider {
-    // members
-    private pattern: string;
-    private references: number[];
-    private manifests: any[];
-    private locators: any[];
-    private attributes: any[];
-    private annotations: any[];
-
-    /**
-     * Creates a new instance of CommandsProvider
-     */
-    constructor() {
-        super();
-        this.pattern = '.*';
-        this.manifests = [];
-        this.locators = [];
-        this.attributes = [];
-        this.references = [];
-        this.annotations = [];
-    }
-
-    /*┌─[ SETTERS ]────────────────────────────────────────────
-      │
-      │ A collection of functions to set object properties
-      │ to avoid initializing members in the object signature.
-      └────────────────────────────────────────────────────────*/
-    /**
-     * Summary. Sets a collection of element special attributes.
-     * 
-     * @param attributes A collection of element special attributes.
-     * @returns Self reference.
-     */
-    public setAttributes(attributes: any): ActionsAutoCompleteProvider {
-        // setup
-        this.attributes = attributes;
-
-        // get
-        return this;
-    }
-
-    public setAnnotations(annotations: any[]) {
-        // setup
-        this.annotations = annotations;
-
-        // get
-        return this;
-    }
+export class ActionsAutoCompleteProvider extends ProviderBase {
+    // properties
+    public pattern: string = '.*';
+    public references: number[] = [];
+    public manifests: any[] = [];
+    public locators: any[] = [];
+    public attributes: any[] = [];
+    public annotations: any[] = [];
 
     /**
-     * Summary. Sets the regular expression pattern to find a valid plugin in a document line.
-     * 
-     * @param pattern A regular expression pattern to find a valid plugin in a document line.
-     * @returns Self reference.
+     * Creates a new instance of Provider
      */
-    public setPattern(pattern: string): ActionsAutoCompleteProvider {
-        // setup
-        this.pattern = pattern;
-
-        // get
-        return this;
-    }
-
-    /**
-     * Summary. Sets the collection of locators references as returns by Rhino Server.
-     * 
-     * @param locators A collection of locators references as returns by Rhino Server.
-     * @returns Self reference.
-     */
-    public setLocators(locators: any[]): ActionsAutoCompleteProvider {
-        // setup
-        this.locators = locators;
-
-        // get
-        return this;
+    constructor(context: vscode.ExtensionContext) {
+        super(context);
     }
 
     /*┌─[ ABSTRACT IMPLEMENTATION ]────────────────────────────
@@ -95,24 +34,19 @@ export class ActionsAutoCompleteProvider extends Provider {
     /**
      * Summary. Register all providers into the given context. 
      */
-    public register(context: vscode.ExtensionContext): any {
+    protected async onRegister(context: vscode.ExtensionContext): Promise<void> {
         // setup
-        let instance = new ActionsAutoCompleteProvider()
-            .setPattern(this.pattern)
-            .setManifests(this.manifests)
-            .setAttributes(this.attributes)
-            .setLocators(this.locators)
-            .setAnnotations(this.annotations);
+        const instance = this;
 
         // register: actions
-        let action = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let action = vscode.languages.registerCompletionItemProvider(Settings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getActionsCompletionItems(document, position);
             }
         });
 
         // register: parameters
-        let parameters = vscode.languages.registerCompletionItemProvider(ExtensionSettings.providerOptions, {
+        let parameters = vscode.languages.registerCompletionItemProvider(Settings.providerOptions, {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 return instance.getParametersCompletionItems(document, position);
             }
@@ -128,26 +62,14 @@ export class ActionsAutoCompleteProvider extends Provider {
         }
     }
 
-    /**
-     * Summary. Sets the collection of plugins references as returns by Rhino Server.
-     * 
-     * @param manifests A collection of plugins references as returns by Rhino Server.
-     * @returns Self reference.
-     */
-    public setManifests(manifests: any): ActionsAutoCompleteProvider {
-        // setup
-        this.manifests = manifests;
-
-        // get
-        return this;
-    }
-
     /*┌─[ AUTO-COMPLETE ITEMS - ACTIONS ]──────────────────────
       │
       │ A collection of functions to factor auto-complete items.
       └────────────────────────────────────────────────────────*/
-    private getActionsCompletionItems(document: vscode.TextDocument, position: vscode.Position)
-        : vscode.CompletionItem[] {
+    private getActionsCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position): vscode.CompletionItem[] {
+
         // bad request
         let isCli = this.isCli(document.lineAt(position.line).text, position.character);
         let isUnderSection = this.isUnderAnnotation(document, position, 'test-actions', this.annotations);
@@ -284,7 +206,6 @@ export class ActionsAutoCompleteProvider extends Provider {
     }
 
     private getElementToken(manifest: any) {
-        // get
         return manifest.verb + ' {${5:locator value}} by ' + '{${6|' + this.getLocatorsEnums(this.locators) + '|}}';
     }
 
@@ -300,8 +221,10 @@ export class ActionsAutoCompleteProvider extends Provider {
       │
       │ A collection of functions to factor auto-complete items.
       └────────────────────────────────────────────────────────*/
-    private getParametersCompletionItems(document: vscode.TextDocument, position: vscode.Position)
-        : vscode.CompletionItem[] {
+    private getParametersCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position): vscode.CompletionItem[] {
+
         // setup
         let matches = document.lineAt(position).text.match(this.pattern);
 
@@ -331,8 +254,11 @@ export class ActionsAutoCompleteProvider extends Provider {
         return this.getParametersBehaviors(manifest, document, position);
     }
 
-    private getParametersBehaviors(manifest: any, document: vscode.TextDocument, position: vscode.Position)
-        : vscode.CompletionItem[] {
+    private getParametersBehaviors(
+        manifest: any,
+        document: vscode.TextDocument,
+        position: vscode.Position): vscode.CompletionItem[] {
+
         // setup
         let items: vscode.CompletionItem[] = [];
         let keys = Object.keys(manifest.entity.cliArguments);
@@ -349,8 +275,12 @@ export class ActionsAutoCompleteProvider extends Provider {
         return [...new Map(items.map(item => [item.label, item])).values()];
     }
 
-    private getParametersBehavior(manifest: any, key: string, document: vscode.TextDocument, position: vscode.Position)
-        : vscode.CompletionItem {
+    private getParametersBehavior(
+        manifest: any,
+        key: string,
+        document: vscode.TextDocument,
+        position: vscode.Position): vscode.CompletionItem {
+
         // setup
         let line = document.lineAt(position).text;
         let isKey = line.match("(?<!['])" + manifest.literal);
@@ -376,10 +306,16 @@ export class ActionsAutoCompleteProvider extends Provider {
       └────────────────────────────────────────────────────────*/
     // Gets a RhinoSnippet object based on a Plugin manifest
     private getRhinoSnippet(manifest: any, name: string, snippet: string): RhinoSnippet {
-        return new RhinoSnippet()
-            .setName(name)
-            .setSnippet(snippet)
-            .setDocumentation(manifest.entity.description)
-            .setDetail(manifest.source);
+        // setup
+        const rhinoSnippet = new RhinoSnippet();
+
+        // build
+        rhinoSnippet.name = name;
+        rhinoSnippet.documentation = manifest.entity.description;
+        rhinoSnippet.detail = manifest.source;
+        rhinoSnippet.snippet = snippet;
+
+        // get
+        return rhinoSnippet;
     }
 }
