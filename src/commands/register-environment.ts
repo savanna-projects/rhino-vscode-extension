@@ -90,19 +90,19 @@ export class RegisterEnvironmentCommand extends CommandBase {
 
     private getEnvironments(environment: string): JSON[] {
         // setup
-        const listOfEnviorments = environment?.split(/\s*,\s*/);
+        const listOfEnvironments = environment?.split(/\s*,\s*/);
 
         // check if undefined 
-        if (!listOfEnviorments) {
+        if (!listOfEnvironments) {
             vscode.window.setStatusBarMessage('$(testing-error-icon) Environment File was Not Found or Not Valid');
             return [];
         }
 
         // setup
-        const environmetsFolder = Utilities.getSystemFolderPath('Environments');
+        const environmentsFolder = Utilities.getSystemFolderPath('Environments');
 
         // build
-        const listOfPaths = Utilities.getFilesByFileNames(environmetsFolder, listOfEnviorments);
+        const listOfPaths = Utilities.getFilesByFileNames(environmentsFolder, listOfEnvironments);
         const requests: JSON[] = [];
 
         for (const path of listOfPaths) {

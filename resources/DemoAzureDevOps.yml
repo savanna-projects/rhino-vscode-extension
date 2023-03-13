@@ -1,9 +1,77 @@
-# Basic Azure DevOps pipeline to invoke the automation using Azure DevOps pipeline.",
+# Basic Azure DevOps pipeline to invoke the automation using Azure DevOps pipeline.
 trigger:
-  - master
+  - none
 
 pool:
   vmImage: ubuntu-latest
+
+# Create a library with `rhino.api` that holds `RhinoUsername` & RhinoPassword parameters.
+# How to create Azure DevOps library: https://learn.microsoft.com/en-us/azure/devops/pipelines/library/?view=azure-devops
+variables:
+- group: rhino.api
+
+parameters:
+#
+# Environment
+- name: 'EnvironmentUnderTest'
+  default: ''
+  displayName: 'Environment Under Test'
+  type: 'string'
+#
+# Rhino Setup
+- name: 'RhinoEndpoint'
+  default: 'http://10.206.93.137:9000'
+  displayName: 'Rhino Server Address'
+  type: 'string'
+  values:
+      - 'http://10.206.93.137:9000'
+      - 'http://localhost:9900'
+      - 'http://localhost:9000'
+
+- name: 'RhinoUsername'
+  default: '$(RhinoUsername)'
+  displayName: 'Rhino API Username'
+  type: 'string'
+
+- name: 'RhinoPassword'
+  default: '$(RhinoPassword)'
+  displayName: 'Rhino API Password'
+  type: 'string'
+
+- name: 'Filter'
+  default: "Category LIKE '*'"
+  displayName: 'Tests Selection Query'
+  type: 'string'
+
+- name: 'LoadTimeout'
+  default: '60000'
+  displayName: 'The Amount of Time to Wait (in milliseconds) for a Page to Load Before Throwing a Timeout Exception'
+  type: 'number'
+
+- name: 'SearchTimeout'
+  default: '15000'
+  displayName: 'The Amount of Time to Wait (in milliseconds) for an Element to be Found Before Throwing a Timeout Exception'
+  type: 'number'
+
+- name: 'DriverBinaries'
+  default: '.'
+  displayName: 'Web Driver Binaries Location or Hub Address'
+  type: 'string'
+  values:
+      - 'http://10.206.93.137:4444/wd/hub'
+      - 'http://10.192.84.130:4444/wd/hub'
+      - 'http://selenoid:4444/wd/hub'
+      - '.'
+
+- name: 'Driver'
+  default: 'ChromeDriver'
+  displayName: 'Web Driver Type'
+  type: 'string'
+  values:
+      - 'ChromeDriver'
+      - 'FirefoxDriver'
+      - 'MicrosoftWebDriver'
+      - 'MockWebDriver'
 
 stages:
   - stage: InvokeAutomation
@@ -12,8 +80,18 @@ stages:
         displayName: "Invoke Automation Script"
         steps:
           - task: PowerShell@2
-            displayName: "Invoke Powershell Script"
             inputs:
-              filePath: "./scripts/RunExamplesStandalone.ps1"
-              failOnStderr: true",
-              pwsh: true"
+              targetType: 'inline'
+              script: |
+                .\InvokeConfiguration.ps1 `
+                    -Endpoint '' `
+                    -RhinoUsername '' `
+                    -RhinoSecret '' `
+                    -DriverBinaries '' `
+                    -Filter '' `
+                    -Environment '' `
+                    -Driver '' `
+                    -SearchTimeout 0 `
+                    -LoadTimeout 0
+              failOnStderr: true
+              pwsh: true

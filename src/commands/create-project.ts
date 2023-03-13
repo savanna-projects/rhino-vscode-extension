@@ -87,9 +87,7 @@ export class CreateProjectCommand extends CommandBase {
             path.join(projectPath, 'docs'),
             path.join(projectPath, 'docs/Examples'),
             path.join(projectPath, 'build'),
-            path.join(projectPath, 'build/Examples'),
             path.join(projectPath, 'scripts'),
-            path.join(projectPath, 'scripts/Examples'),
             path.join(projectPath, 'src/Configurations'),
             path.join(projectPath, 'src/Environments'),
             path.join(projectPath, 'src/Models'),
@@ -164,17 +162,17 @@ export class CreateProjectCommand extends CommandBase {
     private createSampleScripts(userPath: any) {
         // setup
         const contentHome = Utilities.getResource('DemoScript.ps1');
-        const scriptsPath = path.join(this.getPath(userPath), 'scripts', 'Examples');
+        const scriptsPath = path.join(this.getPath(userPath), 'scripts');
 
         // write
-        this.writeFile(scriptsPath, 'RunExamplesStandalone.ps1', contentHome);
+        this.writeFile(scriptsPath, 'InvokeConfiguration.ps1', contentHome);
     }
 
     private createSamplePipelines(userPath: any) {
         // set content
         const contentGitHub = Utilities.getResource('DemoGitHubActions.yml');
         const contentAzure = Utilities.getResource('DemoAzureDevOps.yml');
-        const buildsPath = path.join(this.getPath(userPath), 'build', 'Examples');
+        const buildsPath = path.join(this.getPath(userPath), 'build');
 
         // write
         this.writeFile(buildsPath, 'GitActions.yaml', contentGitHub);
