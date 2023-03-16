@@ -1,9 +1,7 @@
 # Basic Azure DevOps pipeline to invoke the automation using Azure DevOps pipeline.
-trigger:
-  - none
+trigger: none
 
-pool:
-  vmImage: ubuntu-latest
+pool: Default
 
 # Create a library with `rhino.api` that holds `RhinoUsername` & RhinoPassword parameters.
 # How to create Azure DevOps library: https://learn.microsoft.com/en-us/azure/devops/pipelines/library/?view=azure-devops
@@ -14,17 +12,16 @@ parameters:
 #
 # Environment
 - name: 'EnvironmentUnderTest'
-  default: ''
+  default: ' '
   displayName: 'Environment Under Test'
   type: 'string'
 #
 # Rhino Setup
 - name: 'RhinoEndpoint'
-  default: 'http://10.206.93.137:9000'
+  default: 'http://localhost:9000'
   displayName: 'Rhino Server Address'
   type: 'string'
   values:
-      - 'http://10.206.93.137:9000'
       - 'http://localhost:9900'
       - 'http://localhost:9000'
 
@@ -39,17 +36,17 @@ parameters:
   type: 'string'
 
 - name: 'Filter'
-  default: "Category LIKE '*'"
+  default: "Category LIKE ''*''"
   displayName: 'Tests Selection Query'
   type: 'string'
 
 - name: 'LoadTimeout'
-  default: '60000'
+  default: 60000
   displayName: 'The Amount of Time to Wait (in milliseconds) for a Page to Load Before Throwing a Timeout Exception'
   type: 'number'
 
 - name: 'SearchTimeout'
-  default: '15000'
+  default: 15000
   displayName: 'The Amount of Time to Wait (in milliseconds) for an Element to be Found Before Throwing a Timeout Exception'
   type: 'number'
 
@@ -58,13 +55,11 @@ parameters:
   displayName: 'Web Driver Binaries Location or Hub Address'
   type: 'string'
   values:
-      - 'http://10.206.93.137:4444/wd/hub'
-      - 'http://10.192.84.130:4444/wd/hub'
       - 'http://selenoid:4444/wd/hub'
       - '.'
 
 - name: 'Driver'
-  default: 'ChromeDriver'
+  default: 'MockWebDriver'
   displayName: 'Web Driver Type'
   type: 'string'
   values:
@@ -80,18 +75,62 @@ stages:
         displayName: "Invoke Automation Script"
         steps:
           - task: PowerShell@2
+            displayName: "Invoke Tests `${{ parameters.Filter }}`"
             inputs:
               targetType: 'inline'
               script: |
-                .\InvokeConfiguration.ps1 `
-                    -Endpoint '' `
-                    -RhinoUsername '' `
-                    -RhinoSecret '' `
-                    -DriverBinaries '' `
-                    -Filter '' `
-                    -Environment '' `
-                    -Driver '' `
-                    -SearchTimeout 0 `
-                    -LoadTimeout 0
+                #
+                # SETUP
+                $basePath   = [System.IO.Directory]::GetParent($PSCommandPath)
+                $scriptPath = [System.IO.Path]::Combine("$(Build.SourcesDirectory)", 'scripts')
+                Write-Host $(Build.ArtifactStagingDirectory)
+                Set-Location -Path $scriptPath
+                #
+                # INVOCATION
+                Invoke-Expression -Command ".\InvokeConfiguration.ps1 ``
+                    -ProjectRoot '$(Build.SourcesDirectory)' ``
+                    -ReportOut '$(Build.ArtifactStagingDirectory)' ``
+                    -Endpoint '${{ parameters.RhinoEndpoint }}' ``
+                    -RhinoUsername '${{ parameters.RhinoUsername }}' ``
+                    -RhinoSecret '${{ parameters.RhinoPassword }}' ``
+                    -DriverBinaries '${{ parameters.DriverBinaries }}' ``
+                    -Filter '${{ parameters.Filter }}' ``
+                    -Environment '${{ parameters.EnvironmentUnderTest }}' ``
+                    -Driver '${{ parameters.Driver }}' ``
+                    -SearchTimeout ${{ parameters.SearchTimeout }} ``
+                    -LoadTimeout ${{ parameters.LoadTimeout }}"
               failOnStderr: true
               pwsh: true
+ 
+          - task: PublishBuildArtifacts@1
+            displayName: "Publish JUnit Report `$(Build.ArtifactStagingDirectory)/junit.xml`"
+            condition: succeededOrFailed()
+            inputs:
+              PathToPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: 'junit'
+              publishLocation: 'Container'
+  
+  - stage: PublishResults
+    condition: succeededOrFailed()
+    displayName: Publish Results
+    jobs:
+      - job: "PublishJunitReport"
+        displayName: "Publish JUnit Report"
+        steps:
+          - checkout: none
+
+          - task: DownloadBuildArtifacts@1
+            displayName: "Download JUnit Report"
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              itemPattern: '**/junit.xml'
+              downloadPath: '$(System.ArtifactsDirectory)'
+
+          - task: PublishTestResults@2
+            displayName: "Publish JUnit Report as Test Results"
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/junit.xml'
+              searchFolder: '$(System.ArtifactsDirectory)'
+              mergeTestResults: true
