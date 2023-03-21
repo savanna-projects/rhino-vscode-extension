@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { RhinoClient } from './clients/rhino-client';
 import { ConnectServerCommand } from './commands/connect-server';
 import { CreateProjectCommand } from './commands/create-project';
+import { AgentLogListener } from './components/agent-log-listener';
+import { Channels } from './constants/channels';
 import { Utilities } from './extensions/utilities';
 
 export async function activate(context: vscode.ExtensionContext) {
