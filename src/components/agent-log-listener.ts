@@ -30,6 +30,7 @@ export class AgentLogListener {
     }
 
     // TODO: clean
+    // TODO: collect Rhino Exceptions
     public async start(): Promise<void> {
         // constants
         const rhinoPattern = /(Application|Logger|LogLevel|TimeStamp|MachineName|Message)(\s+)?:\s+.*/gi;
