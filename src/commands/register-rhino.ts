@@ -30,10 +30,8 @@ import { InvokeTestCasesCommand } from './invoke-test-cases';
 import { RhinoDocumentSymbolProvider } from '../providers/rhino-document-symbol-provider';
 
 export class RegisterRhinoCommand extends CommandBase {
-    // members: static
+    // members
     private readonly _logger: Logger;
-
-    // members: state
     private readonly _createModel: TmLanguageCreateModel | Promise<TmLanguageCreateModel>;
 
     /**
