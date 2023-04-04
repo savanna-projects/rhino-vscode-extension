@@ -3,8 +3,11 @@ import { RhinoClient } from './clients/rhino-client';
 import { ConnectServerCommand } from './commands/connect-server';
 import { CreateProjectCommand } from './commands/create-project';
 import { AgentLogListener } from './components/agent-log-listener';
+import { StaticCodeAnalyzer } from './components/static-code-analyzer';
 import { Channels } from './constants/channels';
 import { Utilities } from './extensions/utilities';
+
+let diagnosticCollection: vscode.DiagnosticCollection;
 
 export async function activate(context: vscode.ExtensionContext) {
 	new CreateProjectCommand(context).register();
@@ -12,7 +15,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// wait for server
 	let baseUrl = Utilities.getRhinoEndpoint();
 	const isRhinoProject = baseUrl !== null && baseUrl !== undefined && baseUrl !== '';
-	
+
 	if (isRhinoProject) {
 		while (true) {
 			// wait for server to be ready
@@ -35,6 +38,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 		// register
 		await connectCommand.invokeCommand();
+		new StaticCodeAnalyzer(context, createModel).register();
 	}
 }
 
