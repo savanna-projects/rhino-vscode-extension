@@ -24,5 +24,14 @@
         "multiline": true,
         "section": "test-id",
         "severity": "error"
+    },
+    {
+        "type": "negative",
+        "description": "`$ sign is missing for the macro or CLI integration.`",
+        "expression": "\\{{$",
+        "id": "RHG0003",
+        "multiline": true,
+        "section": "test-id",
+        "severity": "error"
     }
 ]
