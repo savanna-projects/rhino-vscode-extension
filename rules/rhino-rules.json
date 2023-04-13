@@ -27,7 +27,7 @@
     },
     {
         "type": "negative",
-        "description": "`$ sign is missing for the macro or CLI integration.`",
+        "description": "`$` sign is missing for the macro or CLI integration.`",
         "expression": "\\{{$",
         "id": "RHG0003",
         "multiline": true,
