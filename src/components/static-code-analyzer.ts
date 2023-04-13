@@ -69,6 +69,7 @@ export class StaticCodeAnalyzer {
 
     // TODO: figure how to get range
     private resolveSinglelineRule(diagnosticModel: DiagnosticModel): vscode.Diagnostic[] {
+        diagnosticModel = new DiagnosticModel();
         throw new Error();
     }
 
