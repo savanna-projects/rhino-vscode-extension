@@ -8,28 +8,10 @@
         "severity": "warning"
     },
     {
-        "type": "negative",
-        "description": "Add index number to that action.",
-        "expression": "^\\d+|^$|^\\s+$|^(\\s+)?\\[.*\\]",
-        "id": "RHG0001",
-        "multiline": true,
-        "section": "test-actions",
-        "severity": "information"
-    },
-    {
         "type": "positive",
         "description": "Test or plugin id, must follow 'PascalCase' convention. You can use only alphanumeric characters for plugins and dash or underscore for tests.",
         "expression": "[A-Z]{2,}",
         "id": "RHG0002",
-        "multiline": true,
-        "section": "test-id",
-        "severity": "error"
-    },
-    {
-        "type": "negative",
-        "description": "`$` sign is missing for the macro or CLI integration.`",
-        "expression": "\\{{$",
-        "id": "RHG0003",
         "multiline": true,
         "section": "test-id",
         "severity": "error"

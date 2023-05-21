@@ -38,7 +38,7 @@ None.
 
 `RSI` describes a sequence of actions, instructions of how to perform them and what parameters and values to pass to these actions - if needed. Each action in the chain is completely isolated from the other actions and it runs as a standalone component inside an isolated `sandbox`.
 
-The `RSI`, in contrast to other markup languages does not rely on fields to identify the elements the user provides, rather it relies on semantics and verbs, consider the following example which describes a simple click action using various markup languages with the equivalent `RSI` expression:  
+The `RSI`, in contrast to other markup languages does not rely on fields to identify the elements the user provides, rather it relies on semantics and verbs. Consider the following example, which describes a simple click action using various markup languages with the equivalent `RSI` expression:  
 
 ### Action Example
 
@@ -166,7 +166,7 @@ This filed is mostly used by UI actions and it is desired to pass additional inf
 
 Verbs: `pattern`, `filter`, `regex`
 
-This field was designed to allow manipulation on the values before the value is passed in to action by providing a [regular expression](https://www.regular-expressions.info/tutorial.html).  
+This field was designed to allow manipulation on the values before the value is passed to the action by providing a [regular expression](https://www.regular-expressions.info/tutorial.html).  
 
 * `go to url take {element} filter {(http(s)?:\/\/)www.*io}` - Navigate to a URL which can be found under a text of the provided element. The regular expression allows you to extract only the URL from the text before passing it to the action.
 
@@ -174,7 +174,7 @@ This field was designed to allow manipulation on the values before the value is 
 
 [Back](#units)
 
-`RSI` phrase is deviled into tokens. Each token identifies a [schema filed](#fields--verbs). There is no meaning to the tokens order and they can be written in any order as long as the schema rules are not violated.
+`RSI` phrase is divided into tokens. Each token identifies a [schema filed](#fields--verbs). There is no meaning to the tokens order and they can be written in any order as long as the schema rules are not violated.
 
 ### Token Grammar
 
@@ -187,11 +187,11 @@ This field was designed to allow manipulation on the values before the value is 
 #### Examples
 
 * `go to url {https://notarealaddress.io}` - action and argument.
-* `go to url take {element} by {id}` - action, element and locator (will take url from the element text).
+* `go to url take {element} by {id}` - action, element and locator (will take the url from the element text).
 * `go to url {{$ --blank}} take {element} by {id}` - action, argument, element and locator.
 * `click` - action only.
 * `click on {element}` - action and element (default locator).
-* `invoke oracle query {SELECT * FROM myTable} on {connection string to database}` - action, argument and element and attribute.
+* `invoke oracle query {SELECT * FROM myTable} on {connection string to database}` - action, argument, and element.
 
 ## See Also
 

@@ -1,22 +1,22 @@
-/**┌─[ General Information ]──────────────────────────────────────────────────────────────────────
-/**│
-/**│ Connect & Invoke Test Case
-/**│ ==========================
-/**│ 1. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.
-/**│ 2. Type 'Rhino' to filter out all 'Rhino' commands.
-/**│ 3. Click on the command 'Rhino: Connect to Rhino, fetch Metadata & activate commands'.
-/**│ 4. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.
-/**│ 4. Type 'Rhino' to filter out all 'Rhino' commands.
-/**│ 5. Click on the command 'Rhino: Runs the automation test(s) from the currently open document'.
-/**│
-/**│ View Documentation
-/**│ ==================
-/**│ 1. Right-Click to bring up the context menu.
-/**│ 2. Click on 'Rhino: Show Documentation' command.
-/**│
-/**└──────────────────────────────────────────────────────────────────────────────────────────────
+/**--[ General Information ]----------------------------------------------------------------------
+/**|
+/**| Connect & Invoke Test Case
+/**| ==========================
+/**| 1. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.
+/**| 2. Type 'Rhino' to filter out all 'Rhino' commands.
+/**| 3. Click on the command 'Rhino: Connect to Rhino, fetch Metadata & activate commands'.
+/**| 4. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.
+/**| 4. Type 'Rhino' to filter out all 'Rhino' commands.
+/**| 5. Click on the command 'Rhino: Runs the automation test(s) from the currently open document'.
+/**|
+/**| View Documentation
+/**| ==================
+/**| 1. Right-Click to bring up the context menu.
+/**| 2. Click on 'Rhino: Show Documentation' command.
+/**|
+/**-----------------------------------------------------------------------------------------------
 /**
-[test-id]         EXAMPLE-03
+[test-id]         Example03
 [test-scenario]   verify that results can be retrieved when searching by any keyword
 [test-categories] Sanity, Ui, Search
 [test-priority]   1 - critical

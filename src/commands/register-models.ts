@@ -7,7 +7,6 @@
  * https://stackoverflow.com/questions/55633453/rotating-octicon-in-statusbar-of-vs-code
  * https://code.visualstudio.com/api/extension-guides/webview
  */
-import path = require('path');
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { Utilities } from '../extensions/utilities';
@@ -16,6 +15,7 @@ import { TmLanguageCreateModel } from '../models/tm-create-model';
 import { CommandBase } from "./command-base";
 import { RegisterRhinoCommand } from './register-rhino';
 import { RhinoClient } from '../clients/rhino-client';
+import { ConnectServerCommand } from './connect-server';
 
 export class RegisterModelsCommand extends CommandBase {
     // members: state
@@ -72,10 +72,11 @@ export class RegisterModelsCommand extends CommandBase {
 
         // invoke
         await this.registerModels(this.client, requestBody);
-
+        var createModel = await Promise.resolve(this._createModel);
 
         // register
-        new RegisterRhinoCommand(context, Promise.resolve(this._createModel)).invokeCommand();
+        new ConnectServerCommand(context, createModel).invokeCommand();
+        new RegisterRhinoCommand(context, createModel).invokeCommand();
         
         // user interface
         vscode.window.setStatusBarMessage('$(testing-passed-icon) Models Registered');
@@ -114,21 +115,26 @@ export class RegisterModelsCommand extends CommandBase {
             const jsModels = requestBody.filter(i => i.type === 'json').map(i => i.data);
             const isJson = jsModels.length > 0;
             const isMarkdown = markdownModels.length > 0;
+            const list:any[] = [];
 
             // clean
             await client.models.deleteModels();
 
             // register
             if (isJson && !isMarkdown) {
-                await client.models.newModels(jsModels);
+                let result = await client.models.newModels(jsModels);
+                list.push(result);
             }
             if (isMarkdown && !isJson) {
-                await client.models.newModels(mdModels);
+                let result = await client.models.newModels(mdModels);
+                list.push(result);
             }
             if (isMarkdown && isJson) {
-                await client.models.newModels(jsModels);
-                await client.models.newModels(mdModels);
+                let jsonResult =await client.models.newModels(jsModels);
+                let mdResult =await client.models.newModels(mdModels);
+                list.push(...[jsonResult, mdResult]);
             }
+            this._createModel.models = list;
         }
         catch (error: any) {
             this._logger?.error(error.message, error);
