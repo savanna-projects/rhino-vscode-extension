@@ -146,6 +146,7 @@ export class CreateProjectCommand extends CommandBase {
     private createSampleDocumentation(userPath: any) {
         // set content
         const contentOverview = Utilities.getResource('LanguageOverview.md');
+        const contentConventionsOverview = Utilities.getResource('NamingConventionsOverview.md');
         const contentHome = Utilities.getResource('DocumentHome.md');
         const pathHome = path.join(this.getPath(userPath), 'docs');
         const pathExamples = path.join(this.getPath(userPath), 'docs', 'Examples');
@@ -154,6 +155,7 @@ export class CreateProjectCommand extends CommandBase {
 
         // write
         this.writeFile(pathHome, 'LanguageOverview.md', contentOverview);
+        this.writeFile(pathHome, 'NamingConventionsOverview.md', contentConventionsOverview);
         this.writeFile(pathHome, 'Home.md', contentHome);
         this.writeFile(pathExamples, 'Home.md', contentExamplesHome);
         this.writeFile(pathExamples, 'GoogleSearch.md', contentExample);

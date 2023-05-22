@@ -74,6 +74,7 @@ export class RegisterModelsCommand extends CommandBase {
         await this.registerModels(this.client, requestBody);
         var createModel = await Promise.resolve(this._createModel);
 
+        // TODO: remove redundant call fro re-populate
         // register
         new ConnectServerCommand(context, createModel).invokeCommand();
         new RegisterRhinoCommand(context, createModel).invokeCommand();

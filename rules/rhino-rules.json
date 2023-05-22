@@ -1,19 +1,47 @@
 [
     {
         "type": "positive",
-        "description": "Remove unnecessary spaces before the closing curly brackets.",
-        "expression": "\\s+}+",
+        "description": "Trailing Space: Line contains one or more trailing spaces at the end of the text. Trailing spaces are spaces that appear after the last meaningful character and before the end of the string.",
+        "expression": "\\s+$",
         "id": "RHG0000",
         "multiline": true,
-        "severity": "warning"
+        "sections": [
+            "test-id"
+        ],
+        "severity": "warning",
+        "entities": [
+            "Plugin",
+            "Test"
+        ]
     },
     {
         "type": "positive",
-        "description": "Test or plugin id, must follow 'PascalCase' convention. You can use only alphanumeric characters for plugins and dash or underscore for tests.",
-        "expression": "[A-Z]{2,}",
+        "description": "Action Length: Action line exceeds the maximum length of 100 characters. Consider refactoring or breaking the line into multiple lines for improved readability.",
+        "expression": "^.{100,}$",
+        "id": "RHG0001",
+        "multiline": true,
+        "sections": [
+            "test-actions"
+        ],
+        "severity": "warning",
+        "entities": [
+            "Plugin",
+            "Test"
+        ]
+    },
+    {
+        "type": "negative",
+        "description": "Invalid Assertion Reference: Ensure the assert reference is enclosed in square brackets and pointing to an action index, e.g., '[1]'.",
+        "expression": "^(\\s+)?\\[\\d+]|^\\s*$|\\[test-expected-results]",
         "id": "RHG0002",
         "multiline": true,
-        "section": "test-id",
-        "severity": "error"
+        "sections": [
+            "test-expected-results"
+        ],
+        "severity": "error",
+        "entities": [
+            "Plugin",
+            "Test"
+        ]
     }
 ]

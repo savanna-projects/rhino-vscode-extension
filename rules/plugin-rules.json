@@ -1,3 +1,34 @@
 [
-
+    {
+        "type": "positive",
+        "description": "Invalid Naming Convention: The `plugin id` does not follow the `PascalCase` naming convention. PascalCase requires that the name begins with an uppercase letter and any subsequent words or components are also capitalized.",
+        "expression": "[A-Z]{2,}",
+        "id": "RHP0000",
+        "multiline": true,
+        "sections": [
+            "test-id"
+        ],
+        "severity": "error",
+        "entities": [
+            "Plugin"
+        ]
+    },
+    {
+        "type": "negative",
+        "description": "Invalid Command Verb: Ensure you are using an approved verb for the `plugin` command (e.g., `plugin id`).",
+        "expression": "(?<=\\[test-id]\\s+)(Add|Clear|Close|Copy|Enter|Exit|Find|Format|Get|Hide|Join|Lock|Move|New|Open|Optimize|Push|Pop|Redo|Remove|Rename|Reset|Resize|Search|Select|Set|Show|Skip|Split|Step|Switch|Undo|Unlock|Watch|Connect|Disconnect|Read|Receive|Send|Write|Backup|Checkpoint|Compare|Compress|Convert|ConvertFrom|ConvertTo|Dismount|Edit|Expand|Export|Group|Import|Initialize|Limit|Merge|Mount|Out|Publish|Restore|Save|Sync|Unpublish|Update|Debug|Measure|Ping|Repair|Resolve|Test|Trace|Approve|Assert|Build|Complete|Confirm|Deny|Deploy|Disable|Enable|Install|Invoke|Register|Request|Restart|Resume|Start|Stop|Submit|Suspend|Uninstall|Unregister|Wait|Use|Block|Grant|Protect|Revoke|Unblock|Unprotect)",
+        "id": "RHP0001",
+        "multiline": true,
+        "sections": [
+            "test-id"
+        ],
+        "severity": "error",
+        "entities": [
+            "Plugin"
+        ],
+        "code": {
+            "target": "https://learn.microsoft.com/en-us/powershell/scripting/developer/cmdlet/approved-verbs-for-windows-powershell-commands",
+            "value": "More Information"
+        }
+    }
 ]
