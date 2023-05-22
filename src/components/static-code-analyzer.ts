@@ -5,7 +5,6 @@ import { Logger } from '../logging/logger';
 import { ExtensionLogger } from '../logging/extensions-logger';
 import { Channels } from '../constants/channels';
 import { TmLanguageCreateModel } from '../models/tm-create-model';
-import internal = require('stream');
 
 export class StaticCodeAnalyzer {
     private readonly _createModel: TmLanguageCreateModel | Promise<TmLanguageCreateModel>;
@@ -33,13 +32,31 @@ export class StaticCodeAnalyzer {
 
     public async analyzer(doc: vscode.TextDocument) {
         // exit conditions
-        if (!doc.fileName.endsWith('.rhino')) {
+        const isRhino = doc.fileName.endsWith('.rhino');
+        const isRhinoModel = doc.fileName.endsWith('.rmodel');
+        if (!isRhino && !isRhinoModel) {
             return;
         }
 
         // setup
-        const rules = this.resolveRules();
+        let rules = this.resolveRules();
         const diagnostics: vscode.Diagnostic[] = [];
+
+        // identify file type
+        const isModelType = isRhinoModel;
+        const isTestType = doc.fileName.match(/(\\|\/)+src(\\|\/)+Tests/) !== null || doc.fileName.endsWith(".rhino");
+        const isPluginType = doc.fileName.match(/(\\|\/)+src(\\|\/)+Plugins/) !== null || doc.fileName.endsWith(".rplugin");
+
+        // filter
+        if (isModelType) {
+            rules = rules.filter(i => i.entities?.includes("Model"));
+        }
+        else if (isPluginType) {
+            rules = rules.filter(i => i.entities?.includes("Plugin"));
+        }
+        else if (isTestType) {
+            rules = rules.filter(i => i.entities?.includes("Test"));
+        }
 
         // build
         for (const rule of rules) {
@@ -50,12 +67,6 @@ export class StaticCodeAnalyzer {
         // register
         this._diagnosticCollection.set(doc.uri, diagnostics);
         this._context.subscriptions.push(this._diagnosticCollection);
-
-
-        // Identify the file type (test, plugin etc.)
-        // let docUriStr: string = doc.uri.toString();
-        // let docUriArr: string[] = docUriStr.replace("file://", "").split("/");
-        // let baseFolder: string = docUriArr[docUriArr.indexOf("src") + 1];
     }
 
     private async newDiagnostics(diagnosticModel: DiagnosticModel): Promise<vscode.Diagnostic[]> {
@@ -69,7 +80,7 @@ export class StaticCodeAnalyzer {
 
     // TODO: figure how to get range
     private resolveSinglelineRule(diagnosticModel: DiagnosticModel): vscode.Diagnostic[] {
-        diagnosticModel = new DiagnosticModel();
+        console.log(diagnosticModel);
         throw new Error();
     }
 
@@ -88,25 +99,27 @@ export class StaticCodeAnalyzer {
             lines: document.getText().split(/\r?\n|\n\r?/),
             range: this.getDocumentRange(vscode.window.activeTextEditor)
         };
-        const section = diagnosticModel.section === undefined
-            ? documentData
-            : this.getSection(documentData.lines, diagnosticModel.section, annotations);
+        const sections = diagnosticModel.sections === undefined
+            ? [documentData]
+            : diagnosticModel.sections.map(i => this.getSection(documentData.lines, i, annotations));
 
         // iterate
-        for (let i = 0; i < section.lines.length; i++) {
-            const line = section.lines[i];
-            const isNegative = diagnosticModel.type.toUpperCase() === 'NEGATIVE';
-            const isPositive = diagnosticModel.type.toUpperCase() === 'POSITIVE';
+        sections.forEach(section => {
+            for (let i = 0; i < section.lines.length; i++) {
+                const line = section.lines[i];
+                const isNegative = diagnosticModel.type.toUpperCase() === 'NEGATIVE';
+                const isPositive = diagnosticModel.type.toUpperCase() === 'POSITIVE';
 
-            if (isNegative) {
-                let collection = this.assertNegative(diagnosticModel, section.range.start.line + i, line);
-                diagnostics.push(...collection);
+                if (isNegative) {
+                    let collection = this.assertNegative(diagnosticModel, section.range.start.line + i, line);
+                    diagnostics.push(...collection);
+                }
+                else if (isPositive) {
+                    let collection = this.assertPositive(diagnosticModel, section.range.start.line + i, line);
+                    diagnostics.push(...collection);
+                }
             }
-            else if (isPositive) {
-                let collection = this.assertPositive(diagnosticModel, section.range.start.line + i, line);
-                diagnostics.push(...collection);
-            }
-        }
+        });
 
         // get
         return diagnostics;
@@ -124,6 +137,13 @@ export class StaticCodeAnalyzer {
         const range = new vscode.Range(start, end);
         const diagnostic = new vscode.Diagnostic(range, diagnosticModel.description, diagnosticModel.severity);
 
+        if(diagnosticModel.code!== null && diagnosticModel.code!==undefined){
+            diagnostic.code = {
+                target: vscode.Uri.parse(diagnosticModel.code.target),
+                value: diagnosticModel.code.value
+            };
+        }
+
         // get
         return [diagnostic];
     }
@@ -139,6 +159,14 @@ export class StaticCodeAnalyzer {
             const end = new vscode.Position(lineNumber, result.index + result[0].length);
             const range = new vscode.Range(start, end);
             const diagnostic = new vscode.Diagnostic(range, diagnosticModel.description, diagnosticModel.severity);
+
+            if(diagnosticModel.code!== null && diagnosticModel.code!==undefined){
+                diagnostic.code = {
+                    target: vscode.Uri.parse(diagnosticModel.code.target),
+                    value: diagnosticModel.code.value
+                };
+            }
+
             diagnostics.push(diagnostic);
         }
 
@@ -213,8 +241,10 @@ export class StaticCodeAnalyzer {
             model.description = entry.description;
             model.expression = new RegExp(entry.expression, 'g');
             model.id = entry.id;
-            model.section = entry.section;
+            model.sections = entry.sections;
             model.severity = StaticCodeAnalyzer.getSeverity(entry.severity);
+            model.entities = entry.entities;
+            model.code = entry.code;
 
             // get
             return model;
@@ -272,7 +302,7 @@ export class StaticCodeAnalyzer {
                 if (document[onLine].match(pattern)) {
                     break;
                 }
-                lines.push(document[onLine].trim());
+                lines.push(document[onLine]);
                 onLine += 1;
             }
             let end = new vscode.Position(onLine - 1, 0);
@@ -296,10 +326,11 @@ export class DiagnosticModel {
     public expression: RegExp;
     public id: string;
     public multiline: boolean;
-    public section?: string;
+    public sections?: string[];
     public severity: vscode.DiagnosticSeverity;
     public source?: string;
     public tags?: vscode.DiagnosticTag;
+    public entities: ("Plugin" | "Test" | "Model")[];
 
     constructor() {
         this.type = 'positive';
@@ -308,10 +339,11 @@ export class DiagnosticModel {
         this.id = '';
         this.multiline = true;
         this.severity = vscode.DiagnosticSeverity.Hint;
+        this.entities = [];
     }
 }
 
 class Code {
-    public value: string = '';
     public target: string = '';
+    public value: string = '';
 }

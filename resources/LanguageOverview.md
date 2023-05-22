@@ -38,7 +38,7 @@ None.
 
 `RSI` describes a sequence of actions, instructions of how to perform them and what parameters and values to pass to these actions - if needed. Each action in the chain is completely isolated from the other actions and it runs as a standalone component inside an isolated `sandbox`.
 
-The `RSI`, in contrast to other markup languages does not rely on fields to identify the elements the user provides, rather it relies on semantics and verbs, consider the following example which describes a simple click action using various markup languages with the equivalent `RSI` expression:  
+The `RSI`, in contrast to other markup languages does not rely on fields to identify the elements the user provides, rather it relies on semantics and verbs. Consider the following example, which describes a simple click action using various markup languages with the equivalent `RSI` expression:  
 
 ### Action Example
 
@@ -92,19 +92,6 @@ click on {#element_id} using {css selector}
 
 `RSI` follows a simple schema and some basic rules and guideline which includes **verbs** to identify the different schema fields.
 
-### Naming/Writing Conventions
-
-Naming conventions is a way to provide a unified way of writing when working in groups. It is designed to keep things clear and understandable for the team members and shorten the on board for new members. Please refer to the following table to understand the common conventions.  
-
-| Name         | Description                                                                                                                                        | Examples                   |
-|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------|
-| `camelCase`  | The first letter of the first word is **lower case** and the first letter of every other word is **upper case**. No spaces.                        | `fooBar`, `oneTwoThree`    |
-| `PascalCase` | Every first letter of a word is **upper case**. No spaces.                                                                                         | `FooBar`, `OneTwoThree`    |
-| `space case` | Every word is **lower case** and there is one space between words.                                                                                 | `foo bar`, `one two three` |
-| `Title Case` | All of the major words begin with capital letters. Minor words like prepositions, articles, and coordinating conjunctions are typically lowercase. | `Foo Bar`, `One Two Three` |
-| `kebab-case` | Every word is **lower case** and there is one **hyphen** between words.                                                                            | `foo-bar`, `one-two-three` |
-| `snake_case` | Every word is **lower case** and there is one **underscore** between words.                                                                        | `foo_bar`, `one_two_three` |
-
 ### Fields & Verbs
 
 `RSI` verbs are used to identify the schema fields. Each field is identified by one or more verbs.  
@@ -119,7 +106,7 @@ Naming conventions is a way to provide a unified way of writing when working in 
 
 Verbs: None.  
   
-The action to perform. This will be the action name as a [space case](#namingwriting-conventions) e.g., `click`, `send keys`, `send get request`.
+The action to perform. This will be the action name as a `space case` e.g., `click`, `send keys`, `send get request`.
 Action field does not need a verb and it is automatically identified.  
   
 A list of all available actions can be retrieved from the following address <http://server-address:port/api/v3/meta/plugins/references>
@@ -166,7 +153,7 @@ This filed is mostly used by UI actions and it is desired to pass additional inf
 
 Verbs: `pattern`, `filter`, `regex`
 
-This field was designed to allow manipulation on the values before the value is passed in to action by providing a [regular expression](https://www.regular-expressions.info/tutorial.html).  
+This field was designed to allow manipulation on the values before the value is passed to the action by providing a [regular expression](https://www.regular-expressions.info/tutorial.html).  
 
 * `go to url take {element} filter {(http(s)?:\/\/)www.*io}` - Navigate to a URL which can be found under a text of the provided element. The regular expression allows you to extract only the URL from the text before passing it to the action.
 
@@ -174,7 +161,7 @@ This field was designed to allow manipulation on the values before the value is 
 
 [Back](#units)
 
-`RSI` phrase is deviled into tokens. Each token identifies a [schema filed](#fields--verbs). There is no meaning to the tokens order and they can be written in any order as long as the schema rules are not violated.
+`RSI` phrase is divided into tokens. Each token identifies a [schema filed](#fields--verbs). There is no meaning to the tokens order and they can be written in any order as long as the schema rules are not violated.
 
 ### Token Grammar
 
@@ -187,13 +174,14 @@ This field was designed to allow manipulation on the values before the value is 
 #### Examples
 
 * `go to url {https://notarealaddress.io}` - action and argument.
-* `go to url take {element} by {id}` - action, element and locator (will take url from the element text).
+* `go to url take {element} by {id}` - action, element and locator (will take the url from the element text).
 * `go to url {{$ --blank}} take {element} by {id}` - action, argument, element and locator.
 * `click` - action only.
 * `click on {element}` - action and element (default locator).
-* `invoke oracle query {SELECT * FROM myTable} on {connection string to database}` - action, argument and element and attribute.
+* `invoke oracle query {SELECT * FROM myTable} on {connection string to database}` - action, argument, and element.
 
 ## See Also
 
+* [Naming Conventions Overview](./NamingConventionsOverview.md)
 * [OpenProject Getting Started Guide](https://www.openproject.org/docs/getting-started/)
 * [OpenProject API](https://www.openproject.org/docs/api/)

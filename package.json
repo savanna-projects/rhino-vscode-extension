@@ -3,7 +3,7 @@
   "publisher": "RhinoAPI",
   "displayName": "Rhino Languages Support",
   "description": "Supports IntelliSense, code snippets and commands for Rhino API client language.",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "icon": "images/128x128.png",
   "repository": {
     "url": "https://github.com/savanna-projects/rhino-vscode-extension.git"

@@ -1,7 +1,10 @@
 # Table Of Content
 
+* **Quick Start**
+  * [Language Overview](./LanguageOverview.md)
+  * [Naming Conventions Overview](./NamingConventionsOverview.md)
+
 * **Plugins**
-  * [Language Guidelines](./Guidelines.md)
   * [Examples](./Examples/Home.md)
 
 ---
