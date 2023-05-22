@@ -3,4 +3,4 @@
 [Home](../Home.md)
 
 * **Plugins**
-  * [Google Search](./GoogleSearch.md)"
+  * [Google Search](./GoogleSearch.md)
