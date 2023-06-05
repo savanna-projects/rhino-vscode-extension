@@ -14,14 +14,10 @@ import { Utilities } from '../extensions/utilities';
 import { Logger } from '../logging/logger';
 import { TmLanguageCreateModel } from '../models/tm-create-model';
 import { CommandBase } from "./command-base";
-import { ConnectServerCommand } from './connect-server';
 
 export class RegisterPluginsCommand extends CommandBase {
     // members: static
     private readonly _logger: Logger;
-
-    // members
-    private _createModel: TmLanguageCreateModel;
 
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
@@ -29,14 +25,13 @@ export class RegisterPluginsCommand extends CommandBase {
      * @param context The context under which to register the command.
      */
     constructor(context: vscode.ExtensionContext, createModel: TmLanguageCreateModel) {
-        super(context);
+        super(context, createModel);
 
         // build
         this.command = 'Register-Plugins';
 
         // create data
         this._logger = super.logger?.newLogger('RegisterPluginsCommand');
-        this._createModel = createModel;
     }
 
     /*┌─[ REGISTER ]───────────────────────────────────────────
@@ -85,8 +80,7 @@ export class RegisterPluginsCommand extends CommandBase {
 
         // invoke
         await RegisterPluginsCommand.registerPlugins(
-            this.context,
-            this._createModel,
+            this,
             this.client,
             requestBody);
     }
@@ -105,8 +99,7 @@ export class RegisterPluginsCommand extends CommandBase {
     }
 
     private static async registerPlugins(
-        context: vscode.ExtensionContext,
-        createModel: TmLanguageCreateModel,
+        command: CommandBase,
         client: RhinoClient,
         requestBody: string) {
 
@@ -114,12 +107,11 @@ export class RegisterPluginsCommand extends CommandBase {
         const response = await client.plugins.addPlugins(requestBody);
         const total = response?.toString().split('>>>').length;
 
-        // register
-        await new ConnectServerCommand(context, createModel)
-            .syncData(true)
-            .invokeCommand();
-            
         // user interface
         vscode.window.setStatusBarMessage(`$(testing-passed-icon) Total of ${total} Plugin(s) Registered`);
+
+        // reload extension
+        command.saveAllDocuments();
+        await vscode.commands.executeCommand('workbench.action.reloadWindow');
     }
 }

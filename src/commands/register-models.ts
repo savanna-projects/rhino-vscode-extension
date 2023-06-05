@@ -13,14 +13,11 @@ import { Utilities } from '../extensions/utilities';
 import { Logger } from '../logging/logger';
 import { TmLanguageCreateModel } from '../models/tm-create-model';
 import { CommandBase } from "./command-base";
-import { RegisterRhinoCommand } from './register-rhino';
 import { RhinoClient } from '../clients/rhino-client';
-import { ConnectServerCommand } from './connect-server';
 
 export class RegisterModelsCommand extends CommandBase {
     // members: state
     private readonly _logger: Logger;
-    private _createModel: TmLanguageCreateModel;
 
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
@@ -28,14 +25,13 @@ export class RegisterModelsCommand extends CommandBase {
      * @param context The context under which to register the command.
      */
     constructor(context: vscode.ExtensionContext, createModel: TmLanguageCreateModel) {
-        super(context);
+        super(context, createModel);
 
         // build
         this.command = 'Register-Models';
 
         // create data
         this._logger = super.logger?.newLogger('RegisterModelsCommand');
-        this._createModel = createModel;
     }
 
     /*┌─[ REGISTER ]───────────────────────────────────────────
@@ -61,9 +57,6 @@ export class RegisterModelsCommand extends CommandBase {
      * Summary. Implement the command invoke pipeline.
      */
     protected async onInvokeCommand(): Promise<any> {
-        // setup
-        const context = this.context;
-
         // user interface
         vscode.window.setStatusBarMessage('$(sync~spin) Registering Model(s)...');
 
@@ -72,15 +65,13 @@ export class RegisterModelsCommand extends CommandBase {
 
         // invoke
         await this.registerModels(this.client, requestBody);
-        var createModel = await Promise.resolve(this._createModel);
 
-        // TODO: remove redundant call fro re-populate
-        // register
-        new ConnectServerCommand(context, createModel).invokeCommand();
-        new RegisterRhinoCommand(context, createModel).invokeCommand();
-        
         // user interface
         vscode.window.setStatusBarMessage('$(testing-passed-icon) Models Registered');
+
+        // reload extension
+        await this.saveAllDocuments();
+        await vscode.commands.executeCommand('workbench.action.reloadWindow');
     }
 
     private getModelsFromFiles(): any[] {
@@ -135,7 +126,7 @@ export class RegisterModelsCommand extends CommandBase {
                 let mdResult =await client.models.newModels(mdModels);
                 list.push(...[jsonResult, mdResult]);
             }
-            this._createModel.models = list;
+            this.createModel.models = list;
         }
         catch (error: any) {
             this._logger?.error(error.message, error);

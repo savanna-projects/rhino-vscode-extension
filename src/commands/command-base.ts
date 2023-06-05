@@ -9,6 +9,7 @@ import { Channels } from '../constants/channels';
 import { Utilities } from '../extensions/utilities';
 import { ExtensionLogger } from '../logging/extensions-logger';
 import { Logger } from '../logging/logger';
+import { TmLanguageCreateModel } from '../models/tm-create-model';
 
 export abstract class CommandBase {
   // members: static
@@ -20,13 +21,16 @@ export abstract class CommandBase {
   public command: string;
   public endpoint: string;
   public manifest: any;
+  public createModel: TmLanguageCreateModel;
 
   /**
    * Summary. Creates a new instance of VS Command for Rhino API.
    * 
    * @param context The context under which to register the command.
    */
-  constructor(context: vscode.ExtensionContext) {
+  constructor(context: vscode.ExtensionContext);
+  constructor(context: vscode.ExtensionContext, createModel: TmLanguageCreateModel);
+  constructor(context: vscode.ExtensionContext, createModel?: TmLanguageCreateModel) {
     // setup
     this.command = '';
     this.endpoint = 'http://localhost:9000';
@@ -36,6 +40,10 @@ export abstract class CommandBase {
     this.client = new RhinoClient(Utilities.getRhinoEndpoint());
     this.context = context;
     this.manifest = Utilities.getManifest();
+    if (createModel) {
+      this.createModel = createModel;
+    }
+    this.createModel = createModel ? createModel : {};
   }
 
   /*┌─[ INTERFACE ]──────────────────────────────────────────
@@ -60,4 +68,21 @@ export abstract class CommandBase {
   }
 
   protected abstract onInvokeCommand(): Promise<any>;
+
+  /**
+   * Summary. Saves the open document.
+   */
+  public async saveOpenDocument() {
+    const activeEditor = vscode.window.activeTextEditor;
+    if (activeEditor) {
+      await activeEditor.document.save();
+    }
+  }
+
+  /**
+   * Summary. Saves all open documents.
+   */
+  public async saveAllDocuments() {
+    await vscode.workspace.saveAll();
+  }
 }

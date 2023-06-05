@@ -15,15 +15,11 @@ import { Logger } from '../logging/logger';
 import { ResourceModel } from '../models/register-data-model';
 import { TmLanguageCreateModel } from '../models/tm-create-model';
 import { CommandBase } from "./command-base";
-import { ConnectServerCommand } from './connect-server';
 import { RhinoClient } from '../clients/rhino-client';
 
 export class RegisterResourcesCommand extends CommandBase {
     // members: static
     private readonly _logger: Logger;
-
-    // members: static
-    private _createModel: TmLanguageCreateModel;
 
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
@@ -31,14 +27,13 @@ export class RegisterResourcesCommand extends CommandBase {
      * @param context The context under which to register the command.
      */
     constructor(context: vscode.ExtensionContext, createModel: TmLanguageCreateModel) {
-        super(context);
+        super(context, createModel);
 
         // build
         this.command = 'Register-Resources';
 
         // create data
         this._logger = super.logger?.newLogger('RegisterResourcesCommand');
-        this._createModel = createModel;
     }
 
     /*┌─[ REGISTER ]───────────────────────────────────────────
@@ -93,11 +88,7 @@ export class RegisterResourcesCommand extends CommandBase {
             });
         }
 
-        await RegisterResourcesCommand.registerResources(
-            this.context,
-            this.client,
-            this._createModel,
-            resources);
+        await RegisterResourcesCommand.registerResources(this, this.client, resources);
     }
 
     private getResourceFromFile(file: string): string {
@@ -115,22 +106,21 @@ export class RegisterResourcesCommand extends CommandBase {
 
     // TODO: change sync data to true when auto-complete is ready
     private static async registerResources(
-        context: vscode.ExtensionContext,
+        command: CommandBase,
         client: RhinoClient,
-        createModel: TmLanguageCreateModel,
         requestBody: ResourceModel[]): Promise<void> {
+
         // invoke
         await client.resources.newResources(requestBody);
 
         // setup
         let total = requestBody.length;
 
-        // register
-        await new ConnectServerCommand(context, createModel)
-            .syncData(false)
-            .invokeCommand();
-            
-        // notification
+        // user interface
         vscode.window.setStatusBarMessage(`$(testing-passed-icon) Total of ${total} Resource(s) Registered`);
+
+        // reload extension
+        command.saveAllDocuments();
+        await vscode.commands.executeCommand('workbench.action.reloadWindow');
     }
 }

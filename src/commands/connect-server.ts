@@ -17,7 +17,6 @@ import { ParametersAutoCompleteProvider } from '../providers/parameters-auto-com
 import { CommandBase } from "./command-base";
 import { CreateTmLanguageCommand } from './create-tm-language';
 import { RegisterRhinoCommand } from './register-rhino';
-import { GetDocumentationCommand } from './get-documentation';
 
 export class ConnectServerCommand extends CommandBase {
     // members: static
@@ -72,7 +71,8 @@ export class ConnectServerCommand extends CommandBase {
 
         try {
             // clean
-            await new RegisterRhinoCommand(context, Promise.resolve(this._createModel)).invokeCommand();
+            const model = await Promise.resolve(this._createModel);
+            await new RegisterRhinoCommand(context, model).invokeCommand();
 
             // register
             ConnectServerCommand.registerActionsAutoCompleteProvider(context, createModel);
