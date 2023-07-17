@@ -16,8 +16,8 @@
     },
     {
         "type": "positive",
-        "description": "Action Length: Action line exceeds the maximum length of 100 characters. Consider refactoring or breaking the line into multiple lines for improved readability.",
-        "expression": "^.{100,}$",
+        "description": "Action Length: Action line exceeds the maximum length of 255 characters. Consider refactoring or breaking the line into multiple lines for improved readability.",
+        "expression": "^.{255,}$",
         "id": "RHG0001",
         "multiline": true,
         "sections": [
@@ -32,7 +32,7 @@
     {
         "type": "negative",
         "description": "Invalid Assertion Reference: Ensure the assert reference is enclosed in square brackets and pointing to an action index, e.g., '[1]'.",
-        "expression": "^(\\s+)?\\[\\d+]|^\\s*$|\\[test-expected-results]",
+        "expression": "^(\\s+)?\\[\\d+]|^\\s*$|\\[test-expected-results]|^\\/\\*\\*|^>{3}",
         "id": "RHG0002",
         "multiline": true,
         "sections": [
