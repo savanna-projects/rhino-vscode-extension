@@ -288,8 +288,11 @@ export class ActionsAutoCompleteProvider extends ProviderBase {
         
         let isKey = multiLine.match("(?<!['])" + manifest.literal);
         let isParameters = multiLine.substring(0, characterPosition).match('(?<={{\\$\\s+.*?)--');
-        let isParameter = line[position.character - 3] + line[position.character - 2] + line[position.character - 1] === ' --'
-        || line[position.character - 3] + line[position.character - 2] + line[position.character - 1] === '\t--';
+
+        let isParameter = line[position.character - 3] + line[position.character - 2] + line[position.character - 1].match("^--$|\s--");
+
+        // let isParameter = line[position.character - 3] + line[position.character - 2] + line[position.character - 1] === ' --'
+        // || line[position.character - 3] + line[position.character - 2] + line[position.character - 1] === '\t--';
     
         // not found
         if (!isKey || !isParameters || !isParameter) {
