@@ -9,6 +9,7 @@ import path = require('path');
 import { Utilities } from '../extensions/utilities';
 import { CommandBase } from "./command-base";
 import { Logger } from '../logging/logger';
+import { RhinoClient } from '../clients/rhino-client';
 
 
 export class RegisterEnvironmentCommand extends CommandBase {
@@ -80,8 +81,7 @@ export class RegisterEnvironmentCommand extends CommandBase {
             vscode.window.setStatusBarMessage('$(sync~spin) Registering Environment(s)...');
 
             // register
-            await client.environments.addEnvironment(mergedJson);
-            await client.environments.syncEnvironment();
+            await RegisterEnvironmentCommand.add(mergedJson, client);
 
             // user interface
             vscode.window.setStatusBarMessage('$(testing-passed-icon) Environment Registered');
@@ -117,5 +117,25 @@ export class RegisterEnvironmentCommand extends CommandBase {
 
         // get
         return requests;
+    }
+
+    private static async add(requestBody: any, client: RhinoClient) {
+        try{
+            const manifest = Utilities.getManifest();
+            const encoded = manifest?.engineConfiguration?.encodeEnvironment;
+            const isEncoded = encoded !== null && encoded !== undefined && encoded === true;
+
+            if(isEncoded){
+                await client.environments.addEnvironmentEncoded(requestBody);
+                await client.environments.syncEnvironmentEncoded();
+                return;
+            }
+
+            await client.environments.addEnvironment(requestBody);
+            await client.environments.syncEnvironment();
+        }
+        catch{
+            return;
+        }
     }
 }

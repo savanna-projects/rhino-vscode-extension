@@ -104,10 +104,34 @@ class EnvironmentsClient {
         return this._httpClient.sendAsync(httpCommand);
     }
 
+    // TODO: convert to overload with addEnvironment
+    public addEnvironmentEncoded(requestBody: any): Promise<any> {
+        // setup
+        const httpCommand = new HttpCommand();
+        httpCommand.command = `/api/v${this._version}/environment/encoded`;
+        httpCommand.addHeader('Content-Type', 'application/json');
+        httpCommand.method = 'POST';
+        httpCommand.body = requestBody;
+
+        // get
+        return this._httpClient.sendAsync(httpCommand);
+    }
+
     public syncEnvironment(): Promise<any> {
         // setup
         const httpCommand = new HttpCommand();
         httpCommand.command = `/api/v${this._version}/environment/sync`;
+        httpCommand.method = 'GET';
+
+        // get
+        return this._httpClient.sendAsync(httpCommand);
+    }
+
+    // TODO: convert to overload with syncEnvironment
+    public syncEnvironmentEncoded(): Promise<any> {
+        // setup
+        const httpCommand = new HttpCommand();
+        httpCommand.command = `/api/v${this._version}/environment/sync/encoded`;
         httpCommand.method = 'GET';
 
         // get
