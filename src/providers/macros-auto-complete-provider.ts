@@ -83,13 +83,14 @@ export class MacrosAutoCompleteProvider extends ProviderBase {
 
     private getMacrosParameters(document: vscode.TextDocument, position: vscode.Position): vscode.CompletionItem[] {
         // setup
+        let multiline = this.getMultilineContent(document, position);
         let line = document.lineAt(position.line).text;
-        let end = position.character;
-        let start = this.getMacroPosition(line, position.character);
-
+        let characterPosition = multiline.length - line.length + position.character;
+        let end = characterPosition;
+        let start = this.getMacroPosition(multiline, characterPosition);
         // setup conditions
-        let isLength = line.length > 4;
-        let isParameter = isLength && line[position.character - 1] === '-' && line[position.character - 2] === '-';
+        let isLength = multiline.length > 4;
+        let isParameter = isLength && multiline[characterPosition - 1] === '-' && multiline[characterPosition - 2] === '-';
 
         // not valid
         if (!isParameter || start === -1) {
@@ -97,7 +98,7 @@ export class MacrosAutoCompleteProvider extends ProviderBase {
         }
 
         // build
-        let macro = line.substring(start, end);
+        let macro = multiline.substring(start, end);
         let matches = macro.match('(?<={{\\$)[^\\s]*');
 
         // not found
@@ -160,9 +161,17 @@ export class MacrosAutoCompleteProvider extends ProviderBase {
                 return -1;
             }
 
-            let _isCli = line.substring(index - 1, 3) === '{{$';
+            let _isCli = line.substring(index, index + 3) === '{{$';
             if (_isCli) {
-                return index === 0 ? 0 : index - 1;
+                return index === 0 ? 0 : index;
+            }
+
+            //skip nested macro
+            let isNested = line.substring(index, index - 2) === '}}';
+            if(isNested){
+                while(line.substring(index, index + 3) !== '{{$' &&  index > 0){
+                    index = index - 1;
+                }
             }
             index = index - 1;
         }

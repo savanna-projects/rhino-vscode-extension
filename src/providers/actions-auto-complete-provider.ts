@@ -226,7 +226,7 @@ export class ActionsAutoCompleteProvider extends ProviderBase {
         position: vscode.Position): vscode.CompletionItem[] {
 
         // setup
-        let matches = document.lineAt(position).text.match(this.pattern);
+        let matches = this.getMultilineContent(document, position).match(this.pattern);
 
         // not found
         if (matches === null) {
@@ -279,14 +279,17 @@ export class ActionsAutoCompleteProvider extends ProviderBase {
         manifest: any,
         key: string,
         document: vscode.TextDocument,
-        position: vscode.Position): vscode.CompletionItem {
+        position: vscode.Position): vscode.CompletionItem {  
 
         // setup
         let line = document.lineAt(position).text;
-        let isKey = line.match("(?<!['])" + manifest.literal);
-        let isParameters = line.substring(0, position.character).match('(?<={{\\$\\s+.*?)--');
-        let isParameter = line[position.character - 3] + line[position.character - 2] + line[position.character - 1] === ' --';
-
+        let multiLine = this.getMultilineContent(document, position);
+        let characterPosition = multiLine.length - line.length + position.character;
+        
+        let isKey = multiLine.match("(?<!['])" + manifest.literal);
+        let isParameters = multiLine.substring(0, characterPosition).match('(?<={{\\$\\s+.*?)--');
+        let isParameter = line[position.character - 3] + line[position.character - 2] + line[position.character - 1].match("^--$|\s--");
+    
         // not found
         if (!isKey || !isParameters || !isParameter) {
             return new vscode.CompletionItem('-1');
