@@ -146,4 +146,13 @@ export abstract class ProviderBase {
         let cliStartIndex = line.indexOf('{{$');
         return cliStartIndex > 0 && index > cliStartIndex;
     }
+
+    public getMultilineContent(document: vscode.TextDocument, position: vscode.Position) {
+        const multilineRegex = /\s`$/g;
+        let multiLine = document.lineAt(position).text;
+        for (let i = document.lineAt(position).lineNumber - 1; i > 0 && document.lineAt(i).text.match(multilineRegex) !== null; i--) {
+            multiLine = document.lineAt(i).text + multiLine;
+        }
+        return multiLine;
+    }
 }
