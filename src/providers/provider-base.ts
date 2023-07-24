@@ -147,6 +147,7 @@ export abstract class ProviderBase {
         return cliStartIndex > 0 && index > cliStartIndex;
     }
 
+    // TODO: breakout conditions
     public getMultilineContent(document: vscode.TextDocument, position: vscode.Position) {
         const multilineRegex = /\s`$/g;
         let multiLine = document.lineAt(position).text;

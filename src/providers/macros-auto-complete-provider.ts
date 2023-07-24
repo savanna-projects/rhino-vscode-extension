@@ -59,7 +59,7 @@ export class MacrosAutoCompleteProvider extends ProviderBase {
       │ A collection of functions to factor auto-complete items
       │ behavior for macros.
       └────────────────────────────────────────────────────────*/
-    private getMacrosCompletionItems(document: vscode.TextDocument, position: vscode.Position) : vscode.CompletionItem[] {
+    private getMacrosCompletionItems(document: vscode.TextDocument, position: vscode.Position): vscode.CompletionItem[] {
         // setup
         let matches = document.lineAt(position).text.match('(?<=.*){{\\$');
 
@@ -149,7 +149,7 @@ export class MacrosAutoCompleteProvider extends ProviderBase {
 
     /*┌─[ UTILITIES ]──────────────────────────────────────────
       │
-      │ A collection of utility and supprort functions.
+      │ A collection of utility and support functions.
       └────────────────────────────────────────────────────────*/
     private getMacroPosition(line: string, index: number): number {
         // setup
@@ -168,8 +168,8 @@ export class MacrosAutoCompleteProvider extends ProviderBase {
 
             //skip nested macro
             let isNested = line.substring(index, index - 2) === '}}';
-            if(isNested){
-                while(line.substring(index, index + 3) !== '{{$' &&  index > 0){
+            if (isNested) {
+                while (line.substring(index, index + 3) !== '{{$' && index > 0) {
                     index = index - 1;
                 }
             }

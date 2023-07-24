@@ -80,13 +80,13 @@ export class ActionsAutoCompleteProvider extends ProviderBase {
 
         // setup
         let snippets = this.getSnippets();
-        let provieders: vscode.CompletionItem[] = [];
+        let providers: vscode.CompletionItem[] = [];
 
         // build
-        snippets.forEach(i => provieders.push(this.getActionsCompletionItem(i)));
+        snippets.forEach(i => providers.push(this.getActionsCompletionItem(i)));
 
         // get
-        return [...new Map(provieders.map(item => [item.label, item])).values()];
+        return [...new Map(providers.map(item => [item.label, item])).values()];
     }
 
     private getActionsCompletionItem(snippet: RhinoSnippet): vscode.CompletionItem {
@@ -305,7 +305,7 @@ export class ActionsAutoCompleteProvider extends ProviderBase {
 
     /*┌─[ UTILITIES ]──────────────────────────────────────────
       │
-      │ A collection of utility and supprort functions.
+      │ A collection of utility and support functions.
       └────────────────────────────────────────────────────────*/
     // Gets a RhinoSnippet object based on a Plugin manifest
     private getRhinoSnippet(manifest: any, name: string, snippet: string): RhinoSnippet {
