@@ -35,7 +35,7 @@ export class ConnectServerCommand extends CommandBase {
         super(context);
 
         // build
-        this._logger = super.logger?.newLogger('ConnectServerCommand');
+        this._logger = this.logger?.newLogger('ConnectServerCommand');
         this.command = 'Connect-Server';
         this._createModel = createModel;
     }

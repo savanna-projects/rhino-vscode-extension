@@ -44,7 +44,7 @@ export class RegisterRhinoCommand extends CommandBase {
         super(context);
 
         // build
-        this._logger = super.logger?.newLogger('RegisterRhinoCommand');
+        this._logger = this.logger?.newLogger('RegisterRhinoCommand');
         this._createModel = createModel;
         this.command = 'Register-Rhino';
     }

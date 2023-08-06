@@ -24,7 +24,7 @@ export class RhinoDefinitionProvider extends ProviderBase {
         super(context);
 
         // setup
-        this._logger = super.logger?.newLogger('RhinoDefinitionProvider');
+        this._logger = this.logger?.newLogger('RhinoDefinitionProvider');
     }
 
     /*┌─[ ABSTRACT IMPLEMENTATION ]────────────────────────────

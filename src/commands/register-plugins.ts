@@ -31,7 +31,7 @@ export class RegisterPluginsCommand extends CommandBase {
         this.command = 'Register-Plugins';
 
         // create data
-        this._logger = super.logger?.newLogger('RegisterPluginsCommand');
+        this._logger = this.logger?.newLogger('RegisterPluginsCommand');
     }
 
     /*┌─[ REGISTER ]───────────────────────────────────────────

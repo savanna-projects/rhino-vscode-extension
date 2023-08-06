@@ -25,7 +25,7 @@ export class RegisterEnvironmentCommand extends CommandBase {
         super(context);
 
         // build
-        this._logger = super.logger?.newLogger('InvokeTestCaseCommand');
+        this._logger = this.logger?.newLogger('InvokeTestCaseCommand');
         this.command = 'Register-Environment';
     }
 

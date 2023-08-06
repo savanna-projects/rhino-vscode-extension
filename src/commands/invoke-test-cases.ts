@@ -28,7 +28,7 @@ export class InvokeTestCasesCommand extends CommandBase {
         super(context);
 
         // setup
-        this._logger = super.logger?.newLogger('InvokeTestCasesCommand');
+        this._logger = this.logger?.newLogger('InvokeTestCasesCommand');
         this.command = 'Invoke-TestCase -All';
     }
 

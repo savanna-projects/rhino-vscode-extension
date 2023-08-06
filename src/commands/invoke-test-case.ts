@@ -33,7 +33,7 @@ export class InvokeTestCaseCommand extends CommandBase {
         this.command = 'Invoke-TestCase';
         this._testCases = [];
         this._logConfiguration = Utilities.getLogConfiguration();
-        this._logger = super.logger?.newLogger('InvokeTestCaseCommand');
+        this._logger = this.logger?.newLogger('InvokeTestCaseCommand');
     }
 
     /*┌─[ SETTERS ]────────────────────────────────────────────
