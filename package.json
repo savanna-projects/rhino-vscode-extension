@@ -265,7 +265,7 @@
     "esbuild": "^0.17.10",
     "fetch": "^1.1.0",
     "node-fetch": "^2.6.9",
-    "npm": "^8.18.0"
+    "npm": "^9.8.1"
   },
   "extensionDependencies": [
     "humao.rest-client",
