@@ -33,7 +33,7 @@ export class RegisterResourcesCommand extends CommandBase {
         this.command = 'Register-Resources';
 
         // create data
-        this._logger = super.logger?.newLogger('RegisterResourcesCommand');
+        this._logger = this.logger?.newLogger('RegisterResourcesCommand');
     }
 
     /*┌─[ REGISTER ]───────────────────────────────────────────

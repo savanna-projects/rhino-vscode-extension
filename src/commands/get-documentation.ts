@@ -23,7 +23,7 @@ export class GetDocumentationCommand extends CommandBase {
         super(context);
 
         // build
-        this._logger = super.logger?.newLogger('GetDocumentationCommand');
+        this._logger = this.logger?.newLogger('GetDocumentationCommand');
         this.command = 'Get-Documentation';
     }
 

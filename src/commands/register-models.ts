@@ -31,7 +31,7 @@ export class RegisterModelsCommand extends CommandBase {
         this.command = 'Register-Models';
 
         // create data
-        this._logger = super.logger?.newLogger('RegisterModelsCommand');
+        this._logger = this.logger?.newLogger('RegisterModelsCommand');
     }
 
     /*┌─[ REGISTER ]───────────────────────────────────────────

@@ -14,10 +14,14 @@ import { ReportManager } from '../components/report-manager';
 import { Utilities } from '../extensions/utilities';
 import { Logger } from '../logging/logger';
 import { CommandBase } from "./command-base";
+import { AgentLogListener } from '../components/agent-log-listener';
+import { Channels } from '../constants/channels';
 
-export class InvokeTestCasesCommand extends CommandBase {
+export class InvokeTestFolderCommand extends CommandBase {
     // members: static
     private readonly _logger: Logger;
+    private foldersUri: vscode.Uri[] | undefined;
+    private readonly _logConfiguration: LogConfiguration;
 
     /**
      * Summary. Creates a new instance of VS Command for Rhino API.
@@ -26,12 +30,13 @@ export class InvokeTestCasesCommand extends CommandBase {
      */
     constructor(context: vscode.ExtensionContext) {
         super(context);
-
+        
         // setup
-        this._logger = this.logger?.newLogger('InvokeTestCasesCommand');
-        this.command = 'Invoke-TestCase -All';
+        this._logConfiguration = Utilities.getLogConfiguration();
+        this._logger = this.logger?.newLogger('InvokeTestFolderCommand');
+        this.command = 'Invoke-TestCase -Folder';
     }
-
+    
     /*┌─[ REGISTER ]───────────────────────────────────────────
       │
       │ A command registration pipeline to expose the command
@@ -43,7 +48,11 @@ export class InvokeTestCasesCommand extends CommandBase {
      */
     protected async onRegister(): Promise<any> {
         // setup
-        let command = vscode.commands.registerCommand(this.command, async () => {
+        let command = vscode.commands.registerCommand(this.command, async (_contextSelection: vscode.Uri, allSelections: vscode.Uri[]) => {
+
+            // use this if triggered by a menu item,
+            this.foldersUri = allSelections;  // folder will be undefined when triggered by keybinding
+
             await this.invokeCommand();
         });
 
@@ -57,28 +66,40 @@ export class InvokeTestCasesCommand extends CommandBase {
     protected async onInvokeCommand(): Promise<any> {
         // setup
         const client = this.client;
-
         // user interface
         vscode.window.setStatusBarMessage('$(sync~spin) Invoking Test Case(s)...');
+        const listener = new AgentLogListener(Channels.agent, this.client);
 
-        // invoke
-        const configuration = this.getConfiguration();
-        const response = await client.rhino.invokeConfiguration(configuration);
-        const testRun = JSON.parse(response);
-        testRun.actual === true
-            ? vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke Completed W/O Test(s) Failure(s)")
-            : vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke Completed, W/ Test(s) Failure(s)");
 
-        // extension log
-        this._logger?.trace(JSON.stringify(testRun, null, 4));
+        try 
+        {
+            // agent log
+            if (this._logConfiguration.agentLogConfiguration.enabled) {
+                listener.channel.show();
+                listener.start();
+            }
 
-        // user report
-        try {
+            // invoke
+            const configuration = this.getConfiguration();
+            const testRun = await client.rhino.invokeConfiguration(configuration);
+
+            testRun.actual === true
+                ? vscode.window.setStatusBarMessage("$(testing-passed-icon) Invoke Completed W/O Test(s) Failure(s)")
+                : vscode.window.setStatusBarMessage("$(testing-error-icon) Invoke Completed, W/ Test(s) Failure(s)");
+
+            // extension log
+            this._logger?.trace(JSON.stringify(testRun, null, 4));
+
+            // user report
             const panel = vscode.window.createWebviewPanel("RhinoReport", "Rhino Report", vscode.ViewColumn.One);
             panel.webview.html = new ReportManager(testRun).getHtmlReport();
+
         } catch (error: any) {
             this._logger?.error(error.message, error);
             vscode.window.setStatusBarMessage(`$(testing-error-icon) ${error.message}`);
+        }
+        finally{
+            listener.stop();
         }
     }
 
@@ -97,26 +118,34 @@ export class InvokeTestCasesCommand extends CommandBase {
 
     // get test cases from the open document
     private getTestCases(): string[] {
-        // setup
-        const testsFolder = Utilities.getSystemFolderPath('Tests');
+        // setup   
+        const testCases: string[] = [];
+        if(!this.foldersUri){
+            this._logger?.error(`No folders found.`);
+            return [];
+        }
 
         // iterate
-        const files = Utilities.getFiles(testsFolder);
-        const testCases: string[] = [];
-        for (const testCaseFile of files) {
-            try {
-                const testCase = fs.readFileSync(testCaseFile, 'utf8');
-
-                if (Utilities.assertNullOrUndefined(testCase) || testCase === '') {
-                    continue;
+        for(let testsFolder of this.foldersUri){
+            let folderPath = testsFolder.fsPath;
+            this._logger?.information(`Finding tests in ${folderPath}.`);
+            const files = Utilities.getFiles(folderPath);
+            for (const testCaseFile of files) {
+                try {
+                    const testCase = fs.readFileSync(testCaseFile, 'utf8');
+    
+                    if (Utilities.assertNullOrUndefined(testCase) || testCase === '') {
+                        continue;
+                    }
+    
+                    const spec = Utilities.formatRhinoSpec(testCase);
+                    testCases.push(spec);
+                } catch (error: any) {
+                    this._logger?.error(error.message, error);
                 }
-
-                const spec = Utilities.formatRhinoSpec(testCase);
-                testCases.push(spec);
-            } catch (error: any) {
-                this._logger?.error(error.message, error);
             }
         }
+        
 
         // get
         return testCases;

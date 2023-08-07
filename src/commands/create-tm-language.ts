@@ -27,7 +27,7 @@ export class CreateTmLanguageCommand extends CommandBase {
         super(context);
 
         // build
-        this._logger = super.logger?.newLogger('CreateTmLanguageCommand');
+        this._logger = this.logger?.newLogger('CreateTmLanguageCommand');
         this._createModel = createModel;
         this.command = 'Create-TmLanguage';
     }
