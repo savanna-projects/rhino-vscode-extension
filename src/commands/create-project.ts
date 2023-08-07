@@ -25,7 +25,7 @@ export class CreateProjectCommand extends CommandBase {
         super(context);
 
         // build
-        this._logger = super.logger?.newLogger('CreateProjectCommand');
+        this._logger = this.logger?.newLogger('CreateProjectCommand');
         this.command = 'Create-Project';
     }
 
