@@ -2,7 +2,7 @@ pool:
   vmImage: ubuntu-latest
 
 stages:
-  - stage: 'Build&Publish'
+  - stage: 'Publish'
     jobs:
     - job: 'PackExtension'
       displayName: 'Install, Build & Pack Extension'
