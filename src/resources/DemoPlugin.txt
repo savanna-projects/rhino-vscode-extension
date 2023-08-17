@@ -1,0 +1,37 @@
+/**--[ General Information ]---------------------------------------------------------------
+/**|
+/**| Connect & Register Plugins
+/**| ==========================
+/**| 1. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.
+/**| 2. Type 'Rhino' to filter out all 'Rhino' commands.
+/**| 3. Click on the command 'Rhino: Connect to Rhino, fetch Metadata & activate commands'.
+/**| 4. Use [Ctrl]+[Shift]+[P] to bring up the commands palette.
+/**| 4. Type 'Rhino' to filter out all 'Rhino' commands.
+/**| 5. Click on the command 'Rhino: Register all the plugins under 'Plugins' folder'.
+/**|
+/**| View Documentation
+/**| ==================
+/**| 1. Right-Click to bring up the context menu.
+/**| 2. Click on 'Rhino: Show Documentation' command.
+/**|
+/**----------------------------------------------------------------------------------------
+/**
+[test-id]         GoogleSearch
+[test-scenario]   invoke the 'Search Google' routine
+
+/**
+/** Takes the 'argument' field from the action as provided by the user and pass it into the plugin.
+[test-actions]
+1. send keys {@argument} into {//textarea[@name='q']}
+2. click on {//ul[@role='listbox']/li}
+3. wait {1500}
+
+[test-expected-results]
+[3] verify that {count} of {//div[@class='g']} is greater than {0}
+
+/**
+/** You must provide at-least one example or you will not be able to register the plugin.
+[test-examples]
+| Example                    | Description                                            |
+|----------------------------|--------------------------------------------------------|
+| google search {Automation} | Finds results when searching for `Automation` keyword. |

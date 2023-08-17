@@ -1,0 +1,118 @@
+name: Rhino.Clients.VsCodeExtension.$(Year:yyyy).$(Month).$(DayOfMonth)
+
+trigger:
+  branches:
+    include:
+    - master
+
+variables:
+- group: github.com                # Variable group for GitHub credentials
+- group: marketplace.visualstudio  # Variable group for Visual Studio Marketplace credentials
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: BuildAndPublish
+    jobs:
+    - job: BuildAndPublishJob
+      displayName: 'Build and Publish VSCode Extension'
+      steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '18.x'
+        displayName: 'Install Node.js'
+
+      - task: PowerShell@2
+        displayName: 'Set Build Version in package.json'
+        inputs:
+          targetType: 'inline'
+          pwsh: true
+          script: |
+            # Extract version from the BuildNumber using regular expression
+            [regex]$pattern = '(\d+.?)+'
+            $version        = $pattern.Matches('$(Build.BuildNumber)') | foreach-object {$_.Value}
+            #
+            # Set the extracted version as a pipeline variable
+            Write-Host "##vso[task.setvariable variable=buildVersion]$version"
+            Write-Host "Pakcage Version: $($version)"
+            #
+            # Update the package version in package.json using the extracted version
+            $packageJson = Get-Content -Path './src/package.json' -Raw -Force -Verbose
+            $packageJson = $packageJson -replace '(?<="version":\s+")(\d+\.?)+(?=")', $version
+            Set-Content -Path './src/package.json' -Value $packageJson -Force -Verbose
+            #
+            # Write package.json
+            Write-Host $packageJson
+
+      - script: |
+          cd src/
+          npm install
+          npm run esbuild
+        displayName: 'Install Dependencies and Build'
+
+      - script: |
+          npm install --global @vscode/vsce
+        displayName: 'Install `vsce` CLI'
+
+      - script: |
+          cd src/
+          vsce package
+        displayName: 'Package VSCode Extension'
+      
+      - task: CopyPublishBuildArtifacts@1
+        displayName: 'Copy and Publish VSIX Artifact'
+        inputs:
+          CopyRoot: 'src/'
+          Contents: '**/*.vsix'
+          ArtifactName: 'rhino-language-support-$(buildVersion).vsix'
+          ArtifactType: 'Container'
+
+      - script: |
+          cd src/
+          vsce publish -p $(Marketplace.Pat)
+        displayName: 'Publish VSCode Extension'
+
+  - stage: 'Release'
+    dependsOn: 'BuildAndPublish'
+    condition: succeeded()
+    jobs:
+    - job: 'CreateGitHubRelease'
+      displayName: 'Create GitHub Release'
+      steps:
+      - task: PowerShell@2
+        displayName: 'Set Build Version'
+        inputs:
+          targetType: 'inline'
+          pwsh: true
+          script: |
+            # Extract version from the BuildNumber using regular expression
+            [regex]$pattern = '(\d+.?)+'
+            $version        = $pattern.Matches('$(Build.BuildNumber)') | foreach-object {$_.Value}
+            #
+            # Set the extracted version as a pipeline variable
+            Write-Host "##vso[task.setvariable variable=buildVersion]$version"
+            Write-Host "Pakcage Version: $($version)"
+
+      - task: DownloadBuildArtifacts@1
+        displayName: 'Download VSIX Artifacts'
+        inputs:
+          buildType: 'current'
+          downloadType: 'specific'
+          itemPattern: '**/*.vsix'
+          downloadPath: '$(build.artifactstagingdirectory)'
+          cleanDestinationFolder: true
+
+      - task: GitHubRelease@1
+        displayName: 'Publish Release to GitHub'
+        inputs:
+          gitHubConnection: 'github.com'
+          repositoryName: '$(Build.Repository.Name)'
+          action: 'create'
+          target: '$(Build.SourceVersion)'
+          tagSource: 'userSpecifiedTag'
+          tag: 'v$(buildVersion)'
+          title: 'Production v$(buildVersion)'
+          changeLogCompareToRelease: 'lastFullRelease'
+          changeLogType: 'commitBased'
+          assets: '$(build.artifactstagingdirectory)/**/*.vsix'
