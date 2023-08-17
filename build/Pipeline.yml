@@ -1,7 +1,3 @@
-# Node.js
-# Build a general Node.js project with npm.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 pool:
   vmImage: ubuntu-latest
 
@@ -14,17 +10,16 @@ steps:
 - script: |
     cd src/
     npm install
-    npm run build
-  displayName: '`npm` Install and Build'
+  displayName: 'Install Node.js Dependencies'
 
 - script: |
     npm install --global @vscode/vsce
-  displayName: 'Install `vsce`'
+  displayName: 'Install `vsce` CLI'
 
 - script: |
     cd src/
     vsce package
-  displayName: 'Pack VSCode Extension'
+  displayName: 'Package VSCode Extension'
 
 - script: |
     vsce publish -p hsvn55yp63ym4h7pndgpz35kz7iyfgx665l6fwu4eonffiar6gvq
