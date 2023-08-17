@@ -24,7 +24,7 @@ stages:
         displayName: 'Install Node.js'
 
       - task: PowerShell@2
-        displayName: ''
+        displayName: 'Set Build Version in package.json'
         inputs:
           targetType: 'inline'
           pwsh: true
