@@ -79,6 +79,29 @@ stages:
     - job: 'CreateGitHubRelease'
       displayName: 'Create GitHub Release'
       steps:
+      - task: PowerShell@2
+        displayName: 'Set Build Version'
+        inputs:
+          targetType: 'inline'
+          pwsh: true
+          script: |
+            # Extract version from the BuildNumber using regular expression
+            [regex]$pattern = '(\d+.?)+'
+            $version        = $pattern.Matches('$(Build.BuildNumber)') | foreach-object {$_.Value}
+            #
+            # Set the extracted version as a pipeline variable
+            Write-Host "##vso[task.setvariable variable=buildVersion]$version"
+            Write-Host "Pakcage Version: $($version)"
+
+      - task: DownloadBuildArtifacts@1
+        displayName: 'Download VSIX Artifacts'
+        inputs:
+          buildType: 'current'
+          downloadType: 'specific'
+          itemPattern: '**/*.vsix'
+          downloadPath: '$(build.artifactstagingdirectory)'
+          cleanDestinationFolder: true
+
       - task: GitHubRelease@1
         displayName: 'Publish Release to GitHub'
         inputs:
