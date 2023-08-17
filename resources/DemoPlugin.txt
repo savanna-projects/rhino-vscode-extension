@@ -22,7 +22,7 @@
 /**
 /** Takes the 'argument' field from the action as provided by the user and pass it into the plugin.
 [test-actions]
-1. send keys {@argument} into {//input[@name='q']}
+1. send keys {@argument} into {//textarea[@name='q']}
 2. click on {//ul[@role='listbox']/li}
 3. wait {1500}
 

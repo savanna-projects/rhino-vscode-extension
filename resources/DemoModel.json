@@ -3,7 +3,7 @@
     "entries": [
         {
             "name": "search text-box",
-            "value": "//input[@name='q']",
+            "value": "//textarea[@name='q']",
             "type": "xpath",
             "comment": "Finds the Google search text-box."
         },

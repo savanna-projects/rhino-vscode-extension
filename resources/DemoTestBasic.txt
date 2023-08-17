@@ -25,7 +25,7 @@
 
 [test-actions]
 1. go to url {https://www.google.com}
-2. send keys {automation is fun} into {//input[@name='q']}
+2. send keys {automation is fun} into {//textarea[@name='q']}
 3. click on {//ul[@role='listbox']/li}
 4. wait {1500}
 5. close browser
