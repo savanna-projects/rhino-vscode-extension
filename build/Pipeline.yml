@@ -1,4 +1,4 @@
-name: Rhino.Clients.VsCodeExtension.$(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)
+name: Rhino.Clients.VsCodeExtension.$(Year:yyyy).$(Month).$(DayOfMonth)
 
 trigger:
   branches:
@@ -15,13 +15,35 @@ pool:
 stages:
   - stage: BuildAndPublish
     jobs:
-    - job: BuildAndPublishJob 
+    - job: BuildAndPublishJob
       displayName: 'Build and Publish VSCode Extension'
       steps:
       - task: NodeTool@0
         inputs:
           versionSpec: '18.x'
         displayName: 'Install Node.js'
+
+      - task: PowerShell@2
+        displayName: ''
+        inputs:
+          targetType: 'inline'
+          pwsh: true
+          script: |
+            # Extract version from the BuildNumber using regular expression
+            [regex]$pattern = '(\d+.?)+'
+            $version        = $pattern.Matches('$(Build.BuildNumber)') | foreach-object {$_.Value}
+            #
+            # Set the extracted version as a pipeline variable
+            Write-Host "##vso[task.setvariable variable=buildVersion]$version"
+            Write-Host "Pakcage Version: $($version)"
+            #
+            # Update the package version in package.json using the extracted version
+            $packageJson = Get-Content -Path './src/package.json' -Raw -Force -Verbose
+            $packageJson = $packageJson -replace '(?<="version":\s+")(\d+\.?)+(?=")', $version
+            Set-Content -Path './src/package.json' -Value $packageJson -Force -Verbose
+            #
+            # Write package.json
+            Write-Host $packageJson
 
       - script: |
           cd src/
@@ -38,7 +60,7 @@ stages:
           vsce package
         displayName: 'Package VSCode Extension'
 
-      - script: |
-          cd src/
-          vsce publish -p $(Marketplace.Pat)
-        displayName: 'Publish VSCode Extension'
+    #   - script: |
+    #       cd src/
+    #       vsce publish -p $(Marketplace.Pat)
+    #     displayName: 'Publish VSCode Extension'
