@@ -1,11 +1,22 @@
+name: Rhino.Clients.VsCodeExtension.$(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)
+
+trigger:
+  branches:
+    include:
+    - none
+
+variables:
+- group: github.com                # Variable group for GitHub credentials
+- group: marketplace.visualstudio  # Variable group for Visual Studio Marketplace credentials
+
 pool:
   vmImage: ubuntu-latest
 
 stages:
-  - stage: 'Publish'
+  - stage: BuildAndPublish
     jobs:
-    - job: 'PackExtension'
-      displayName: 'Install, Build & Pack Extension'
+    - job: BuildAndPublishJob 
+      displayName: 'Build and Publish VSCode Extension'
       steps:
       - task: NodeTool@0
         inputs:
@@ -16,7 +27,7 @@ stages:
           cd src/
           npm install
           npm run esbuild
-        displayName: 'Install Node.js Dependencies'
+        displayName: 'Install Dependencies and Build'
 
       - script: |
           npm install --global @vscode/vsce
@@ -28,5 +39,6 @@ stages:
         displayName: 'Package VSCode Extension'
 
       - script: |
-          vsce publish -p hsvn55yp63ym4h7pndgpz35kz7iyfgx665l6fwu4eonffiar6gvq
+          cd src/
+          vsce publish -p $(Marketplace.Pat)
         displayName: 'Publish VSCode Extension'
