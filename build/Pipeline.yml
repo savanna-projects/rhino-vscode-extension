@@ -1,27 +1,32 @@
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '18.x'
-  displayName: 'Install Node.js'
+stages:
+  - stage: 'Build&Publish'
+    jobs:
+    - job: 'PackExtension'
+      displayName: 'Install, Build & Pack Extension'
+      steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '18.x'
+        displayName: 'Install Node.js'
 
-- script: |
-    cd src/
-    npm install
-    npm run esbuild
-  displayName: 'Install Node.js Dependencies'
+      - script: |
+          cd src/
+          npm install
+          npm run esbuild
+        displayName: 'Install Node.js Dependencies'
 
-- script: |
-    npm install --global @vscode/vsce
-  displayName: 'Install `vsce` CLI'
+      - script: |
+          npm install --global @vscode/vsce
+        displayName: 'Install `vsce` CLI'
 
-- script: |
-    cd src/
-    vsce package
-  displayName: 'Package VSCode Extension'
+      - script: |
+          cd src/
+          vsce package
+        displayName: 'Package VSCode Extension'
 
-- script: |
-    vsce publish -p hsvn55yp63ym4h7pndgpz35kz7iyfgx665l6fwu4eonffiar6gvq
-  displayName: 'Publish VSCode Extension'
+      - script: |
+          vsce publish -p hsvn55yp63ym4h7pndgpz35kz7iyfgx665l6fwu4eonffiar6gvq
+        displayName: 'Publish VSCode Extension'
