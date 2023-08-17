@@ -10,6 +10,7 @@ steps:
 - script: |
     cd src/
     npm install
+    npm run esbuild
   displayName: 'Install Node.js Dependencies'
 
 - script: |
