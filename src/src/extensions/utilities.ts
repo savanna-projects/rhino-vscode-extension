@@ -470,6 +470,9 @@ export class Utilities {
         let externalRepositories = !this.assertUndefinedOrNull(manifest.externalRepositories)
             ? manifest.externalRepositories
             : [];
+        let serviceHooks = !this.assertUndefinedOrNull(manifest.serviceHooks)
+            ? manifest.serviceHooks
+            : [];
 
         // get
         return {
@@ -483,7 +486,8 @@ export class Utilities {
             reportConfiguration: reportConfiguration,
             engineConfiguration: engineConfiguration,
             connectorConfiguration: connectorConfiguration,
-            externalRepositories: externalRepositories
+            externalRepositories: externalRepositories,
+            serviceHooks: serviceHooks
         };
     }
 
