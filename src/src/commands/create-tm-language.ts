@@ -158,7 +158,7 @@ export class CreateTmLanguageCommand extends CommandBase {
                         },
                         {
                             "name": "variable.parameter",
-                            "match": "(--\\w+:)"
+                            "match": "(--[\\w,/,\\.,\\$,\\*,%]+)(:)?"
                         },
                         {
                             "name": "support.constant",
