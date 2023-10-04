@@ -1,7 +1,7 @@
 [
     {
         "type": "positive",
-        "description": "Trailing Space: Line contains one or more trailing spaces at the end of the text. Trailing spaces are spaces that appear after the last meaningful character and before the end of the string.",
+        "description": "Trailing Space Detected: This line contains one or more spaces at the end of the text, which are considered trailing spaces. Trailing spaces are spaces that appear after the last meaningful character and before the end of the string.",
         "expression": "\\s+$",
         "id": "RHG0000",
         "multiline": true,
@@ -16,7 +16,7 @@
     },
     {
         "type": "positive",
-        "description": "Action Length: Action line exceeds the maximum length of 255 characters. Consider refactoring or breaking the line into multiple lines for improved readability.",
+        "description": "Excessive Action Length: The action line surpasses the maximum length of 255 characters. Please consider refactoring or breaking the line into multiple lines to enhance readability.",
         "expression": "^.{255,}$",
         "id": "RHG0001",
         "multiline": true,
@@ -31,7 +31,7 @@
     },
     {
         "type": "negative",
-        "description": "Invalid Assertion Reference: Ensure the assert reference is enclosed in square brackets and pointing to an action index, e.g., '[1]'.",
+        "description": "Invalid Assertion Reference: It's crucial to ensure that the assertion reference is enclosed within square brackets and points to a valid action index. The correct format for an assertion reference is `[action_index]`, where `action_index` is the numerical index of the action to which the assertion refers. For instance, `[1]` is the appropriate way to reference the first action in the sequence.",
         "expression": "^(\\s+)?\\[\\d+]|^\\s*$|\\[test-expected-results]|^\\/\\*\\*|^>{3}",
         "id": "RHG0002",
         "multiline": true,

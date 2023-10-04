@@ -544,7 +544,7 @@ export class TestCaseFormatter extends Formatter {
 
         // setup
         let columns = markdown[HEADER_INDEX].split('|').map(i => i.trim()).filter(i => i !== '');
-        let dataPointer = markdown[SEPARATOR_INDEX].match(/^\|(-+\|?)+\|$/g) !== null ? 2 : 1;
+        let dataPointer = markdown[SEPARATOR_INDEX].replaceAll(' ', '').match(/^\|(-+\|?)+\|$/g) !== null ? 2 : 1;
 
         // build
         let table: any[] = [];

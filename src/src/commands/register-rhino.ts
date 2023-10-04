@@ -112,8 +112,9 @@ export class RegisterRhinoCommand extends CommandBase {
             new PipelinesProvider(context),
             new ScriptsProvider(context),
 
+            // TODO: bring back when performance imporved
             // symbols
-            new RhinoDocumentSymbolProvider(context),
+            //new RhinoDocumentSymbolProvider(context),
 
             // context
             new RhinoDefinitionProvider(context),
