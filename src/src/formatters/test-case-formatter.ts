@@ -17,7 +17,8 @@ export class TestCaseFormatter extends Formatter {
         "test-cleanup",
         "test-parameters",
         "test-examples",
-        "test-models"
+        "test-models",
+        "test-owner"
     ];
 
     /**
@@ -126,6 +127,7 @@ export class TestCaseFormatter extends Formatter {
         }
     }
 
+    // TODO - add support for custom annotations
     private getMetadataFormatMap(annotations: any[]): any[] {
         // setup
         let metadataMap = annotations
