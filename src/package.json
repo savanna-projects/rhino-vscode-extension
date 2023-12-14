@@ -51,7 +51,12 @@
       {
         "command": "Invoke-TestCase -Folder",
         "category": "Rhino",
-        "title": "Invoke Tests"
+        "title": "Run Tests in Current Folder"
+      },
+      {
+        "command": "Invoke-TestCase -Files",
+        "category": "Rhino",
+        "title": "Run Tests for Selected Files"
       },
       {
         "command": "Register-Environment",
@@ -181,6 +186,9 @@
         {
           "command": "Invoke-TestCase -Folder",
           "when": "explorerResourceIsFolder"
+        },
+        {
+          "command": "Invoke-TestCase -Files"
         }
       ],
       "view/title": [

@@ -29,6 +29,7 @@ import { Logger } from '../logging/logger';
 import { InvokeTestCasesCommand } from './invoke-test-cases';
 import { RhinoDocumentSymbolProvider } from '../providers/rhino-document-symbol-provider';
 import { InvokeTestFolderCommand } from './invoke-test-folder';
+import { InvokeTestFilesCommand } from './invoke-test-files';
 
 export class RegisterRhinoCommand extends CommandBase {
     // members
@@ -123,6 +124,7 @@ export class RegisterRhinoCommand extends CommandBase {
             new GetDocumentationCommand(context),
             new GetTestCaseCommand(context),
             new InvokeTestCasesCommand(context),
+            new InvokeTestFilesCommand(context),
             new InvokeTestFolderCommand(context),
             new InvokeTestCaseCommand(context),
             new RegisterEnvironmentCommand(context),
