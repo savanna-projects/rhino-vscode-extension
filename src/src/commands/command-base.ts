@@ -63,11 +63,11 @@ export abstract class CommandBase {
   /**
    * Summary. Implement the command invoke pipeline.
    */
-  public invokeCommand(): Promise<any> {
-    return this.onInvokeCommand();
+  public invokeCommand(...args: any[]): Promise<any> {
+    return this.onInvokeCommand(...args);
   }
 
-  protected abstract onInvokeCommand(): Promise<any>;
+  protected abstract onInvokeCommand(...args: any[]): Promise<any>;
 
   /**
    * Summary. Saves the open document.

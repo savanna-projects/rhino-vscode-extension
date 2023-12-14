@@ -105,7 +105,7 @@ export class InvokeTestCaseCommand extends CommandBase {
         const configuration = InvokeTestCaseCommand.getConfiguration(this.command, this._testCases);
         const invokedTest: string = configuration.testsRepository[0];
         const testId = InvokeTestCaseCommand.getTestId(invokedTest);
-
+        
         // invoke
         try {
             // log
