@@ -11,7 +11,6 @@ import { CommandBase } from "./command-base";
 import { Logger } from '../logging/logger';
 import { RhinoClient } from '../clients/rhino-client';
 
-
 export class RegisterEnvironmentCommand extends CommandBase {
     // members: static
     private readonly _logger: Logger;
@@ -47,64 +46,61 @@ export class RegisterEnvironmentCommand extends CommandBase {
         this.context.subscriptions.push(command);
     }
 
+    
+
     /**
      * Summary. Implement the command invoke pipeline.
      */
     protected async onInvokeCommand(): Promise<any> {
         // setup
         const client = this.client;
-        const options = {
-            placeHolder: 'Environment file name w/o extension (e.g., Production)'
+
+        let pickOptions:vscode.QuickPickOptions = {
+            title:"Pick the environments to register",
         };
 
-        vscode.window.showInputBox(options).then(async (value) => {
-            if (value === undefined || value === null || value === '') {
-                return;
-            }
-            const requests = this.getEnvironments(value);
+        let envDictionary = this.getEnvNameAndPathDict();
+        let envNames = Object.keys(envDictionary).sort((a, b) => a.localeCompare(b));
 
-            // setup
-            let mergedJson: JSON = requests[0];
+        const selectedEnvironments = await vscode.window.showQuickPick(envNames, pickOptions && {canPickMany:true});
 
-            // merge requests
-            for (let request of requests) {
-                mergedJson = { ...mergedJson, ...request };
-            }
+        if (!selectedEnvironments) {
+            return;
+        }
+        
+        let listOfEnvironments = selectedEnvironments.map(envName => envDictionary[envName]);
 
-            // bad request
-            if (Utilities.assertNullOrUndefined(mergedJson)) {
-                vscode.window.setStatusBarMessage('$(testing-error-icon) Environment File Not Found or Not Valid.');
-                return;
-            }
+        const requests = this.getEnvironmentsJson(listOfEnvironments);
 
-            // user interface
-            vscode.window.setStatusBarMessage('$(sync~spin) Registering Environment(s)...');
-
-            // register
-            await RegisterEnvironmentCommand.add(mergedJson, client);
-
-            // user interface
-            vscode.window.setStatusBarMessage('$(testing-passed-icon) Environment Registered');
-        });
-    }
-
-    private getEnvironments(environment: string): JSON[] {
         // setup
-        const listOfEnvironments = environment?.split(/\s*,\s*/);
+        let mergedJson: JSON = requests[0];
 
-        // check if undefined 
-        if (!listOfEnvironments) {
-            vscode.window.setStatusBarMessage('$(testing-error-icon) Environment File was Not Found or Not Valid');
-            return [];
+        // merge requests
+        for (let request of requests) {
+            mergedJson = { ...mergedJson, ...request };
         }
 
-        // setup
-        const environmentsFolder = Utilities.getSystemFolderPath('Environments');
+        // bad request
+        if (Utilities.assertNullOrUndefined(mergedJson)) {
+            vscode.window.setStatusBarMessage('$(testing-error-icon) Environment File Not Found or Not Valid.');
+            return;
+        }
 
-        // build
-        const listOfPaths = Utilities.getFilesByFileNames(environmentsFolder, listOfEnvironments);
+        // user interface
+        vscode.window.setStatusBarMessage('$(sync~spin) Registering Environment(s)...');
+
+        // register
+        await RegisterEnvironmentCommand.add(mergedJson, client);
+
+        // user interface
+        vscode.window.setStatusBarMessage('$(testing-passed-icon) Environment Registered');
+    }
+
+    private getEnvironmentsJson(listOfPaths: string[]): JSON[] {
+
         const requests: JSON[] = [];
-
+        const t: {[key:string]:string} = {};
+        
         for (const path of listOfPaths) {
             try {
                 const data = fs.readFileSync(path, 'utf8');
@@ -117,6 +113,20 @@ export class RegisterEnvironmentCommand extends CommandBase {
 
         // get
         return requests;
+    }
+
+    private getEnvNameAndPathDict(): Record<string, string>{
+        const environmentsFolder = Utilities.getSystemFolderPath('Environments');
+
+        const environmentFilePaths = Utilities.getFiles(environmentsFolder);
+
+        const environmentNames: Record<string, string> = {};
+        for(let envPath of environmentFilePaths){
+            let envName = path.basename(envPath,".json");
+            environmentNames[envName] = envPath;
+        }
+
+        return environmentNames;
     }
 
     private static async add(requestBody: any, client: RhinoClient) {
