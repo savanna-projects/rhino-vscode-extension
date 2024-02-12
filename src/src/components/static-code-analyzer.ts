@@ -12,7 +12,7 @@ export class StaticCodeAnalyzer {
     private readonly _diagnosticCollection: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection('rhino');
     private readonly _diagnosticModels: DiagnosticModel[];
     private readonly _logger: Logger;
-
+    private fileUris: vscode.Uri[] = [];
     /**
      * Summary. Creates a new instance of VS Static Code Analysis for Rhino API.
      * 
@@ -26,10 +26,20 @@ export class StaticCodeAnalyzer {
     }
 
     public register() {
+        this.initialAnalyzer();
         vscode.workspace.onDidOpenTextDocument(document => this.analyzer(document));
         vscode.workspace.onDidChangeTextDocument(e => this.analyzer(e.document));
     }
 
+    public async initialAnalyzer(){
+        
+        this.fileUris = await vscode.workspace.findFiles('**/*.rhino');
+        this.fileUris.forEach(async (uri) => {
+            
+            let document = await vscode.workspace.openTextDocument(uri);
+            this.analyzer(document);
+        });
+    }
     public async analyzer(doc: vscode.TextDocument) {
         // exit conditions
         const isRhino = doc.fileName.endsWith('.rhino');
@@ -60,7 +70,7 @@ export class StaticCodeAnalyzer {
 
         // build
         for (const rule of rules) {
-            const diagnostic = this.newDiagnostics(rule);
+            const diagnostic = this.newDiagnostics(rule, doc);
             diagnostics.push(...(await diagnostic));
         }
 
@@ -69,35 +79,36 @@ export class StaticCodeAnalyzer {
         this._context.subscriptions.push(this._diagnosticCollection);
     }
 
-    private async newDiagnostics(diagnosticModel: DiagnosticModel): Promise<vscode.Diagnostic[]> {
+    private async newDiagnostics(diagnosticModel: DiagnosticModel, document: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
         const diagnostics = diagnosticModel.multiline
-            ? await this.resolveMultilineRule(diagnosticModel)
-            : this.resolveSinglelineRule(diagnosticModel);
+            ? await this.resolveMultilineRule(diagnosticModel, document)
+            : this.resolveSinglelineRule(diagnosticModel, document);
 
         // get
         return diagnostics;
     }
 
     // TODO: figure how to get range
-    private resolveSinglelineRule(diagnosticModel: DiagnosticModel): vscode.Diagnostic[] {
+    private resolveSinglelineRule(diagnosticModel: DiagnosticModel, document: vscode.TextDocument): vscode.Diagnostic[] {
         console.log(diagnosticModel);
         throw new Error();
     }
 
     // TODO: optimize complexity
-    private async resolveMultilineRule(diagnosticModel: DiagnosticModel): Promise<vscode.Diagnostic[]> {
+    private async resolveMultilineRule(diagnosticModel: DiagnosticModel, document: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
         // exit conditions
-        if (vscode.window.activeTextEditor?.document === undefined) {
+        if (!document) {
             return [];
         }
 
         // setup
         const annotations = (await this._createModel).annotations;
         const diagnostics: vscode.Diagnostic[] = [];
-        const document = vscode.window.activeTextEditor.document;
+        // const document = vscode.window.activeTextEditor.document;
         const documentData = {
             lines: document.getText().split(/\r?\n|\n\r?/),
-            range: this.getDocumentRange(vscode.window.activeTextEditor)
+            range: this.getDocumentRange(document)
+            // range: this.getActiveDocumentRange(vscode.window.activeTextEditor)
         };
         const sections = diagnosticModel.sections === undefined
             ? [documentData]
@@ -137,7 +148,7 @@ export class StaticCodeAnalyzer {
         const range = new vscode.Range(start, end);
         const diagnostic = new vscode.Diagnostic(range, diagnosticModel.description, diagnosticModel.severity);
 
-        if(diagnosticModel.code!== null && diagnosticModel.code!==undefined){
+        if(diagnosticModel.code){
             diagnostic.code = {
                 target: vscode.Uri.parse(diagnosticModel.code.target),
                 value: diagnosticModel.code.value
@@ -174,10 +185,11 @@ export class StaticCodeAnalyzer {
         return diagnostics;
     }
 
-    private getDocumentRange(textEditor: vscode.TextEditor) {
+
+    private getDocumentRange(document: vscode.TextDocument) {
         // setup
-        var firstLine = textEditor.document.lineAt(0);
-        var lastLine = textEditor.document.lineAt(textEditor.document.lineCount - 1);
+        var firstLine = document.lineAt(0);
+        var lastLine = document.lineAt(document.lineCount - 1);
 
         // get
         return new vscode.Range(firstLine.range.start, lastLine.range.end);
