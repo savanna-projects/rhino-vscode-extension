@@ -104,11 +104,9 @@ export class StaticCodeAnalyzer {
         // setup
         const annotations = (await this._createModel).annotations;
         const diagnostics: vscode.Diagnostic[] = [];
-        // const document = vscode.window.activeTextEditor.document;
         const documentData = {
             lines: document.getText().split(/\r?\n|\n\r?/),
             range: this.getDocumentRange(document)
-            // range: this.getActiveDocumentRange(vscode.window.activeTextEditor)
         };
         const sections = diagnosticModel.sections === undefined
             ? [documentData]
