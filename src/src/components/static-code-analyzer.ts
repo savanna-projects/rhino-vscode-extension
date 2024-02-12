@@ -90,6 +90,7 @@ export class StaticCodeAnalyzer {
 
     // TODO: figure how to get range
     private resolveSinglelineRule(diagnosticModel: DiagnosticModel, document: vscode.TextDocument): vscode.Diagnostic[] {
+        console.log(document);
         console.log(diagnosticModel);
         throw new Error();
     }
