@@ -22,7 +22,7 @@
         "sections": [
             "test-id"
         ],
-        "severity": "error",
+        "severity": "warning",
         "entities": [
             "Plugin"
         ],
