@@ -43,5 +43,21 @@
             "Plugin",
             "Test"
         ]
+    },
+    {
+        "type": "positive",
+        "description": "Unexpected character in arguments section.",
+        "expression": "(?<={{\\$)(?! +(`|--)|\\w).",
+        "id": "RHG0003",
+        "multiline": true,
+        "sections": [
+            "test-actions",
+            "test-expected-results"
+        ],
+        "severity": "error",
+        "entities": [
+            "Plugin",
+            "Test"
+        ]
     }
 ]
