@@ -5,6 +5,7 @@ import { ServerConfiguration } from '../models/server-configuration';
 import { TreeItem } from '../components/tree-item';
 import { RhinoClient } from '../clients/rhino-client';
 import { TmLanguageCreateModel } from '../models/tm-create-model';
+import { multilineRegex } from '../formatters/formatConstants';
 
 export class Utilities {
     public static assertJson(str: string): boolean {
@@ -30,8 +31,6 @@ export class Utilities {
      * Summary. Normalize a test case document before sending it for invocation.
      */
     public static formatRhinoSpec(spec: String): string {
-        // constants
-        const multilineRegex = /\s`$/g;
 
         // setup
         const rawLines = spec.split('\n');
