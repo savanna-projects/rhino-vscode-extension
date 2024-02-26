@@ -148,73 +148,57 @@ export class StaticCodeAnalyzer {
         
         // merge Rhino multilines
         sections.forEach(section => section = this.mergeRhinoMultilines(section));
-        // {
-        //     let lines:string[] = [];
-
-        //     for(let sectionLine = 0; sectionLine < section.lines.length; sectionLine++){
-        //         let line = section.lines[sectionLine];
-                
-        //         let previousLineNumber = sectionLine - 1 < 0 ? 0 : sectionLine - 1;
-
-        //         let previousLine = section.lines[previousLineNumber];
-        //         let isMatch = line.trim().match(multilineRegex) !== null;
-
-        //         let isPreviousMatch = previousLine.trim().match(multilineRegex) !== null;
-        //         let isMultiline = isMatch && isPreviousMatch || (!isMatch && isPreviousMatch);
-
-        //         let formattedSectionLineNumber: number;
-        //         let endCharacterIndex: number;
-        //         if(isMultiline){
-        //             formattedSectionLineNumber = lines.length - 1;
-        //             let multiLine = lines[formattedSectionLineNumber];
-
-        //             line = " " + line.replace(multilineRegex, "");
-        //             multiLine = multiLine.replace(multilineRegex, "") + line;
-        //             lines[formattedSectionLineNumber] = multiLine;
-        //         }
-        //         else{
-        //             formattedSectionLineNumber = lines.length;
-        //             lines.push(line);
-        //         }
-        //         endCharacterIndex = lines[formattedSectionLineNumber].length;
-        //         let formattedRange: FormattedRangeMap = {
-        //             actualLine: sectionLine + section.range.start.line,
-        //             formattedPosition: new vscode.Position(formattedSectionLineNumber + section.range.start.line, endCharacterIndex)
-        //         };
-        //         if(!section?.formattedRange){
-        //             section.formattedRange = [];
-        //         }
-        //         section.formattedRange.push(formattedRange);
-        //     }
-        //     section.lines = lines;
-        // });
 
         // iterate
-        sections.forEach(section => {
-            for (let i = 0; i < section.lines.length; i++) {
-                const line = section.lines[i];
-                if(line.match(commentRegex)){
-                    continue;
-                }
-                const isNegative = diagnosticModel.type.toUpperCase() === 'NEGATIVE';
-                const isPositive = diagnosticModel.type.toUpperCase() === 'POSITIVE';
-                let formattedLineNumber = section.range.start.line + i;
-                let formattedRange = section.formattedRange?.filter(r => r.formattedPosition.line === formattedLineNumber);
-                if (isNegative) {
-                    let collection = this.assertNegative(diagnosticModel, formattedLineNumber, line, formattedRange);
-                    diagnostics.push(...collection);
-                }
-                else if (isPositive) {
-                    let collection = this.assertPositive(diagnosticModel, formattedLineNumber, line, formattedRange);
-                    diagnostics.push(...collection);
-                }
-            }
-        });
+        sections.forEach(section => diagnostics.push(...this.assertRules(section, diagnosticModel)));
+        //     {
+        //     for (let sectionLineNumber = 0; sectionLineNumber < section.lines.length; sectionLineNumber++) {
+        //         const line = section.lines[sectionLineNumber];
+        //         if(line.match(commentRegex)){
+        //             continue;
+        //         }
+        //         const isNegative = diagnosticModel.type.toUpperCase() === 'NEGATIVE';
+        //         const isPositive = diagnosticModel.type.toUpperCase() === 'POSITIVE';
+        //         let actualLineNumber = section.range.start.line + sectionLineNumber;
+        //         let formattedRange = section.formattedRange?.filter(r => r.formattedPosition.line === actualLineNumber);
+                
+        //         if (isNegative) {
+        //             let collection = this.assertNegative(diagnosticModel, actualLineNumber, line, formattedRange);
+        //             diagnostics.push(...collection);
+        //         }
+        //         else if (isPositive) {
+        //             let collection = this.assertPositive(diagnosticModel, actualLineNumber, line, formattedRange);
+        //             diagnostics.push(...collection);
+        //         }
+        //     }
+        // });
 
         // get
         return diagnostics;
     }
-
+    private assertRules(section: DocumentData, diagnosticModel: DiagnosticModel){
+        const diagnostics: vscode.Diagnostic[] = [];
+        for (let sectionLineNumber = 0; sectionLineNumber < section.lines.length; sectionLineNumber++) {
+            const line = section.lines[sectionLineNumber];
+            if(line.match(commentRegex)){
+                continue;
+            }
+            const isNegative = diagnosticModel.type.toUpperCase() === 'NEGATIVE';
+            const isPositive = diagnosticModel.type.toUpperCase() === 'POSITIVE';
+            let actualLineNumber = section.range.start.line + sectionLineNumber;
+            let formattedRange = section.formattedRange?.filter(r => r.formattedPosition.line === actualLineNumber);
+            let collection: vscode.Diagnostic[];
+            if (isNegative) {
+                collection = this.assertNegative(diagnosticModel, actualLineNumber, line, formattedRange);
+                diagnostics.push(...collection);
+            }
+            else if (isPositive) {
+                collection = this.assertPositive(diagnosticModel, actualLineNumber, line, formattedRange);
+                diagnostics.push(...collection);
+            }
+        }
+        return diagnostics;
+    }
     private getDocumentData(document: vscode.TextDocument){
         const documentData = {
             lines: document.getText().split(/\r?\n|\n\r?/),
@@ -251,26 +235,29 @@ export class StaticCodeAnalyzer {
         const sections: DocumentData[] = await this.getDocumentSections(documentData, diagnosticModel.sections);
 
         // iterate
-        sections.forEach(section => {
-            for (let i = 0; i < section.lines.length; i++) {
-                const line = section.lines[i];
-                if(line.match(commentRegex)){
-                    continue;
-                }
-                const isNegative = diagnosticModel.type.toUpperCase() === 'NEGATIVE';
-                const isPositive = diagnosticModel.type.toUpperCase() === 'POSITIVE';
-                let formattedLineNumber = section.range.start.line + i;
-                let formattedRange = section.formattedRange?.filter(r => r.formattedPosition.line === formattedLineNumber);
-                if (isNegative) {
-                    let collection = this.assertNegative(diagnosticModel, formattedLineNumber, line, formattedRange);
-                    diagnostics.push(...collection);
-                }
-                else if (isPositive) {
-                    let collection = this.assertPositive(diagnosticModel, formattedLineNumber, line, formattedRange);
-                    diagnostics.push(...collection);
-                }
-            }
-        });
+        sections.forEach(section => diagnostics.push(...this.assertRules(section, diagnosticModel)));
+
+        // // iterate
+        // sections.forEach(section => {
+        //     for (let i = 0; i < section.lines.length; i++) {
+        //         const line = section.lines[i];
+        //         if(line.match(commentRegex)){
+        //             continue;
+        //         }
+        //         const isNegative = diagnosticModel.type.toUpperCase() === 'NEGATIVE';
+        //         const isPositive = diagnosticModel.type.toUpperCase() === 'POSITIVE';
+        //         let formattedLineNumber = section.range.start.line + i;
+        //         let formattedRange = section.formattedRange?.filter(r => r.formattedPosition.line === formattedLineNumber);
+        //         if (isNegative) {
+        //             let collection = this.assertNegative(diagnosticModel, formattedLineNumber, line, formattedRange);
+        //             diagnostics.push(...collection);
+        //         }
+        //         else if (isPositive) {
+        //             let collection = this.assertPositive(diagnosticModel, formattedLineNumber, line, formattedRange);
+        //             diagnostics.push(...collection);
+        //         }
+        //     }
+        // });
 
         // get
         return diagnostics;
