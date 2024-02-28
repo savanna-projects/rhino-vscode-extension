@@ -5,7 +5,7 @@ import { Logger } from '../logging/logger';
 import { ExtensionLogger } from '../logging/extensions-logger';
 import { Channels } from '../constants/channels';
 import { TmLanguageCreateModel } from '../models/tm-create-model';
-import { DocumentData, FormattedRangeMap } from '../models/code-analysis-models';
+import { DocumentData, RhinoRangeMap } from '../models/code-analysis-models';
 import { commentRegex, multilineRegex } from '../formatters/formatConstants';
 
 
@@ -121,14 +121,14 @@ export class StaticCodeAnalyzer {
                 lines.push(line);
             }
             endCharacterIndex = lines[formattedSectionLineNumber].length;
-            let formattedRange: FormattedRangeMap = {
+            let formattedRange: RhinoRangeMap = {
                 actualLine: sectionLine + section.range.start.line,
-                formattedPosition: new vscode.Position(formattedSectionLineNumber + section.range.start.line, endCharacterIndex)
+                rhinoPosition: new vscode.Position(formattedSectionLineNumber + section.range.start.line, endCharacterIndex)
             };
-            if(!section?.formattedRange){
-                section.formattedRange = [];
+            if(!section?.rhinoRange){
+                section.rhinoRange = [];
             }
-            section.formattedRange.push(formattedRange);
+            section.rhinoRange.push(formattedRange);
         }
         section.lines = lines;
         return section;
@@ -151,27 +151,6 @@ export class StaticCodeAnalyzer {
 
         // iterate
         sections.forEach(section => diagnostics.push(...this.assertRules(section, diagnosticModel)));
-        //     {
-        //     for (let sectionLineNumber = 0; sectionLineNumber < section.lines.length; sectionLineNumber++) {
-        //         const line = section.lines[sectionLineNumber];
-        //         if(line.match(commentRegex)){
-        //             continue;
-        //         }
-        //         const isNegative = diagnosticModel.type.toUpperCase() === 'NEGATIVE';
-        //         const isPositive = diagnosticModel.type.toUpperCase() === 'POSITIVE';
-        //         let actualLineNumber = section.range.start.line + sectionLineNumber;
-        //         let formattedRange = section.formattedRange?.filter(r => r.formattedPosition.line === actualLineNumber);
-                
-        //         if (isNegative) {
-        //             let collection = this.assertNegative(diagnosticModel, actualLineNumber, line, formattedRange);
-        //             diagnostics.push(...collection);
-        //         }
-        //         else if (isPositive) {
-        //             let collection = this.assertPositive(diagnosticModel, actualLineNumber, line, formattedRange);
-        //             diagnostics.push(...collection);
-        //         }
-        //     }
-        // });
 
         // get
         return diagnostics;
@@ -185,17 +164,17 @@ export class StaticCodeAnalyzer {
             }
             const isNegative = diagnosticModel.type.toUpperCase() === 'NEGATIVE';
             const isPositive = diagnosticModel.type.toUpperCase() === 'POSITIVE';
+
             let actualLineNumber = section.range.start.line + sectionLineNumber;
-            let formattedRange = section.formattedRange?.filter(r => r.formattedPosition.line === actualLineNumber);
-            let collection: vscode.Diagnostic[];
+            let formattedRange = section.rhinoRange?.filter(r => r.rhinoPosition.line === actualLineNumber);
+            let collection: vscode.Diagnostic[] = [];
             if (isNegative) {
                 collection = this.assertNegative(diagnosticModel, actualLineNumber, line, formattedRange);
-                diagnostics.push(...collection);
             }
             else if (isPositive) {
                 collection = this.assertPositive(diagnosticModel, actualLineNumber, line, formattedRange);
-                diagnostics.push(...collection);
             }
+            diagnostics.push(...collection);
         }
         return diagnostics;
     }
@@ -237,90 +216,65 @@ export class StaticCodeAnalyzer {
         // iterate
         sections.forEach(section => diagnostics.push(...this.assertRules(section, diagnosticModel)));
 
-        // // iterate
-        // sections.forEach(section => {
-        //     for (let i = 0; i < section.lines.length; i++) {
-        //         const line = section.lines[i];
-        //         if(line.match(commentRegex)){
-        //             continue;
-        //         }
-        //         const isNegative = diagnosticModel.type.toUpperCase() === 'NEGATIVE';
-        //         const isPositive = diagnosticModel.type.toUpperCase() === 'POSITIVE';
-        //         let formattedLineNumber = section.range.start.line + i;
-        //         let formattedRange = section.formattedRange?.filter(r => r.formattedPosition.line === formattedLineNumber);
-        //         if (isNegative) {
-        //             let collection = this.assertNegative(diagnosticModel, formattedLineNumber, line, formattedRange);
-        //             diagnostics.push(...collection);
-        //         }
-        //         else if (isPositive) {
-        //             let collection = this.assertPositive(diagnosticModel, formattedLineNumber, line, formattedRange);
-        //             diagnostics.push(...collection);
-        //         }
-        //     }
-        // });
-
         // get
         return diagnostics;
     }
 
-    private assertNegative(diagnosticModel: DiagnosticModel, lineNumber: number, line: string, formattedRange: FormattedRangeMap[] | undefined): vscode.Diagnostic[] {
+    private assertNegative(diagnosticModel: DiagnosticModel, lineNumber: number, line: string, rhinoRange: RhinoRangeMap[] | undefined): vscode.Diagnostic[] {
         // exit conditions
         
         if (line.match(diagnosticModel.expression)) {
             return [];
         }
         
-            let sortedRange = formattedRange && formattedRange.length > 1 ? formattedRange.sort((r1,r2) => r1.actualLine - r2.actualLine) : undefined;
+            let sortedRange = rhinoRange && rhinoRange.length > 0 ? rhinoRange.sort((r1,r2) => r1.actualLine - r2.actualLine) : undefined;
             let actualStartLine = sortedRange ? sortedRange[0].actualLine : lineNumber;
             let actualEndLine = sortedRange ? sortedRange[sortedRange.length - 1].actualLine : lineNumber;
-            let actualEndCharacter = sortedRange ? sortedRange[sortedRange.length - 1].formattedPosition.character : line.length;
+            let actualEndCharacter = sortedRange ? sortedRange[sortedRange.length - 1].rhinoPosition.character : line.length;
     
             // setup
             const start = new vscode.Position(actualStartLine, 0);
             const end = new vscode.Position(actualEndLine, actualEndCharacter);
             const range = new vscode.Range(start, end);
-            const diagnostic = this.populateDiagnosticModel(range, diagnosticModel);
+            const diagnostic = this.newDiagnostic(range, diagnosticModel);
         
 
             // get
             return [diagnostic];
     }
 
-    private assertPositive(diagnosticModel: DiagnosticModel, lineNumber: number, line: string, formattedRange: FormattedRangeMap[] | undefined) {
+    private assertPositive(diagnosticModel: DiagnosticModel, lineNumber: number, line: string, rhinoRange: RhinoRangeMap[] | undefined) {
         // setup
         const diagnostics: vscode.Diagnostic[] = [];
 
         // iterate
         let result;
         while (result = diagnosticModel.expression.exec(line)) {
+            let resultIndex = result.index;
+            let actualLine: number;
+            let actualStartCharacter: number;
+            let actualEndCharacter: number;
 
-            let start = new vscode.Position(lineNumber, result.index);
-            let end = new vscode.Position(lineNumber, result.index + result[0].length);
-            if(formattedRange && formattedRange.length > 0){
-                if(formattedRange.length === 1){
-                    let actualLine = formattedRange[0].actualLine;
-                    let actualStartCharacter = result.index;
-                    let actualEndCharacter = result.index + result[0].length;
+            if(rhinoRange && rhinoRange.length > 0){
+                let sortedRange = rhinoRange
+                    .sort((r1,r2) => r1.actualLine - r2.actualLine)
+                    .filter(i => i.rhinoPosition.character < resultIndex);
 
-                    start = new vscode.Position(actualLine, actualStartCharacter);
-                    end = new vscode.Position(actualLine, actualEndCharacter);    
-                }
-                let sortedRange = formattedRange.sort((r1,r2) => r1.actualLine - r2.actualLine);
-                for(let item of sortedRange){
-                    if(item.formattedPosition.character < result.index){
-                        let actualLine = item.actualLine;
-                        let actualStartCharacter = result.index - item.formattedPosition.character;
-                        let actualEndCharacter = actualStartCharacter + result[0].length;
-
-                        start = new vscode.Position(actualLine, actualStartCharacter);
-                        end = new vscode.Position(actualLine, actualEndCharacter);
-                        break;
-                    }
-                }
+                let item = sortedRange.pop();
+                
+                actualLine = item ? item.actualLine : rhinoRange[0].actualLine;
+                actualStartCharacter = item ? resultIndex - item.rhinoPosition.character : resultIndex;
             }
+            else{
+                actualLine = lineNumber;
+                actualStartCharacter = resultIndex;
+            }
+            actualEndCharacter = actualStartCharacter + result[0].length;
+            let start = new vscode.Position(actualLine, actualStartCharacter);
+            let end = new vscode.Position(actualLine, actualEndCharacter);
 
             const range = new vscode.Range(start, end);
-            const diagnostic = this.populateDiagnosticModel(range, diagnosticModel);
+            const diagnostic = this.newDiagnostic(range, diagnosticModel);
 
             diagnostics.push(diagnostic);
         }
@@ -330,7 +284,7 @@ export class StaticCodeAnalyzer {
     }
 
 
-    private populateDiagnosticModel(range: vscode.Range, diagnosticModel: DiagnosticModel) {
+    private newDiagnostic(range: vscode.Range, diagnosticModel: DiagnosticModel) {
         const diagnostic = new vscode.Diagnostic(range, diagnosticModel.description, diagnosticModel.severity);
 
         if (diagnosticModel?.code) {
