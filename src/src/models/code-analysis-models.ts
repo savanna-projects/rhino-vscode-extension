@@ -3,10 +3,9 @@ import * as vscode from 'vscode';
 export type DocumentData = {
     lines: string[];
     range: vscode.Range;
-    formattedRange?: FormattedRangeMap[]
+    rhinoRange?: RhinoRangeMap[]
 };
-
-export type FormattedRangeMap = {
-    formattedPosition: vscode.Position;
+export type RhinoRangeMap = {
+    rhinoPosition: vscode.Position;
     actualLine: number;
 };
