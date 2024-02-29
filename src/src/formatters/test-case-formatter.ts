@@ -5,6 +5,7 @@
  */
 import * as vscode from 'vscode';
 import { Formatter } from "./formatter";
+import { commentRegex, multilineRegex } from './formatConstants';
 
 export class TestCaseFormatter extends Formatter {
     // members:
@@ -193,9 +194,8 @@ export class TestCaseFormatter extends Formatter {
 
     private getActions(testCase: string[], annotations: string[]): any {
         // setup
-        const commentRegex = /^((\W+)?\d+\.?)?(\s+)?\/\*{2}/g;
+        // const commentRegex = /^((\W+)?\d+\.?)?(\s+)?\/\*{2}/g;
         const indexRegex = /^((\s+)?(\d+(\.+)?))+(\s+)?/g;
-        const multilineRegex = /\s`$/g;
         let map: any[] = [];
 
         // build
@@ -209,11 +209,11 @@ export class TestCaseFormatter extends Formatter {
         // iterate
         let index = 1;
         for (let i = 1; i < actions.length; i++) {
-            const action = actions[i];
+            let action = actions[i];
 
-            let isComment = action.match(commentRegex) !== null;
+            let comment = action.match(commentRegex)?.[0];
+            // let isComment = comment !== null;
             let isEmpty = action === '';
-
             // multiline
             let previousLine = actions[(i - 1 < 0 ? 0 : i - 1)];
             let isMatch = action.trim().match(multilineRegex) !== null;
@@ -223,9 +223,14 @@ export class TestCaseFormatter extends Formatter {
             if (isEmpty) {
                 continue;
             }
-            if (isComment) {
-                map.push({ type: "comment", action: action, index: i });
-                continue;
+            if (comment) {
+                map.push({ type: "comment", action: comment, index: i });
+                if(comment === action){
+                    continue;
+                }
+                action = action.replace(comment,"");
+                
+                
             }
             if (isMultiline) {
                 map.push({ type: "multiline", action: action, index: i });
@@ -250,14 +255,14 @@ export class TestCaseFormatter extends Formatter {
 
     private getActionsCount(actions: any): number {
         // setup
-        const commentRegex = /^((\W+)?\d+\.?)?(\s+)?\/\*{2}/g;
-        const multilineRegex = /\s`$/g;
+        // const commentRegex = /^((\W+)?\d+\.?)?(\s+)?\/\*{2}/g;
         let counter = 0;
 
         // count
         for (let i = 1; i < actions.length; i++) {
             const action = actions[i];
-            let isComment = action.match(commentRegex) !== null;
+            let comment:string = action.match(commentRegex)?.[0];
+            let isComment = comment === action;
             let isEmpty = action === '';
 
             // multiline

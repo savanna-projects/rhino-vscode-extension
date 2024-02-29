@@ -46,10 +46,10 @@
     },
     {
         "type": "positive",
-        "description": "Unexpected character in arguments section.",
-        "expression": "(?<={{\\$)(?! +(`|--)|\\w).",
+        "description": "Unexpected Character after '{{$' token: Missing argument name ' --%ArgumentName%' or macro name '%MacroName'.",
+        "expression": "(?<={{\\$)(?![ \\t]+(`|--)|\\w).",
         "id": "RHG0003",
-        "multiline": true,
+        "multiline": false,
         "sections": [
             "test-actions",
             "test-expected-results"
