@@ -12,6 +12,7 @@ import { Settings } from '../constants/settings';
 import { Utilities } from '../extensions/utilities';
 import { Logger } from '../logging/logger';
 import { ProviderBase } from './provider-base';
+import { fullLineCommentRegex } from '../formatters/formatConstants';
 
 export class RhinoDefinitionProvider extends ProviderBase {
     // members
@@ -44,7 +45,16 @@ export class RhinoDefinitionProvider extends ProviderBase {
                 const editor = vscode.window.activeTextEditor;
                 const selection = editor?.selection;
                 const text = editor?.document.lineAt(parseInt(`${selection?.active.line}`)).text;
-                const line = plugins.find(i => text?.match(i.id));
+
+                // don't check commented line
+                if(text?.match(fullLineCommentRegex)){
+                    return;
+                }
+
+                // get the lengthiest match for the text
+                const line = plugins.filter(i => text?.match(i.id)).reduce((prev, current) => {
+                    return +current.id.length > +prev.id.length ? current : prev;
+                });
 
                 // TODO: add notification to user
                 if (line === undefined || line === null) {
@@ -66,7 +76,7 @@ export class RhinoDefinitionProvider extends ProviderBase {
       │
       │ A collection of utility methods
       └────────────────────────────────────────────────────────*/
-    private getPlugins() {
+    private getPlugins(): {id:string;file:string}[] {
         // setup
         let workspace = vscode.workspace.workspaceFolders?.map(folder => folder.uri.path)[0];
         workspace = workspace === undefined ? '' : workspace;
