@@ -14,6 +14,7 @@ import { Logger } from '../logging/logger';
 import { TmLanguageCreateModel } from '../models/tm-create-model';
 import { CommandBase } from "./command-base";
 import { RhinoClient } from '../clients/rhino-client';
+import { CreateTmLanguageCommand } from './create-tm-language';
 
 export class RegisterModelsCommand extends CommandBase {
     // members: state
@@ -61,17 +62,17 @@ export class RegisterModelsCommand extends CommandBase {
         vscode.window.setStatusBarMessage('$(sync~spin) Registering Model(s)...');
 
         // setup
+        await this.saveAllDocuments();
         const requestBody = this.getModelsFromFiles();
 
         // invoke
         await this.registerModels(this.client, requestBody);
 
+        // reload extension
+        await CreateTmLanguageCommand.resetTmLanguage(this.context);
+
         // user interface
         vscode.window.setStatusBarMessage('$(testing-passed-icon) Models Registered');
-
-        // reload extension
-        await this.saveAllDocuments();
-        await vscode.commands.executeCommand('workbench.action.reloadWindow');
     }
 
     private getModelsFromFiles(): any[] {
