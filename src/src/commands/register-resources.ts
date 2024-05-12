@@ -110,6 +110,8 @@ export class RegisterResourcesCommand extends CommandBase {
         client: RhinoClient,
         requestBody: ResourceModel[]): Promise<void> {
 
+        await command.saveAllDocuments();
+
         // invoke
         await client.resources.newResources(requestBody);
 
@@ -118,9 +120,5 @@ export class RegisterResourcesCommand extends CommandBase {
 
         // user interface
         vscode.window.setStatusBarMessage(`$(testing-passed-icon) Total of ${total} Resource(s) Registered`);
-
-        // reload extension
-        command.saveAllDocuments();
-        await vscode.commands.executeCommand('workbench.action.reloadWindow');
     }
 }

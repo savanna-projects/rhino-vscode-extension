@@ -42,8 +42,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 }
 
-export function deactivate(context: vscode.ExtensionContext) {
-	if (context?.subscriptions) {
-		context.subscriptions.splice(0, context.subscriptions.length);
-	}
+export function deactivate() {
+	// if (context?.subscriptions) {
+	// 	context.subscriptions.splice(0, context.subscriptions.length);
+	// }
 }
+
