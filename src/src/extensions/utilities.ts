@@ -472,10 +472,12 @@ export class Utilities {
         let serviceHooks = !this.assertUndefinedOrNull(manifest.serviceHooks)
             ? manifest.serviceHooks
             : [];
+        let filter = manifest?.filter;
 
         // get
         return {
             name: "VS Code - Standalone Test Run",
+            filter: filter,
             testsRepository: [],
             attempts: attempts,
             integration: integration,
