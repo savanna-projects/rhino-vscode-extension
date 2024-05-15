@@ -310,7 +310,7 @@ export class ReportManager {
         return result;
     }
 
-    private static resolveEnvironmentElement(name: string, content: string): string {``
+    private static resolveEnvironmentElement(name: string, content: string): string {
         // local
         const getHtmlTag = (content: string) => content.includes('xmlns') ? '<xmp>' : '<pre>';
         const newCollapsibleElement = (name: string, htmlContent: string) => {
@@ -326,7 +326,7 @@ export class ReportManager {
         const base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
         // decode base 64
-        let encodeEnvironment = Utilities.getManifest()?.engineConfiguration?.encodeEnvironment == true;
+        let encodeEnvironment = Utilities.getManifest()?.engineConfiguration?.encodeEnvironment === true;
         content = encodeEnvironment && base64regex.test(content) ? decode64(content) : content;
 
         // setup
