@@ -5,6 +5,10 @@ import { Logger } from '../logging/logger';
 import { ExtensionLogger } from '../logging/extensions-logger';
 import { Channels } from '../constants/channels';
 import { TmLanguageCreateModel } from '../models/tm-create-model';
+import { DocumentData, RhinoRangeMap } from '../models/code-analysis-models';
+import { commentRegex, multilineRegex } from '../formatters/formatConstants';
+
+
 
 export class StaticCodeAnalyzer {
     private readonly _createModel: TmLanguageCreateModel | Promise<TmLanguageCreateModel>;
@@ -12,7 +16,7 @@ export class StaticCodeAnalyzer {
     private readonly _diagnosticCollection: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection('rhino');
     private readonly _diagnosticModels: DiagnosticModel[];
     private readonly _logger: Logger;
-
+    private fileUris: vscode.Uri[] = [];
     /**
      * Summary. Creates a new instance of VS Static Code Analysis for Rhino API.
      * 
@@ -26,10 +30,20 @@ export class StaticCodeAnalyzer {
     }
 
     public register() {
+        this.initialAnalyzer();
         vscode.workspace.onDidOpenTextDocument(document => this.analyzer(document));
         vscode.workspace.onDidChangeTextDocument(e => this.analyzer(e.document));
     }
 
+    public async initialAnalyzer(){
+        
+        this.fileUris = await vscode.workspace.findFiles('**/*.rhino');
+        this.fileUris.forEach(async (uri) => {
+            
+            let document = await vscode.workspace.openTextDocument(uri);
+            this.analyzer(document);
+        });
+    }
     public async analyzer(doc: vscode.TextDocument) {
         // exit conditions
         const isRhino = doc.fileName.endsWith('.rhino');
@@ -60,7 +74,7 @@ export class StaticCodeAnalyzer {
 
         // build
         for (const rule of rules) {
-            const diagnostic = this.newDiagnostics(rule);
+            const diagnostic = this.newDiagnostics(rule, doc);
             diagnostics.push(...(await diagnostic));
         }
 
@@ -69,103 +83,198 @@ export class StaticCodeAnalyzer {
         this._context.subscriptions.push(this._diagnosticCollection);
     }
 
-    private async newDiagnostics(diagnosticModel: DiagnosticModel): Promise<vscode.Diagnostic[]> {
+    private async newDiagnostics(diagnosticModel: DiagnosticModel, document: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
         const diagnostics = diagnosticModel.multiline
-            ? await this.resolveMultilineRule(diagnosticModel)
-            : this.resolveSinglelineRule(diagnosticModel);
+            ? await this.resolveMultilineRule(diagnosticModel, document)
+            : await this.resolveSinglelineRule(diagnosticModel, document);
 
         // get
         return diagnostics;
     }
 
-    // TODO: figure how to get range
-    private resolveSinglelineRule(diagnosticModel: DiagnosticModel): vscode.Diagnostic[] {
-        console.log(diagnosticModel);
-        throw new Error();
-    }
+    private mergeRhinoMultilines(section: DocumentData): DocumentData{
+        let lines:string[] = [];
 
-    // TODO: optimize complexity
-    private async resolveMultilineRule(diagnosticModel: DiagnosticModel): Promise<vscode.Diagnostic[]> {
+        for(let sectionLine = 0; sectionLine < section.lines.length; sectionLine++){
+            let line = section.lines[sectionLine];
+            
+            let previousLineNumber = sectionLine - 1 < 0 ? 0 : sectionLine - 1;
+
+            let previousLine = section.lines[previousLineNumber];
+            let isMatch = line.trim().match(multilineRegex) !== null;
+
+            let isPreviousMatch = previousLine.trim().match(multilineRegex) !== null;
+            let isMultiline = isMatch && isPreviousMatch || (!isMatch && isPreviousMatch);
+
+            let formattedSectionLineNumber: number;
+            let endCharacterIndex: number;
+            if(isMultiline){
+                formattedSectionLineNumber = lines.length - 1;
+                let multiLine = lines[formattedSectionLineNumber];
+
+                line = " " + line.replace(multilineRegex, "");
+                multiLine = multiLine.replace(multilineRegex, "") + line;
+                lines[formattedSectionLineNumber] = multiLine;
+            }
+            else{
+                formattedSectionLineNumber = lines.length;
+                lines.push(line);
+            }
+            endCharacterIndex = lines[formattedSectionLineNumber].length;
+            let formattedRange: RhinoRangeMap = {
+                actualLine: sectionLine + section.range.start.line,
+                rhinoPosition: new vscode.Position(formattedSectionLineNumber + section.range.start.line, endCharacterIndex)
+            };
+            if(!section?.rhinoRange){
+                section.rhinoRange = [];
+            }
+            section.rhinoRange.push(formattedRange);
+        }
+        section.lines = lines;
+        return section;
+    }
+    // TODO: figure how to get range
+    private async resolveSinglelineRule(diagnosticModel: DiagnosticModel, document: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
         // exit conditions
-        if (vscode.window.activeTextEditor?.document === undefined) {
+        if (!document) {
             return [];
         }
 
         // setup
-        const annotations = (await this._createModel).annotations;
         const diagnostics: vscode.Diagnostic[] = [];
-        const document = vscode.window.activeTextEditor.document;
-        const documentData = {
-            lines: document.getText().split(/\r?\n|\n\r?/),
-            range: this.getDocumentRange(vscode.window.activeTextEditor)
-        };
-        const sections = diagnosticModel.sections === undefined
-            ? [documentData]
-            : diagnosticModel.sections.map(i => this.getSection(documentData.lines, i, annotations));
+        const documentData = this.getDocumentData(document);
+        
+        const sections: DocumentData[] = await this.getDocumentSections(documentData, diagnosticModel.sections);
+        
+        // merge Rhino multilines
+        sections.forEach(section => section = this.mergeRhinoMultilines(section));
 
         // iterate
-        sections.forEach(section => {
-            for (let i = 0; i < section.lines.length; i++) {
-                const line = section.lines[i];
-                const isNegative = diagnosticModel.type.toUpperCase() === 'NEGATIVE';
-                const isPositive = diagnosticModel.type.toUpperCase() === 'POSITIVE';
+        sections.forEach(section => diagnostics.push(...this.assertRules(section, diagnosticModel)));
 
-                if (isNegative) {
-                    let collection = this.assertNegative(diagnosticModel, section.range.start.line + i, line);
-                    diagnostics.push(...collection);
-                }
-                else if (isPositive) {
-                    let collection = this.assertPositive(diagnosticModel, section.range.start.line + i, line);
-                    diagnostics.push(...collection);
-                }
+        // get
+        return diagnostics;
+    }
+    private assertRules(section: DocumentData, diagnosticModel: DiagnosticModel){
+        const diagnostics: vscode.Diagnostic[] = [];
+        for (let sectionLineNumber = 0; sectionLineNumber < section.lines.length; sectionLineNumber++) {
+            const line = section.lines[sectionLineNumber];
+            if(line.match(commentRegex)){
+                continue;
             }
-        });
+            const isNegative = diagnosticModel.type.toUpperCase() === 'NEGATIVE';
+            const isPositive = diagnosticModel.type.toUpperCase() === 'POSITIVE';
+
+            let actualLineNumber = section.range.start.line + sectionLineNumber;
+            let formattedRange = section.rhinoRange?.filter(r => r.rhinoPosition.line === actualLineNumber);
+            let collection: vscode.Diagnostic[] = [];
+            if (isNegative) {
+                collection = this.assertNegative(diagnosticModel, actualLineNumber, line, formattedRange);
+            }
+            else if (isPositive) {
+                collection = this.assertPositive(diagnosticModel, actualLineNumber, line, formattedRange);
+            }
+            diagnostics.push(...collection);
+        }
+        return diagnostics;
+    }
+    private getDocumentData(document: vscode.TextDocument){
+        const documentData = {
+            lines: document.getText().split(/\r?\n|\n\r?/),
+            range: this.getDocumentRange(document),
+            formattedRange: []
+        };
+
+        return documentData;
+    }
+
+    private async getDocumentSections(documentData: DocumentData, sections: string[] | undefined): Promise<DocumentData[]>{
+        const annotations = (await this._createModel).annotations;
+        const documentSections: DocumentData[] = !sections
+            ? [documentData]
+            // flatMap to remove 'undefined' results
+            : sections.flatMap((section) => {
+                let doc = this.getSection(documentData.lines, section, annotations);
+                return doc ? doc : [];
+            });
+
+        return documentSections;
+    }
+    // TODO: optimize complexity
+    private async resolveMultilineRule(diagnosticModel: DiagnosticModel, document: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
+        // exit conditions
+        if (!document) {
+            return [];
+        }
+
+        // setup
+        const diagnostics: vscode.Diagnostic[] = [];
+        const documentData = this.getDocumentData(document);
+        
+        const sections: DocumentData[] = await this.getDocumentSections(documentData, diagnosticModel.sections);
+
+        // iterate
+        sections.forEach(section => diagnostics.push(...this.assertRules(section, diagnosticModel)));
 
         // get
         return diagnostics;
     }
 
-    private assertNegative(diagnosticModel: DiagnosticModel, lineNumber: number, line: string): vscode.Diagnostic[] {
+    private assertNegative(diagnosticModel: DiagnosticModel, lineNumber: number, line: string, rhinoRange: RhinoRangeMap[] | undefined): vscode.Diagnostic[] {
         // exit conditions
+        
         if (line.match(diagnosticModel.expression)) {
             return [];
         }
+        
+            let sortedRange = rhinoRange && rhinoRange.length > 0 ? rhinoRange.sort((r1,r2) => r1.actualLine - r2.actualLine) : undefined;
+            let actualStartLine = sortedRange ? sortedRange[0].actualLine : lineNumber;
+            let actualEndLine = sortedRange ? sortedRange[sortedRange.length - 1].actualLine : lineNumber;
+            let actualEndCharacter = sortedRange ? sortedRange[sortedRange.length - 1].rhinoPosition.character : line.length;
+    
+            // setup
+            const start = new vscode.Position(actualStartLine, 0);
+            const end = new vscode.Position(actualEndLine, actualEndCharacter);
+            const range = new vscode.Range(start, end);
+            const diagnostic = this.newDiagnostic(range, diagnosticModel);
+        
 
-        // setup
-        const start = new vscode.Position(lineNumber, 0);
-        const end = new vscode.Position(lineNumber, line.length);
-        const range = new vscode.Range(start, end);
-        const diagnostic = new vscode.Diagnostic(range, diagnosticModel.description, diagnosticModel.severity);
-
-        if(diagnosticModel.code!== null && diagnosticModel.code!==undefined){
-            diagnostic.code = {
-                target: vscode.Uri.parse(diagnosticModel.code.target),
-                value: diagnosticModel.code.value
-            };
-        }
-
-        // get
-        return [diagnostic];
+            // get
+            return [diagnostic];
     }
 
-    private assertPositive(diagnosticModel: DiagnosticModel, lineNumber: number, line: string) {
+    private assertPositive(diagnosticModel: DiagnosticModel, lineNumber: number, line: string, rhinoRange: RhinoRangeMap[] | undefined) {
         // setup
         const diagnostics: vscode.Diagnostic[] = [];
 
         // iterate
         let result;
         while (result = diagnosticModel.expression.exec(line)) {
-            const start = new vscode.Position(lineNumber, result.index);
-            const end = new vscode.Position(lineNumber, result.index + result[0].length);
-            const range = new vscode.Range(start, end);
-            const diagnostic = new vscode.Diagnostic(range, diagnosticModel.description, diagnosticModel.severity);
+            let resultIndex = result.index;
+            let actualLine: number;
+            let actualStartCharacter: number;
+            let actualEndCharacter: number;
 
-            if(diagnosticModel.code!== null && diagnosticModel.code!==undefined){
-                diagnostic.code = {
-                    target: vscode.Uri.parse(diagnosticModel.code.target),
-                    value: diagnosticModel.code.value
-                };
+            if(rhinoRange && rhinoRange.length > 0){
+                let sortedRange = rhinoRange
+                    .sort((r1,r2) => r1.actualLine - r2.actualLine)
+                    .filter(i => i.rhinoPosition.character < resultIndex);
+
+                let item = sortedRange.pop();
+                
+                actualLine = item ? item.actualLine : rhinoRange[0].actualLine;
+                actualStartCharacter = item ? resultIndex - item.rhinoPosition.character : resultIndex;
             }
+            else{
+                actualLine = lineNumber;
+                actualStartCharacter = resultIndex;
+            }
+            actualEndCharacter = actualStartCharacter + result[0].length;
+            let start = new vscode.Position(actualLine, actualStartCharacter);
+            let end = new vscode.Position(actualLine, actualEndCharacter);
+
+            const range = new vscode.Range(start, end);
+            const diagnostic = this.newDiagnostic(range, diagnosticModel);
 
             diagnostics.push(diagnostic);
         }
@@ -174,10 +283,23 @@ export class StaticCodeAnalyzer {
         return diagnostics;
     }
 
-    private getDocumentRange(textEditor: vscode.TextEditor) {
+
+    private newDiagnostic(range: vscode.Range, diagnosticModel: DiagnosticModel) {
+        const diagnostic = new vscode.Diagnostic(range, diagnosticModel.description, diagnosticModel.severity);
+
+        if (diagnosticModel?.code) {
+            diagnostic.code = {
+                target: vscode.Uri.parse(diagnosticModel.code.target),
+                value: diagnosticModel.code.value
+            };
+        }
+        return diagnostic;
+    }
+
+    private getDocumentRange(document: vscode.TextDocument) {
         // setup
-        var firstLine = textEditor.document.lineAt(0);
-        var lastLine = textEditor.document.lineAt(textEditor.document.lineCount - 1);
+        var firstLine = document.lineAt(0);
+        var lastLine = document.lineAt(document.lineCount - 1);
 
         // get
         return new vscode.Range(firstLine.range.start, lastLine.range.end);
@@ -241,6 +363,7 @@ export class StaticCodeAnalyzer {
             model.description = entry.description;
             model.expression = new RegExp(entry.expression, 'g');
             model.id = entry.id;
+            model.multiline = entry?.multiline ? entry.multiline : false;
             model.sections = entry.sections;
             model.severity = StaticCodeAnalyzer.getSeverity(entry.severity);
             model.entities = entry.entities;
@@ -275,11 +398,11 @@ export class StaticCodeAnalyzer {
       │
       │ A collection of utility methods
       └────────────────────────────────────────────────────────*/
-    private getSection(document: string[], annotation: string, annotations: any[]): any {
+    private getSection(document: string[], annotation: string, annotations: any[]): DocumentData | undefined{
         try {
             // bad request
-            if (annotations === undefined || annotations === null || annotations.length === 0) {
-                return [];
+            if (!annotations) {
+                return;
             }
 
             // setup
@@ -314,7 +437,7 @@ export class StaticCodeAnalyzer {
             };
         } catch (error) {
             console.error(error);
-            return [];
+            return;
         }
     }
 }

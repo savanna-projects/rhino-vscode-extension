@@ -14,6 +14,7 @@ import { Utilities } from '../extensions/utilities';
 import { Logger } from '../logging/logger';
 import { TmLanguageCreateModel } from '../models/tm-create-model';
 import { CommandBase } from "./command-base";
+import { CreateTmLanguageCommand } from './create-tm-language';
 
 export class RegisterPluginsCommand extends CommandBase {
     // members: static
@@ -79,7 +80,7 @@ export class RegisterPluginsCommand extends CommandBase {
             .join('\n');
 
         // invoke
-        await RegisterPluginsCommand.registerPlugins(
+        await this.registerPlugins(
             this,
             this.client,
             requestBody);
@@ -98,20 +99,20 @@ export class RegisterPluginsCommand extends CommandBase {
         return '';
     }
 
-    private static async registerPlugins(
+    private async registerPlugins(
         command: CommandBase,
         client: RhinoClient,
         requestBody: string) {
 
         // setup
+        await command.saveAllDocuments();
         const response = await client.plugins.addPlugins(requestBody);
-        const total = response?.toString().split('>>>').length;
+        
+        // reload extension
+        await CreateTmLanguageCommand.resetTmLanguage(this.context);
 
         // user interface
+        const total = response?.toString().split('>>>').length;
         vscode.window.setStatusBarMessage(`$(testing-passed-icon) Total of ${total} Plugin(s) Registered`);
-
-        // reload extension
-        command.saveAllDocuments();
-        await vscode.commands.executeCommand('workbench.action.reloadWindow');
     }
 }

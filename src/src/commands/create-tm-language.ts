@@ -32,6 +32,12 @@ export class CreateTmLanguageCommand extends CommandBase {
         this.command = 'Create-TmLanguage';
     }
 
+    public static async resetTmLanguage(context: vscode.ExtensionContext){
+        const createModel = await Utilities.getTmCreateObject();
+        await new CreateTmLanguageCommand(context, createModel).invokeCommand();
+        await vscode.commands.executeCommand('workbench.action.reloadWindow');
+    }
+    
     /*┌─[ REGISTER ]───────────────────────────────────────────
       │
       │ A command registration pipeline to expose the command
