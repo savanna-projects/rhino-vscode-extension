@@ -147,7 +147,7 @@ export class RhinoDefinitionProvider extends ProviderBase {
             return document[onLine]
                 .replaceAll('[test-id]', '')
                 .trim()
-                .replace(/([a-z])([A-Z])/g, `$1 $2`)
+                .replace(/([a-z]|[0-9])([A-Z])/g, `$1 $2`)
                 .toLowerCase();
         } catch (error: any) {
             this._logger?.error(error.message, error);
