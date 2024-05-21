@@ -51,8 +51,15 @@ export class RhinoDefinitionProvider extends ProviderBase {
                     return;
                 }
 
+                // filter matching by plugin id
+                let filtered = plugins.filter(i => text?.match(i.id));
+                if (filtered === undefined || filtered.length === 0) {
+                    // array does not exist or is empty
+                    return;
+                }
+
                 // get the lengthiest match for the text
-                const line = plugins.filter(i => text?.match(i.id)).reduce((prev, current) => {
+                const line = filtered.reduce((prev, current) => {
                     return +current.id.length > +prev.id.length ? current : prev;
                 });
 
