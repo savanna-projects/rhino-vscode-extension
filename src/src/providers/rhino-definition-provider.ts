@@ -51,8 +51,15 @@ export class RhinoDefinitionProvider extends ProviderBase {
                     return;
                 }
 
+                // filter matching by plugin id
+                let filtered = plugins.filter(i => text?.match(i.id));
+                if (filtered === undefined || filtered.length === 0) {
+                    // array does not exist or is empty
+                    return;
+                }
+
                 // get the lengthiest match for the text
-                const line = plugins.filter(i => text?.match(i.id)).reduce((prev, current) => {
+                const line = filtered.reduce((prev, current) => {
                     return +current.id.length > +prev.id.length ? current : prev;
                 });
 
@@ -147,7 +154,7 @@ export class RhinoDefinitionProvider extends ProviderBase {
             return document[onLine]
                 .replaceAll('[test-id]', '')
                 .trim()
-                .replace(/([a-z])([A-Z])/g, `$1 $2`)
+                .replace(/([a-z]|[0-9])([A-Z])/g, `$1 $2`)
                 .toLowerCase();
         } catch (error: any) {
             this._logger?.error(error.message, error);
