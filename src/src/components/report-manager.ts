@@ -411,12 +411,12 @@ export class ReportManager {
     private static resolveAssertionsHtml(assertion: any): string {
         // setup
         const assertionColor = assertion?.actual ? '#000000' : '#e74c3c';
-        const reason = this.getActualValue(assertion.reasonPhrase);
-
+        const actual = this.getActualValue(assertion.reasonPhrase);
+        const expected = this.getExpectedValue(assertion.reasonPhrase);
         // get
         return assertion?.actual
             ? `<pre style="color: ${assertionColor}">${assertion.expectedResult}</pre>`
-            : `<pre style="color: ${assertionColor}">${assertion.expectedResult}<br />Actual: ${reason}</pre>`;
+            : `<pre style="color: ${assertionColor}">${assertion.expectedResult}<br />Expected: ${expected} <br />Actual: ${actual}</pre>`;
     }
 
     private static getActualValue(reasonPhrase: any): string {
@@ -430,6 +430,22 @@ export class ReportManager {
 
         // extract
         const actual = reasonPhrase.match(new RegExp("(?<=Actual: ).*(?=)"));
+
+        // get
+        return actual ? actual[0] : notFound;
+    }
+
+    private static getExpectedValue(reasonPhrase: any): string {
+        // setup
+        const notFound = 'Not Found';
+
+        // bad request
+        if (typeof reasonPhrase !== 'string') {
+            return notFound;
+        }
+
+        // extract
+        const actual = reasonPhrase.match(new RegExp("(?<=Expected: ).*(?=; Actual:)"));
 
         // get
         return actual ? actual[0] : notFound;
