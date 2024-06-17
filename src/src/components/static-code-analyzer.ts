@@ -7,7 +7,6 @@ import { Channels } from '../constants/channels';
 import { TmLanguageCreateModel } from '../models/tm-create-model';
 import { DiagnosticModel, DocumentData, RhinoRangeMap } from '../models/code-analysis-models';
 import { commentRegex, multilineRegex } from '../formatters/formatConstants';
-import { PluginUtilities } from '../extensions/pluginUtilities';
 
 
 const rhinoExtensions = ['.rhino', '.rmodel', '.rplugin'];
@@ -16,7 +15,6 @@ export class StaticCodeAnalyzer {
     private readonly _createModel: TmLanguageCreateModel | Promise<TmLanguageCreateModel>;
     private readonly _context: vscode.ExtensionContext;
     private readonly _diagnosticCollection: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection('rhino');
-    private readonly _pluginsData: Map<vscode.Uri, string>;
     private readonly _logger: Logger;
     private fileUris: vscode.Uri[] = [];
     
@@ -28,7 +26,6 @@ export class StaticCodeAnalyzer {
     constructor(context: vscode.ExtensionContext, createModel: TmLanguageCreateModel | Promise<TmLanguageCreateModel>) {
         this._createModel = createModel;
         this._context = context;
-        this._pluginsData = new Map();
         this._logger = new ExtensionLogger(Channels.extension, 'StaticCodeAnalyzer');
     }
 
@@ -69,11 +66,9 @@ export class StaticCodeAnalyzer {
             rules = rules.filter(i => i.entities?.includes("Model"));
         }
         else if (isPluginType) {
-            this.updatePluginData(doc);
             rules = rules.filter(i => i.entities?.includes("Plugin"));
         }
         else if (isTestType) {
-            this.updatePluginData(doc);
             rules = rules.filter(i => i.entities?.includes("Test"));
         }
 
@@ -86,11 +81,6 @@ export class StaticCodeAnalyzer {
         // register
         this._diagnosticCollection.set(doc.uri, diagnostics);
         this._context.subscriptions.push(this._diagnosticCollection);
-    }
-
-    private updatePluginData(doc: vscode.TextDocument) {
-        let docText = doc.getText().split(/\r?\n|\n\r?/);
-        this._pluginsData.set(doc.uri, PluginUtilities.getPluginId(docText));
     }
 
     private isRhinoFile(doc: vscode.TextDocument): boolean {
