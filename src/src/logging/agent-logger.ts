@@ -47,22 +47,23 @@ class AgentLogParser {
         const logNameToken = /(?<=Logger\s+:\s+)\w+/gi;
         const logLevelToken = /(?<=LogLevel\s+:\s+)\w+|(?<=Rhino.Agent\s)\w+(?=:\s+(\d+\s+:\s+(\d+\.?)+)?)/gi;
         const timestampToken = /(?<=TimeStamp\s+:\s+)(\d+(\W+)?)+(?=\n)|(?<=Rhino.Agent\s+\w+:\s+\d+\s+:\s+)(\d+\.?)+/gi;
-        const messageToken = /(?<=Message\s+:\s+).*|(?<=Rhino\.Agent\s+\w+:\s+\d+\s+:\s+((\d+\.?)+\s+-\s+)?).*/gis;
         const normalizeToken = /^((\d+\.?)+)\s+\W+\s+/gi;
         const applicationNameToken = /(?<=Application\s*?:\s+)\w+|(^Rhino.Agent(?=\s+))(?![\s\S]*Application)/gi;
 
         // setup
         try {
             const isErrorMessage = error !== null && error !== undefined && error.message !== '';
-            const logName: string = Utilities.getFirstMatch(logMessage.match(logNameToken)).trim();
-            const applicationName: string = Utilities.getFirstMatch(logMessage.match(applicationNameToken)).trim();
+            let logMatch = logMessage.match(logNameToken);
+            const logName: string = logMatch ? Utilities.getFirstMatch(logMatch).trim() : logEntry.logName;
+            let appMatch = logMessage.match(applicationNameToken);
+            const applicationName: string = appMatch ? Utilities.getFirstMatch(appMatch).trim() : logEntry.applicationName;
             const logLevel = logEntry?.logLevel 
                 ? logEntry.logLevel 
                 : Utilities.getFirstMatch(logMessage.match(logLevelToken)).trim();
             const timestamp = Utilities.getFirstMatch(logMessage.match(timestampToken)).trim();
             const message = isErrorMessage
                 ? error.message
-                : Utilities.getFirstMatch(logMessage.match(messageToken)).trim();
+                : this.getMessage(logEntry);
             return {
                 applicationName: applicationName,
                 logName: logName && logName !== 'LogLevel' ? logName : 'N/A',
@@ -82,5 +83,12 @@ class AgentLogParser {
                 error: error
             };
         }
+    }
+
+    private static getMessage(logEntry:LogEntry){
+        const messageToken = /(?<=Message\s+:\s+).*|(?<=Rhino\.Agent\s+\w+:\s+\d+\s+:\s+((\d+\.?)+\s+-\s+)?).*/gis;
+        let msgMatch = logEntry.message.match(messageToken);
+        return msgMatch ? Utilities.getFirstMatch(msgMatch).trim() : logEntry.message;
+        
     }
 }
