@@ -76,7 +76,8 @@ export class InvokeTestFolderCommand extends CommandBase {
             // agent log
             if (this._logConfiguration.agentLogConfiguration.enabled) {
                 listener.channel.show();
-                listener.start();
+                let numberOfLines = await listener.getLogLines();
+                listener.start(numberOfLines);
             }
 
             // invoke
