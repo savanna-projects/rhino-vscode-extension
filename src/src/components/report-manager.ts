@@ -414,14 +414,12 @@ export class ReportManager {
         const actual = this.getActualValue(assertion.reasonPhrase);
         const expected = this.getExpectedValue(assertion.reasonPhrase);
         // get
-        return assertion?.actual
-            ? `<pre style="color: ${assertionColor}">${assertion.expectedResult}</pre>`
-            : `<pre style="color: ${assertionColor}">${assertion.expectedResult}<br />Expected: ${expected} <br />Actual: ${actual}</pre>`;
+        return `<pre style="color: ${assertionColor}">${assertion.expectedResult}<br />Expected: ${expected} <br />Actual: ${actual}</pre>`;
     }
 
     private static getActualValue(reasonPhrase: any): string {
         // setup
-        const notFound = 'Not Found';
+        const notFound = '';
 
         // bad request
         if (typeof reasonPhrase !== 'string') {
@@ -437,7 +435,7 @@ export class ReportManager {
 
     private static getExpectedValue(reasonPhrase: any): string {
         // setup
-        const notFound = 'Not Found';
+        const notFound = '';
 
         // bad request
         if (typeof reasonPhrase !== 'string') {
