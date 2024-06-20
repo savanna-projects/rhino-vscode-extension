@@ -5,18 +5,19 @@ import { Logger } from '../logging/logger';
 import { ExtensionLogger } from '../logging/extensions-logger';
 import { Channels } from '../constants/channels';
 import { TmLanguageCreateModel } from '../models/tm-create-model';
-import { DocumentData, RhinoRangeMap } from '../models/code-analysis-models';
+import { DiagnosticModel, DocumentData, RhinoRangeMap } from '../models/code-analysis-models';
 import { commentRegex, multilineRegex } from '../formatters/formatConstants';
 
 
+const rhinoExtensions = ['.rhino', '.rmodel', '.rplugin'];
 
 export class StaticCodeAnalyzer {
     private readonly _createModel: TmLanguageCreateModel | Promise<TmLanguageCreateModel>;
     private readonly _context: vscode.ExtensionContext;
     private readonly _diagnosticCollection: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection('rhino');
-    private readonly _diagnosticModels: DiagnosticModel[];
     private readonly _logger: Logger;
     private fileUris: vscode.Uri[] = [];
+    
     /**
      * Summary. Creates a new instance of VS Static Code Analysis for Rhino API.
      * 
@@ -25,7 +26,6 @@ export class StaticCodeAnalyzer {
     constructor(context: vscode.ExtensionContext, createModel: TmLanguageCreateModel | Promise<TmLanguageCreateModel>) {
         this._createModel = createModel;
         this._context = context;
-        this._diagnosticModels = [];
         this._logger = new ExtensionLogger(Channels.extension, 'StaticCodeAnalyzer');
     }
 
@@ -37,7 +37,7 @@ export class StaticCodeAnalyzer {
 
     public async initialAnalyzer(){
         
-        this.fileUris = await vscode.workspace.findFiles('**/*.rhino');
+        this.fileUris = await vscode.workspace.findFiles(`**/*{${rhinoExtensions.join(',')}}`);
         this.fileUris.forEach(async (uri) => {
             
             let document = await vscode.workspace.openTextDocument(uri);
@@ -46,9 +46,9 @@ export class StaticCodeAnalyzer {
     }
     public async analyzer(doc: vscode.TextDocument) {
         // exit conditions
-        const isRhino = doc.fileName.endsWith('.rhino');
-        const isRhinoModel = doc.fileName.endsWith('.rmodel');
-        if (!isRhino && !isRhinoModel) {
+        let isRhinoFile = this.isRhinoFile(doc);
+        
+        if (!isRhinoFile) {
             return;
         }
 
@@ -57,9 +57,9 @@ export class StaticCodeAnalyzer {
         const diagnostics: vscode.Diagnostic[] = [];
 
         // identify file type
-        const isModelType = isRhinoModel;
-        const isTestType = doc.fileName.match(/(\\|\/)+src(\\|\/)+Tests/) !== null || doc.fileName.endsWith(".rhino");
-        const isPluginType = doc.fileName.match(/(\\|\/)+src(\\|\/)+Plugins/) !== null || doc.fileName.endsWith(".rplugin");
+        const isModelType = this.isModelFile(doc);
+        const isTestType = this.isTestFile(doc);
+        const isPluginType = this.isPluginFile(doc);
 
         // filter
         if (isModelType) {
@@ -81,6 +81,26 @@ export class StaticCodeAnalyzer {
         // register
         this._diagnosticCollection.set(doc.uri, diagnostics);
         this._context.subscriptions.push(this._diagnosticCollection);
+    }
+
+    private isRhinoFile(doc: vscode.TextDocument): boolean {
+        let regexString = `(?:\\${rhinoExtensions.join('|\\')})$`;
+        let isRhinoFileRegex = new RegExp(regexString);
+
+        let isRhinoFile = isRhinoFileRegex.test(doc.fileName);
+        return isRhinoFile;
+    }
+
+    private isPluginFile(doc: vscode.TextDocument): boolean {
+        return doc.fileName.match(/(\\|\/)+src(\\|\/)+Plugins/) !== null || doc.fileName.endsWith(".rplugin");
+    }
+
+    private isModelFile(doc: vscode.TextDocument): boolean {
+        return doc.fileName.match(/(\\|\/)+src(\\|\/)+Models/) !== null || doc.fileName.endsWith('.rmodel');
+    }
+
+    private isTestFile(doc: vscode.TextDocument): boolean {
+        return doc.fileName.match(/(\\|\/)+src(\\|\/)+Tests/) !== null || doc.fileName.endsWith(".rhino");
     }
 
     private async newDiagnostics(diagnosticModel: DiagnosticModel, document: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
@@ -442,31 +462,4 @@ export class StaticCodeAnalyzer {
     }
 }
 
-export class DiagnosticModel {
-    public type: string;
-    public code?: Code;
-    public description: string;
-    public expression: RegExp;
-    public id: string;
-    public multiline: boolean;
-    public sections?: string[];
-    public severity: vscode.DiagnosticSeverity;
-    public source?: string;
-    public tags?: vscode.DiagnosticTag;
-    public entities: ("Plugin" | "Test" | "Model")[];
 
-    constructor() {
-        this.type = 'positive';
-        this.description = '';
-        this.expression = new RegExp(/.*/);
-        this.id = '';
-        this.multiline = true;
-        this.severity = vscode.DiagnosticSeverity.Hint;
-        this.entities = [];
-    }
-}
-
-class Code {
-    public target: string = '';
-    public value: string = '';
-}
