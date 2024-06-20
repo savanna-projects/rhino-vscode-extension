@@ -6,6 +6,7 @@ import { AgentLogger } from '../logging/agent-logger';
 import { ExtensionLogger } from '../logging/extensions-logger';
 import { Logger } from '../logging/logger';
 import { LogEvents } from '../logging/logger-base';
+import { newlineRegex } from '../formatters/formatConstants';
 
 export class AgentLogListener {
     // members: static
@@ -16,9 +17,17 @@ export class AgentLogListener {
     private readonly _client: RhinoClient;
     private readonly _logConfiguration: LogConfiguration;
     private _isRunning: boolean = false;
+    private _isLastRun: boolean = false;
+
 
     // properties
     public readonly channel: vscode.OutputChannel;
+
+    private readonly rhinoPattern = /(Application|Logger|LogLevel|TimeStamp|MachineName|Message)(\s+)?:\s+.*/gi;
+
+    private readonly gravityPattern = /(Rhino\.Agent\s+\w+:)(\s+\d+\s+:)(\s+(\d+\.?)+)?.*(?<=executed(\n?))/gi;
+
+    private readonly exceptionPattern = /(Rhino\.Agent\s+\w+:\s+\d+\s+:\s+)(.*Exception.*)|(\s{3}at\s+).*|(\s{3})?(?:---)\s+End of.+(?:---)|(\s{2})(\(.*)|(?:\s--->\s)?(\w+\.).*Exception:.*/gi;
 
     constructor(channel: vscode.OutputChannel, client: RhinoClient) {
         // setup: members
@@ -31,79 +40,115 @@ export class AgentLogListener {
 
     // TODO: clean
     // TODO: collect Rhino Exceptions
-    public async start(): Promise<void> {
+    public async start(previousLinesNum:number): Promise<void> {
         // constants
-        const rhinoPattern = /(Application|Logger|LogLevel|TimeStamp|MachineName|Message)(\s+)?:\s+.*/gi;
-        const gravityPattern = /(Rhino\.Agent\s+\w+:)(\s+\d+\s+:)(\s+(\d+\.?)+)?.*(?<=executed(\n?))/gi;
-        const exceptionPattern = /(Rhino\.Agent\s+\w+:\s+\d+\s+:\s+)(.*Exception.*)|(\s{3}at\s+).*|(\s{3})?(?:---)\s+End of.+(?:---)|(\s{2})(\(.*)|(?:\s--->\s)?(\w+\.).*Exception:.*/gi;
-        const exceptionMessagePattern = /(?<=--->\s+(.*)Exception:\s+).*/gi;
+        
 
         // setup
         this._agentLogger?.setLogLevel(this._logConfiguration.logLevel);
-        this._isRunning = true;
         const id = await this.getLogId(this._client);
-
+        this._isRunning = true;
+        
         // build
-        let numberOfLines = 0;
+        let iter = 0;
         do {
+            if(this._isLastRun){
+                this._isLastRun = false;
+            }
+            
             // refresh
             let agentLog = await this.getLog(this._client, id);
-            let lines: string[] = agentLog.replace(/\r/gi, '').split('\n');
-            let delta = lines.length - numberOfLines;
-            const log = [...lines];
+            let lines: string[] = this.splitLogToLines(agentLog);
+            let currentLinesNum = lines.length;
 
-            log.splice(0, numberOfLines === 0 ? delta : lines.length - delta);
-            numberOfLines = lines.length;
+            let delta = currentLinesNum - previousLinesNum;
+
+            lines.splice(0, previousLinesNum === 0 ? delta : currentLinesNum - delta);
+            previousLinesNum = currentLinesNum;
 
             // extract
-            for (let i = 0; i < log.length; i++) {
-                const line = log[i];
+            for (let i = 0; i < lines.length; i++) {
                 let logEntry = '';
-
-                if (line.match(rhinoPattern) && i < log.length) {
-                    let entries = [];
-
-                    while (log[i].match(rhinoPattern)) {
-                        entries.push(log[i].trim().replace(/\n|\r/, ' '));
-                        i++;
-                    }
-
-                    logEntry = entries.join('\n');
-                }
-
-                if (line.match(gravityPattern)) {
-                    logEntry = line.trim().replace(/\n|\r/, ' ');
-                }
-
                 let error: Error | undefined = undefined;
-                if (line.match(exceptionPattern)) {
-                    let entries = [];
-                    let message = 'N/A';
 
-                    while (log[i].match(exceptionPattern) && i < log.length) {
-                        const match = log[i].match(exceptionMessagePattern);
-                        if (match) {
-                            message = Utilities.getFirstMatch(match);
-                        }
-                        entries.push(log[i].trimEnd());
-                        i++;
-                    }
+                let entries: string[] = [];
 
-                    logEntry = entries.join('\n');
-                    error = new Error(message);
-                    error.stack = logEntry;
+                // build 'rhino' log
+                if(this.isRhinoPattern(lines[i])){
+                    entries = this.buildRhinoLog(lines,i);
                 }
 
-                this.write(logEntry, error);
+                // build 'gravity' log
+                else if (lines[i].match(this.gravityPattern)) {
+                    entries = [lines[i].trim().replace(newlineRegex, ' ')];
+                }
+
+                // build 'exception' log
+                else if (this.isExceptionPattern(lines[i])) {
+                    ({ entries, error} = this.buildExceptionLog(lines, i));
+                }
+                
+                // create log entry
+                if(entries.length > 0){
+                    logEntry = entries.join('\n');
+                    this.write(logEntry, error);
+
+                    // resetting index based on entries found
+                    i += entries.length - 1;
+                }
+
             }
 
             // interval
             await Utilities.waitAsync(this._logConfiguration.agentLogConfiguration.interval);
-        } while (this._isRunning);
+        } while (this._isRunning || this._isLastRun);
+    }
+
+    private splitLogToLines(agentLog: string): string[] {
+        return agentLog.split(newlineRegex).filter(Boolean);
+    }
+
+    private buildExceptionLog(log: string[], index: number) {
+        const exceptionMessagePattern = /(?<=--->\s+(.*)Exception:\s+).*/gi;
+        let entries = [];
+        let message = 'N/A';
+        let error: Error | undefined = undefined;
+
+        while (index < log.length && this.isExceptionPattern(log[index])) {
+            const match = log[index].match(exceptionMessagePattern);
+            if (match) {
+                message = Utilities.getFirstMatch(match);
+            }
+            entries.push(log[index].trim().replace(newlineRegex, ' '));
+            index++;
+        }
+
+        let errorEntry = entries.join('\n');
+        error = new Error(message);
+        error.stack = errorEntry;
+        return { entries, error };
+    }
+
+    private isExceptionPattern(logLine: string) {
+        return logLine.match(this.exceptionPattern);
     }
 
     public async stop(): Promise<void> {
         this._isRunning = false;
+        this._isLastRun = true;
+    }
+
+    private buildRhinoLog(log:string[], index:number):string[]{
+        let entries = [];
+        while (index < log.length && this.isRhinoPattern(log[index])) {
+            entries.push(log[index].trim().replace(newlineRegex, ' '));
+            index++;
+        }
+        return entries;
+    }
+
+    private isRhinoPattern(logLine: string) {
+        return logLine.match(this.rhinoPattern);
     }
 
     private async getLogId(client: RhinoClient): Promise<string> {
@@ -131,6 +176,13 @@ export class AgentLogListener {
             this._logger?.error(error.message, error);
         }
         return '';
+    }
+
+    public async getLogLines(): Promise<number> {
+        const id = await this.getLogId(this._client);
+        let agentLog = await this.getLog(this._client, id);
+        let lines: string[] = this.splitLogToLines(agentLog);
+        return lines.length;
     }
 
     private write(logEntry: string, error?: Error) {
