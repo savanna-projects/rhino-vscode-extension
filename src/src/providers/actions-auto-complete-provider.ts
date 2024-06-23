@@ -232,7 +232,7 @@ export class ActionsAutoCompleteProvider extends ProviderBase {
         if (matches === null) {
             return [];
         }
-
+        
         // build
         let action = matches[0].toLowerCase().split(' ');
 
@@ -254,6 +254,42 @@ export class ActionsAutoCompleteProvider extends ProviderBase {
         return this.getParametersBehaviors(manifest, document, position);
     }
 
+    // check whether position is inside the action's arguments - first opened '{{$' and outside nested '{{$' arguments
+    private isActionArguments(str:string, position:number): boolean {
+        let depth = 0; // Track nested levels of {{
+        let insideFirstOpeningBrackets = false;
+        let openingIndex = -1;
+        let positions:{start:number,end:number | undefined}[] = [];
+        for (let i = 0; i < str.length - 1; i++) {
+            if (str[i] === '{' && str[i + 1] === '{' && str[i+2] === '$') {
+                i+=2; // Skip checking the next 2 characters since it's part of {{$
+                if (depth === 0) {
+                    openingIndex = i;
+                }
+                else{
+                    positions[depth] = {start:i, end: undefined};
+                }
+                depth++;
+                
+            } else if (str[i] === '}' && str[i + 1] === '}') {
+                depth--;
+                if (depth === 0 && openingIndex !== -1) {
+                    // Check if position is inside the first {{
+                    insideFirstOpeningBrackets = (position >= openingIndex 
+                        && position < i 
+                        && positions.every(pos => !(pos.start >= i && pos?.end ? pos.end < i : position < i)));
+                    openingIndex = -1; // Reset opening index after first {{
+                    break; // No need to continue checking
+                }
+                else{
+                    positions[depth].end = i;
+                }
+                i++; // Skip checking the next character since it's part of }}
+            }
+        }
+    
+        return insideFirstOpeningBrackets;
+    }
     private getParametersBehaviors(
         manifest: any,
         document: vscode.TextDocument,
@@ -287,11 +323,11 @@ export class ActionsAutoCompleteProvider extends ProviderBase {
         let characterPosition = multiLine.length - line.length + position.character;
         
         let isKey = multiLine.match("(?<!['])" + manifest.literal);
-        let isParameters = multiLine.substring(0, characterPosition).match('(?<={{\\$\\s+.*?)--');
-        let isParameter = line[position.character - 3] + line[position.character - 2] + line[position.character - 1].match("^--$|\s--");
+        let isParameters = this.isActionArguments(multiLine, characterPosition) && multiLine.substring(0, characterPosition).match('(?<={{\\$\\s+.*?)--$');
+        let isParameter = (line[position.character - 3] + line[position.character - 2] + line[position.character - 1]).match("^--$|\s--");
     
         // not found
-        if (!isKey || !isParameters || !isParameter) {
+        if (!isKey || !(isParameters || isParameter)) {
             return new vscode.CompletionItem('-1');
         }
 
