@@ -1,4 +1,4 @@
-name: Rhino.Clients.VsCodeExtension.$(Year:yyyy).$(Month).$(DayOfMonth)
+name: Rhino.Clients.VsCodeExtension.$(Year:yyyy).$(Month).$(DayOfMonth)${Hours}${Minutes}
 
 trigger:
   branches:
