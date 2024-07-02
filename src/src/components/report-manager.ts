@@ -347,14 +347,13 @@ export class ReportManager {
         const isNull = testStep.steps === null || testStep.steps === undefined;
         const isRoot = isNull || testStep.steps.length === 0;
 
+        const stepsHtml: string[] = [];
         // parent step
         if (isRoot) {
             return this.getTestStepHtml(testStep, index);
         }
-
-        // setup
-        const stepsHtml: string[] = [];
         stepsHtml.push(this.getMetaStepHtml(testStep, index));
+        
 
         // build
         for (let i = 0; i < testStep.steps.length; i++) {
@@ -398,6 +397,31 @@ export class ReportManager {
         const match = testStep.action.match(pattern);
         const action = match === null || match === undefined ? testStep.action : match[0];
 
+        if(testStep.expectedResults.length > 0) {
+            // setup
+            const actionColor = testStep.actual === true ? '#3498db' : '#e74c3c';
+            const actionSign = testStep.actual === true ? 'M' : 'M-F';
+            const assertions = [];
+
+            // iterate
+            for (const result of testStep.expectedResults) {
+                let assertion = result;
+                let assertionHtml = this.resolveAssertionsHtml(assertion);
+                assertions.push(assertionHtml);
+            }
+
+            // build
+            const assertionsHtml = assertions.join('<br />');
+
+            return `
+            <tr>
+                <td style="width: 5%; vertical-align: top;"><pre>${index}</pre></td>
+                <td style="width: 3%; vertical-align: top;"><pre style="font-weight: 900; color: ${actionColor}">${actionSign}</pre></td>
+                <td style="width: 41%; vertical-align: top;"><pre>${action}</pre></td>
+                <td style="width: 41%; vertical-align: top;">${assertionsHtml}</td>
+                <td style="width: 10%; vertical-align: top;"><pre style="color: #3498db">${testStep.runTime.substr(0, 11)}</pre></td>
+            </tr>`;
+        }
         // get
         return `
         <tr>
