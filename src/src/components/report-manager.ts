@@ -437,8 +437,11 @@ export class ReportManager {
         const assertionColor = assertion?.actual ? '#000000' : '#e74c3c';
         const actual = this.getActualValue(assertion.reasonPhrase);
         const expected = this.getExpectedValue(assertion.reasonPhrase);
+        let assertHtml = `<pre style="color: ${assertionColor}">${assertion.expectedResult}<br />Expected: ${expected} <br />Actual: ${actual}</pre>`;
+        assertHtml = assertHtml.replace(/\<\!(?!-+)/g, "&lt;!").replace(/\!\>/g, "!&gt;");
+        
         // get
-        return `<pre style="color: ${assertionColor}">${assertion.expectedResult}<br />Expected: ${expected} <br />Actual: ${actual}</pre>`;
+        return assertHtml;
     }
 
     private static getActualValue(reasonPhrase: any): string {
