@@ -385,7 +385,7 @@ export class ReportManager {
         <tr>
             <td style="width: 5%; vertical-align: top;"><pre>${index}</pre></td>
             <td style="width: 3%; vertical-align: top;"><pre style="font-weight: 900; color: ${actionColor}">${actionSign}</pre></td>
-            <td style="width: 41%; vertical-align: top;"><pre>${testStep.action}</pre></td>
+            <td style="width: 41%; vertical-align: top;"><pre>${this.escapeHtmlTags(testStep.action)}</pre></td>
             <td style="width: 41%; vertical-align: top;">${assertionsHtml}</td>
             <td style="width: 10%; vertical-align: top;"><pre style="color: #3498db">${testStep.runTime.substr(0, 11)}</pre></td>
         </tr>`;
@@ -417,7 +417,7 @@ export class ReportManager {
             <tr>
                 <td style="width: 5%; vertical-align: top;"><pre>${index}</pre></td>
                 <td style="width: 3%; vertical-align: top;"><pre style="font-weight: 900; color: ${actionColor}">${actionSign}</pre></td>
-                <td style="width: 41%; vertical-align: top;"><pre>${action}</pre></td>
+                <td style="width: 41%; vertical-align: top;"><pre>${this.escapeHtmlTags(action)}</pre></td>
                 <td style="width: 41%; vertical-align: top;">${assertionsHtml}</td>
                 <td style="width: 10%; vertical-align: top;"><pre style="color: #3498db">${testStep.runTime.substr(0, 11)}</pre></td>
             </tr>`;
@@ -427,7 +427,7 @@ export class ReportManager {
         <tr>
             <td style="width: 5%; vertical-align: top;"><pre>${index}</pre></td>
             <td style="width: 3%; vertical-align: top;"><pre style="font-weight: 900; color: #3498db">M</pre></td>
-            <td colspan="2" style="font-weight: 900; width: 41%; vertical-align: top;"><pre>${action}</pre></td>
+            <td colspan="2" style="font-weight: 900; width: 41%; vertical-align: top;"><pre>${this.escapeHtmlTags(action)}</pre></td>
             <td style="width: 10%; vertical-align: top;"><pre style="color: #3498db">${testStep.runTime.substr(0, 11)}</pre></td>
         </tr>`;
     }
@@ -437,11 +437,15 @@ export class ReportManager {
         const assertionColor = assertion?.actual ? '#000000' : '#e74c3c';
         const actual = this.getActualValue(assertion.reasonPhrase);
         const expected = this.getExpectedValue(assertion.reasonPhrase);
-        let assertHtml = `<pre style="color: ${assertionColor}">${assertion.expectedResult}<br />Expected: ${expected} <br />Actual: ${actual}</pre>`;
-        assertHtml = assertHtml.replace(/\<\!(?!-+)/g, "&lt;!").replace(/\!\>/g, "!&gt;");
+        let assertHtml = `<pre style="color: ${assertionColor}">${this.escapeHtmlTags(assertion.expectedResult)}<br />Expected: ${this.escapeHtmlTags(expected)} <br />Actual: ${this.escapeHtmlTags(actual)}</pre>`;
+
         
         // get
         return assertHtml;
+    }
+
+    private static escapeHtmlTags(html: string): string {
+        return html.replace("<", "&lt;").replace(">", "&gt;");
     }
 
     private static getActualValue(reasonPhrase: any): string {
