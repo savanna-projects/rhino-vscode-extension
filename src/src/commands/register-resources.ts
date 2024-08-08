@@ -16,6 +16,7 @@ import { ResourceModel } from '../models/register-data-model';
 import { TmLanguageCreateModel } from '../models/tm-create-model';
 import { CommandBase } from "./command-base";
 import { RhinoClient } from '../clients/rhino-client';
+import { StringUtilities } from '../extensions/stringUtilities';
 
 export class RegisterResourcesCommand extends CommandBase {
     // members: static
@@ -74,8 +75,8 @@ export class RegisterResourcesCommand extends CommandBase {
             if (!resourceContent) {
                 continue;
             }
-
-            resourcesMap.set(resourceFile, resourceContent);
+            let base64Content = StringUtilities.encodeBase64(resourceContent);
+            resourcesMap.set(resourceFile, base64Content);
         }
 
         const resources: ResourceModel[] = [];
