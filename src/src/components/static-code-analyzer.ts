@@ -211,7 +211,7 @@ export class StaticCodeAnalyzer {
     private async getDocumentSections(documentData: DocumentData, sections: string[] | undefined): Promise<DocumentData[]>{
         const annotations = (await this._createModel).annotations;
         const documentSections: DocumentData[] = !sections
-            ? [documentData]
+            ? [{lines: [documentData.lines.join('\n')], range: new vscode.Range(documentData.range.start, documentData.range.end)}]
             // flatMap to remove 'undefined' results
             : sections.flatMap((section) => {
                 let doc = this.getSection(documentData.lines, section, annotations);
@@ -381,9 +381,9 @@ export class StaticCodeAnalyzer {
             const model = new DiagnosticModel();
             model.type = entry.type;
             model.description = entry.description;
-            model.expression = new RegExp(entry.expression, 'g');
-            model.id = entry.id;
             model.multiline = entry?.multiline ? entry.multiline : false;
+            model.expression = model.multiline ? new RegExp(entry.expression, 'g') : new RegExp(entry.expression, 'gs');
+            model.id = entry.id;
             model.sections = entry.sections;
             model.severity = StaticCodeAnalyzer.getSeverity(entry.severity);
             model.entities = entry.entities;

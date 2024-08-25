@@ -59,5 +59,17 @@
             "Plugin",
             "Test"
         ]
+    },
+    {
+        "type": "positive",
+        "description": "Duplicated annotations in rhino file.",
+        "expression": "(\\[test-id\\].*){2,}|(\\[test-scenario\\].*){2,}|(\\[test-parameters\\].*){2,}|(\\[test-actions\\].*){2,}|(\\[test-expected-results\\].*){2,}|(\\[test-examples\\].*){2,}",
+        "id": "RHG0004",
+        "multiline": false,
+        "severity": "error",
+        "entities": [
+            "Plugin",
+            "Test"
+        ]
     }
 ]
